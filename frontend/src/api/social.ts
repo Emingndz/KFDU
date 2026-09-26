@@ -2,7 +2,7 @@ import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { api } from './client'
 import type { CatalogContentType } from './catalog'
-import type { Page, ReviewDetail, ReviewOut } from '@/types'
+import type { CommentOut, CursorPage, Page, ReviewDetail, ReviewOut } from '@/types'
 
 export function listContentReviewsRequest(type: CatalogContentType, externalId: string, sort: 'new' | 'popular' = 'new', page = 1) {
   return api<Page<ReviewOut>>('/reviews', { query: { type, external_id: externalId, sort, page } })
@@ -57,5 +57,55 @@ export function useUnlikeActivity() {
   return useMutation({
     mutationFn: unlikeActivityRequest,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews'] }),
+  })
+}
+
+export function listCommentsRequest(activityId: number, cursor?: string) {
+  return api<CursorPage<CommentOut>>(`/activities/${activityId}/comments`, { query: { cursor } })
+}
+
+export function useComments(activityId: MaybeRefOrGetter<number>) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['comments', toValue(activityId)],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => listCommentsRequest(toValue(activityId), pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: CursorPage<CommentOut>) => lastPage.next_cursor ?? undefined,
+    staleTime: 30_000,
+  }))
+}
+
+export function addCommentRequest(activityId: number, body: string) {
+  return api<CommentOut>(`/activities/${activityId}/comments`, { method: 'POST', body: { body } })
+}
+
+export function updateCommentRequest(commentId: number, body: string) {
+  return api<CommentOut>(`/comments/${commentId}`, { method: 'PATCH', body: { body } })
+}
+
+export function deleteCommentRequest(commentId: number) {
+  return api<void>(`/comments/${commentId}`, { method: 'DELETE' })
+}
+
+export function useAddComment(activityId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: string) => addCommentRequest(activityId, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', activityId] }),
+  })
+}
+
+export function useUpdateComment(activityId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commentId, body }: { commentId: number; body: string }) => updateCommentRequest(commentId, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', activityId] }),
+  })
+}
+
+export function useDeleteComment(activityId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteCommentRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', activityId] }),
   })
 }

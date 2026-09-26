@@ -39,6 +39,7 @@ export type ReviewUpdateIn = components['schemas']['ReviewUpdateIn']
 export type ReviewBasicOut = components['schemas']['ReviewBasicOut']
 export type ReviewOut = components['schemas']['ReviewOut']
 export type ReviewDetail = components['schemas']['ReviewDetail']
+export type CommentOut = components['schemas']['CommentOut']
 
 export type ListCreateIn = components['schemas']['ListCreateIn']
 export type ListUpdateIn = components['schemas']['ListUpdateIn']

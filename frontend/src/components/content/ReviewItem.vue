@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { Heart, MessageCircle } from 'lucide-vue-next'
+import { MessageCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import type { ReviewOut } from '@/types'
 import { useLikeActivity, useUnlikeActivity } from '@/api/social'
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { relativeTime } from '@/utils/format'
 import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import RatingDisplay from '@/components/content/RatingDisplay.vue'
+import LikeButton from '@/components/content/LikeButton.vue'
 
 const props = defineProps<{ review: ReviewOut }>()
 
@@ -23,7 +24,7 @@ const likePending = ref(false)
 const likeMutation = useLikeActivity()
 const unlikeMutation = useUnlikeActivity()
 
-async function toggleLike() {
+async function toggleLike(next: boolean) {
   if (!props.review.activity_id || likePending.value) return
   if (!auth.isAuthenticated) {
     toast.info('Bunun için giriş yapmalısın')
@@ -31,15 +32,14 @@ async function toggleLike() {
     return
   }
   likePending.value = true
-  const wasLiked = liked.value
-  liked.value = !wasLiked
-  likesCount.value += wasLiked ? -1 : 1
+  liked.value = next
+  likesCount.value += next ? 1 : -1
   try {
-    if (wasLiked) await unlikeMutation.mutateAsync(props.review.activity_id)
-    else await likeMutation.mutateAsync(props.review.activity_id)
+    if (next) await likeMutation.mutateAsync(props.review.activity_id)
+    else await unlikeMutation.mutateAsync(props.review.activity_id)
   } catch {
-    liked.value = wasLiked
-    likesCount.value += wasLiked ? 1 : -1
+    liked.value = !next
+    likesCount.value += next ? -1 : 1
     toast.error('Bir şeyler ters gitti')
   } finally {
     likePending.value = false
@@ -86,19 +86,9 @@ const displayName = computed(() => props.review.author.display_name || props.rev
       </button>
     </div>
 
-    <div class="flex items-center gap-4 text-sm text-muted">
-      <button
-        type="button"
-        class="flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-50"
-        :class="liked ? 'text-like' : ''"
-        :disabled="!review.activity_id"
-        :aria-pressed="liked"
-        @click="toggleLike"
-      >
-        <Heart class="size-4" :fill="liked ? 'currentColor' : 'none'" />
-        {{ likesCount }}
-      </button>
-      <RouterLink :to="`/inceleme/${review.id}`" class="flex items-center gap-1 hover:text-fg">
+    <div class="flex items-center gap-4">
+      <LikeButton :model-value="liked" :count="likesCount" :disabled="!review.activity_id" @update:model-value="toggleLike" />
+      <RouterLink :to="`/inceleme/${review.id}`" class="flex items-center gap-1 text-sm text-muted hover:text-fg">
         <MessageCircle class="size-4" />
         {{ review.comments_count }}
       </RouterLink>

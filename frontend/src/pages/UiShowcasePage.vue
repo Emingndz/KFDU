@@ -29,6 +29,7 @@ import ContentRow from '@/components/content/ContentRow.vue'
 import LibraryButtons from '@/components/content/LibraryButtons.vue'
 import FavoriteButton from '@/components/content/FavoriteButton.vue'
 import AddToListMenu from '@/components/content/AddToListMenu.vue'
+import LikeButton from '@/components/content/LikeButton.vue'
 import type { ContentSummary, LibraryStatus } from '@/types'
 
 const { mode, options: themeOptions } = useTheme()
@@ -86,6 +87,8 @@ const demoContent: ContentSummary[] = [
 const demoRating = ref<number | null>(7)
 const demoStatus = ref<LibraryStatus | null>('in_progress')
 const demoFavorite = ref(false)
+const demoLiked = ref(false)
+const demoLikes = ref(12)
 
 
 async function onConfirmDemo() {
@@ -250,6 +253,16 @@ function toggleLoadingDemo() {
         <LibraryButtons type="movie" :status="demoStatus" @update:status="(v) => (demoStatus = demoStatus === v ? null : v)" />
         <FavoriteButton v-model="demoFavorite" />
         <AddToListMenu type="movie" external-id="27205" :content-id="1" />
+        <LikeButton
+          :model-value="demoLiked"
+          :count="demoLikes"
+          @update:model-value="
+            (v) => {
+              demoLiked = v
+              demoLikes += v ? 1 : -1
+            }
+          "
+        />
       </div>
       <p class="text-xs text-muted">Durum: {{ demoStatus ?? '—' }} · Favori: {{ demoFavorite }}</p>
     </section>
