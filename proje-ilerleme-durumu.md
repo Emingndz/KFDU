@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.5 — Kullanıcılar ve takip** |
+| Sıradaki adım | **F1.6 — Katalog: TMDB + Open Library (+ Google Books)** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `cf0ff06` (feat(F1.4): kimlik doğrulama modülü) |
+| Son commit | `90c6ed0` (feat(F1.5): kullanıcılar ve takip) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -41,6 +41,7 @@
 - **F1.2 tamamlandı:** `app/core/` tam (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + `app/main.py` (`create_app()`, CORS allowlist, hata yakalayıcılar, slowapi, `/media`, `GET /api/v1/health`). `tests/conftest.py` bellek içi SQLite ile `get_db` override ediyor; 5 test yeşil, ruff temiz. Gerçek sunucuda `/api/v1/health`, `/docs` ve bilinmeyen rota 404 formatı doğrulandı.
 - **F1.3 tamamlandı:** §4.2'deki 12 tablo modüllerin `models.py`'sinde (auth/users/catalog/library/social/lists), tüm CHECK/UNIQUE kısıtları ve `ON DELETE CASCADE` FK'ler mevcut. `Base.type_annotation_map` sayesinde her `datetime` alanı otomatik `DateTime(timezone=True)`. Alembic kuruldu, ilk migration (`fa1eb17da6a0_v2_ilk_sema`) `backend/kfdu.db`'ye uygulandı, `alembic check` temiz. `backend/kfdu.db` gitignore'da (`*.db`), depoya girmiyor; her geliştirici kendi makinesinde `alembic upgrade head` ile oluşturur.
 - **F1.4 tamamlandı:** `auth` modülü uçtan uca çalışıyor: `/auth/register|login|token|password-reset/{request,verify,confirm}|change-password|logout-all`. `users/deps.py` (`CurrentUser`/`OptionalUser`), `users/validation.py` (kullanıcı adı kuralı — paylaşılan, F1.5 de kullanacak). **Dikkat (F1.5 için):** `users/schemas.py` zaten var ama yalnızca `PublicUserOut`+`MeOut` içeriyor — F1.5 bu dosyayı genişletecek, üzerine yazmayacak. Gerçek sunucuda OAuth2 `/auth/token` ile Swagger "Authorize" akışı ve korumalı uç (401+`WWW-Authenticate: Bearer` / 204 başarı) doğrulandı. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` eklendi. 13 yeni test (toplam 22) yeşil.
+- **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekleyecek, veriyi tekrar tanımlamayacak). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -51,7 +52,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 4/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 5/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -100,7 +101,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.2 — Çekirdek altyapı — ✅ (2026-09-26)
 - [x] F1.3 — Veri modeli ve Alembic — ✅ (2026-09-26)
 - [x] F1.4 — Kimlik doğrulama modülü — ✅ (2026-09-26)
-- [ ] F1.5 — Kullanıcılar ve takip
+- [x] F1.5 — Kullanıcılar ve takip — ✅ (2026-09-26)
 - [ ] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir**
 - [ ] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma
 - [ ] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim
@@ -187,14 +188,14 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-03 | TMDB anahtarı kodda | 👤 U2 + F0.3 | 🟡 kod tarafı ✅ (`7610a0c`) — eski anahtar hâlâ geçerli, U2 yenileme bekliyor | |
 | SEC-04 | Veritabanı ve `__pycache__` depoda, `.gitignore` yok | F0.2 (+ F0.5) | ✅ (güncel ağaç; geçmiş için F0.5 opsiyonel) | `c80451f` |
 | SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | ✅ | `cf0ff06` |
-| SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | 🔴 | |
+| SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | ✅ | `90c6ed0` |
 | SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | ✅ | `cf0ff06` |
 | SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | 🟡 kısmi (kimlik: F1.4 ✅; puan/metin uzunluğu F1.7) | `cf0ff06` |
 | SEC-09 | CORS `*` + credentials | F1.2 | ✅ | `845b3e8` |
 | BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | 🔴 | |
 | BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🔴 | |
 | BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | ✅ | `cf0ff06` |
-| BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | 🔴 | |
+| BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
 | BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | 🟡 backend ✅ (F1.4: 7 gün token, 401+WWW-Authenticate); frontend 401 yönetimi F2.3 | `cf0ff06` |
 | BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🔴 | |
@@ -270,6 +271,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-26 | D-01 … D-13 | Plan §12.1'deki mimari, teknoloji, veri modeli, AI ve git kararları | ✅ Kullanıcı "devam et" ile onayladı |
 | 2026-09-26 | D-14 | F0.5 (git geçmişi temizliği) atlansın — U1/U2 asıl çözüm, F0.5 yalnız kozmetik | ✅ Kullanıcı kararı |
 | 2026-09-26 | D-15 | `v2` dalı ve `legacy-v1` etiketi origin'e (public GitHub) push edilsin | ✅ Kullanıcı onayı, uygulandı |
+| 2026-09-26 | D-16 | Ek C kanonik tür verisi plandaki gibi yalnız `catalog/genres.py`'de değil, `core/genres.py`'de tutulacak (ham tablo + `GENRE_KEYS`); `catalog/genres.py` (F1.6) bunun üzerine TMDB/OL yardımcılarını ekleyecek | ✅ Uygulayıcı kararı — §3.5.2 bağımlılık kuralı (`users` yalnız `core`'u içe aktarabilir, `catalog`'u içe aktaramaz) `favorite_genres` doğrulamasını `catalog`'a bağımlı kılmadan mümkün kılmak için gerekliydi. Veri tekrarı yok, tek kaynak `core/genres.py`. |
 
 ---
 
@@ -324,6 +326,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.5 — Kullanıcılar ve takip — ✅
+
+- **Yapılanlar:** `core/genres.py` eklendi — Ek C'nin tamamı (`GenreEntry` + `GENRE_TABLE`, 30 tür) ve türetilmiş `GENRE_LABELS`/`GENRE_KEYS` (bkz. D-16 kararı). `users/schemas.py` genişletildi: `ProfileOut`, `PublicUserWithFollowOut`, `MeUpdateIn` (kısmi güncelleme + `favorite_genres ⊆ GENRE_KEYS` doğrulaması), `EmailChangeIn`, `DeleteAccountIn`. `users/avatars.py`: tür (jpg/png/webp) ve boyut (≤2MB) doğrulama, Pillow ile merkezden kare kırpma, 256×256 WEBP (kalite 85), `media/avatars/{user_id}_{uuid8}.webp`. `users/service.py`: `get_profile` (takip sayaçları + `is_following`/`follows_me` tek `db.get` sorgusuyla), `update_me` (`model_dump(exclude_unset=True)` ile yalnız gönderilen alanlar), `change_email` (şifre doğrulama + 409), `follow`/`unfollow` (idempotent, kendini takip → 400 `CANNOT_FOLLOW_SELF`, `users.followed` olayı commit'ten ÖNCE yayınlanıyor — §3.5.2), `list_followers`/`list_following` (N+1'siz — sayfa + tek ek sorguyla `is_following` kümesi), `search_users` (≥2 karakter, kimlik ister), `suggestions` (LEFT JOIN + GROUP BY ile takipçi sayısına göre), `delete_account` (şifre doğrula, avatar dosyasını sil, satırı sil → DB cascade). `users/router.py` (§5.2): `/me`, `/search`, `/suggestions` yolları `/{username}`'den ÖNCE tanımlandı (aksi halde `/{username}` bunları yutar).
+- **Değişen dosyalar:** `backend/app/core/genres.py` (yeni), `backend/app/modules/users/{schemas,avatars,service,router}.py`, `backend/app/main.py` (router kaydı), `backend/tests/test_users.py` (yeni, 8 test).
+- **Doğrulama:** `pytest` → 30 passed (8 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · OpenAPI şemasında tüm `/users/*` uçları doğru yolda ve doğru sırada kayıtlı ✓
+- **Kapanan maddeler:** SEC-06, BUG-04
+- **Commit:** `90c6ed0`
+- **Notlar / sorunlar:** D-16 kararı (yukarı bkz.) — Ek C verisinin konumu planın literal ifadesinden ("catalog/genres.py: Ek C → GENRES") küçük bir sapma; F1.6'da `catalog/genres.py` bu ortak veriyi kullanacak şekilde kurulacak, veri tekrarı olmayacak.
+- **Sonraki adım:** F1.6
 
 ### [2026-09-26] F1.4 — Kimlik doğrulama modülü — ✅
 
