@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-27** — F3.4 tamamlandı (İnceleme sayfası ve yorum dizisi).
+> Son güncelleme: **2026-09-27** — F3.5 tamamlandı (Akış/feed sayfası).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.5 — Akış (feed) sayfası** |
+| Sıradaki adım | **F3.6 — Profil sayfası** |
 | Çalışma dalı | `v2` |
-| Son commit | `6979589` (feat(F3.4): İnceleme sayfası ve yorum dizisi) |
+| Son commit | `54750e5` (feat(F3.5): Akış (feed) sayfası) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -62,7 +62,11 @@
 - **F3.4 tamamlandı (2026-09-27):** `api/social.ts` genişletildi: `useComments` (`CursorPage`, `list_comments` gerçekte **eskiden yeniye** ilerliyor — planın "Önceki yorumları göster" ifadesi bu yönle tam örtüşmüyor, buton nötr "Daha fazla yorum göster" olarak adlandırıldı), `useAddComment`/`useUpdateComment`/`useDeleteComment`. `LikeButton` (yeni, paylaşılan — kalp+sayı, `aria-pressed`, kısa CSS keyframe "pulse"; `ReviewItem`'in F3.3'te yazılmış kendi iç kalp butonu bu bileşene geçirildi, mantık `ReviewItem`'de kaldı). `CommentThread` (yeni): imleçli liste + "Daha fazla yorum göster", ekleme (Enter gönderir/Shift+Enter yeni satır/1000 karakter sayacı, yerel `pendingComments` overlay'iyle iyimser ekleme — TanStack cache'i değil, `useContentActions`'daki aynı desen), satır içi düzenleme, silme (`can_edit`/`can_delete` — **backend zaten hesaplayıp gönderiyor**, "sahip VEYA aktivite sahibi silebilir" kuralı dahil, istemci tarafında ayrıca hesaplama gerekmedi), `compact` modu (son 2 yorum). `ReviewPage.vue` (`/inceleme/:id`): içerik mini başlığı, yazar bilgisi, `RatingDisplay`, tam metin+spoiler bulanıklığı, `LikeButton`, Paylaş, sahibiyse satır içi Düzenle (`ReviewEditor`'ı yeniden kullanmak yerine kendi küçük düzenleme formu — ReviewEditor kendi `useReviewDetail` sorgusunu tekrar tetikleyip çift veri çekimine yol açardı, ayrıca yazar bilgisi/puan/beğeni gibi ReviewPage'e özel alanları göstermiyor) + Sil (onay → içerik sayfasına dön), `CommentThread`.
   - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `CommentThread` eklenmedi (gerçek bir `activityId` gerektiriyor, sahte biriyle yalnızca hata durumu gösterirdi) — bunun yerine gerçek backend'e karşı curl ile kapsamlı doğrulandı. `LikeButton` yerel sahte durumla vitrine eklendi.
   - **Gerçek backend'e karşı uçtan uca (curl, iki test kullanıcısıyla):** yorum ekle → `can_edit`/`can_delete` sahibi için `true` ✓; başka kullanıcı görünce ikisi de `false` ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `updated_at` değişiyor ✓; **aktivite sahibi (yorum sahibi değil) başkasının yorumunu siliyor → 204** (F1.8'in "sahip veya aktivite sahibi silebilir" kuralı doğrulandı) ✓. Test kullanıcıları temizlendi.
-- **Sırada:** F3.5 — Akış (feed) sayfası (`api/social.ts`'e `useFeed`/`useLike` eklenecek, `ActivityCard`, `FeedPage` `/`).
+- **F3.5 tamamlandı (2026-09-27):** `api/social.ts` genişletildi: `useFeed(scope)` (`CursorPage<ActivityOut>`, 15'er), `useLike()` — planın açıkça istediği gibi (**"akış önbelleğindeki kartı günceller"**) bu, bu oturumdaki İLK gerçek TanStack cache-seviyeli iyimser güncelleme: `onMutate`'te `queryClient.setQueriesData({queryKey:['feed']}, ...)` ile eşleşen `['feed','following']`/`['feed','global']` sorgularının HER İKİSİNDEKİ kartı da (aynı aktivite ikisinde de görünebilir) doğrudan yamalıyor, hata olursa `onError`'da geri alıyor (diğer bileşenlerdeki yerel-overlay deseninden bilinçli bir sapma — çünkü BU spesifik gereksinim doğrudan önbellek güncellemesi istiyor). `utils/activity.ts` (yeni): `activityActionText(activity)` — planın 5 `card_type` için verdiği TAM aksiyon metni eşlemesi (rating/review/status film-dizi/status kitap/list_add/list_create), 4 test. `ActivityCard.vue` (yeni): ortak başlık (avatar+ad+aksiyon metni+göreli tarih, `title`'da tam tarih) + `card_type`'a göre 5 farklı gövde + ortak alt bilgi (`LikeButton`+"Yorum yap"+Paylaş). "Yorum yap" `CommentThread`'i satır içi açıyor (`compact` modda — F3.4'te compact modun girdi kutusunu GİZLEMESİ gerekiyordu, ama bu adımda planın "son 2 yorum + giriş + 'Tüm yorumlar'" ifadesiyle çeliştiği fark edilip **CommentThread'in girdi kutusu artık compact'te de gösteriliyor** — yalnız yorum SAYISI ve "daha fazla" sayfalaması compact'te kısıtlı); `CommentThread`'e yeni `expand` olayı eklendi ("Tüm yorumlar" tıklanınca `compact→full` geçişi). `FeedPage.vue` (`/`): Takip Ettiklerim/Herkes sekmeleri (ilk `following` sonucu boşsa OTOMATİK `global`'e geçiyor — "kimseyi takip etmiyorsa" durumunu dolaylı ama pratik biçimde yakalıyor, doğrudan bir "takip sayısı" alanı olmadığı için), "Arkadaşlarını bul" kartı, gerçek `IntersectionObserver` (rootMargin 400px) + görünür "Daha fazla yükle" butonu + son sayfada "Hepsi bu kadar 🎉", masaüstü kenar çubuğu ("Kimi takip etmeli?", "Trend Kitaplar"), 3 iskelet kart/hata/sekmeye özel boş durumlar.
+  - **Yeniden kullanım:** `composables/useFollowToggle.ts` (yeni) — F3.2'de `DiscoverPage`'e özel yazılmış takip et/bırak mantığı, F3.5'te `FeedPage`'in kenar çubuğu da AYNI ihtiyacı duyunca paylaşılan bir composable'a çıkarıldı (ikinci gerçek ihtiyaç anı — erken soyutlama değil); `DiscoverPage` da bunu kullanacak şekilde refactor edildi, davranış değişmedi.
+  - **Gerçek backend'e karşı doğrulama (curl):** `GET /feed?scope=global&limit=50` gerçek seed verisiyle **5 card_type'ın tamamını** döndürdü (12 rating, 5 review, 23 status, 8 list_add, 2 list_create) — hepsi `ActivityOut` tipiyle birebir eşleşti; bir "status" (kitap, planned) ve bir "review" (puan+kesilmemiş alıntı) örneği elle incelenip `activityActionText`'in ürettiği metinle karşılaştırıldı, doğru.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `ActivityCard` sahte `ActivityOut` verisiyle eklendi (5 card_type'ın hepsi) — beğeni/yorum tıklamaları sahte aktivite kimliğine gittiği için hata toast'u gösterebilir, bu bilinen ve kabul edilebilir bir demo sınırlaması (not olarak sayfada da yazılı).
+- **Sırada:** F3.6 — Profil sayfası (`ProfilePage` `/u/:username`, sekmeli kütüphane/puanlar/incelemeler/listeler/favoriler).
 - **Sırada:** F3.3 — İçerik detay sayfası (`ContentDetailPage`, `useContentState`'in gerçek ilk tüketicisi — `useContentActions`'ın iyimser katmanı burada TanStack cache'iyle entegrasyonu yeniden değerlendirilecek).
 
 ---
@@ -74,12 +78,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 4/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 5/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **25/64** | | |
+| **Toplam** | | | **26/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -143,7 +147,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.2 — Keşfet sayfası — ✅ (2026-09-27)
 - [x] F3.3 — İçerik detay sayfası — ✅ (2026-09-27)
 - [x] F3.4 — İnceleme sayfası ve yorum dizisi — ✅ (2026-09-27)
-- [ ] F3.5 — Akış (feed) sayfası
+- [x] F3.5 — Akış (feed) sayfası — ✅ (2026-09-27)
 - [ ] F3.6 — Profil sayfası
 - [ ] F3.7 — Listeler
 - [ ] F3.8 — Ayarlar sayfası
@@ -223,8 +227,8 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | ✅ (v2'de gerçek e-posta/log tabanlı 3 adımlı akış var, "(Demo: ...)" metni yok) | `031befa` |
 | BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | ✅ (`client.ts`'teki `api()` tüm sorgu parametrelerini `URLSearchParams` ile otomatik kodluyor) | `e104538` |
-| BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🟡 backend ✅ (`created_at`+`excerpt`+`card_type` API'de var); arayüz F3.5 | `9286a24` |
-| BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ backend (imleçli sayfalama + N+1 giderildi, testle doğrulandı) | `9286a24` |
+| BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | ✅ | `9286a24`, `54750e5` |
+| BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ (backend imleçli sayfalama + N+1 giderildi; arayüz gerçek `IntersectionObserver`) | `9286a24`, `54750e5` |
 | BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | ✅ (backend doğru sayfalama; arayüz `useSearch`/`useDiscover` ile gerçek sonsuz kaydırma — `IntersectionObserver` sentinel'i, `has_next`'e göre otomatik `fetchNextPage`) | `8c12de7`, `dcffa45` |
 | BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | ✅ | `8c12de7` |
 | BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
@@ -253,13 +257,13 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.1b | Giriş: e-posta + şifre | F1.4, F2.4 | ✅ (v2'de ayrıca kullanıcı adıyla da girilebiliyor) | `LoginPage.vue` `031befa` |
 | REQ-2.1.1c | Net hata mesajları | F1.2, F1.4, F2.4 | ✅ | `ApiError`+form/alan hataları, curl ile doğrulandı `031befa` |
 | REQ-2.1.1d | Şifremi unuttum (e-posta) | F1.4, F2.4 | ✅ | `ForgotPasswordPage.vue`, uçtan uca curl ile doğrulandı `031befa` |
-| REQ-2.1.2a | Takip edilenlerin aktiviteleri (yeniden eskiye) | F1.8, F3.5 | ⬜ | |
-| REQ-2.1.2b | Kart başlığı: avatar, ad (link), aksiyon metni, göreli tarih | F3.5 | ⬜ | |
-| REQ-2.1.2c | Türe göre gövde, afiş ön planda | F3.5 | ⬜ | |
-| REQ-2.1.2d | Beğen / Yorum Yap | F1.8, F3.4, F3.5 | ⬜ | |
-| REQ-2.1.2e | Puanlama kartı: büyük afiş + yıldız / x/10 | F3.5 | ⬜ | |
-| REQ-2.1.2f | İnceleme kartı: 150–200 karakter alıntı + "…daha fazlasını oku" | F3.4, F3.5 | ⬜ | |
-| REQ-2.1.2g | Sayfalama: ilk 10–15 + sonsuz kaydırma / daha fazla yükle | F1.8, F3.5 | ⬜ | |
+| REQ-2.1.2a | Takip edilenlerin aktiviteleri (yeniden eskiye) | F1.8, F3.5 | ✅ | `FeedPage.vue` (`54750e5`) |
+| REQ-2.1.2b | Kart başlığı: avatar, ad (link), aksiyon metni, göreli tarih | F3.5 | ✅ | `ActivityCard.vue` (`54750e5`) |
+| REQ-2.1.2c | Türe göre gövde, afiş ön planda | F3.5 | ✅ | `ActivityCard.vue` — 5 `card_type` gövdesi (`54750e5`) |
+| REQ-2.1.2d | Beğen / Yorum Yap | F1.8, F3.4, F3.5 | ✅ | `LikeButton`+`CommentThread` (`54750e5`) |
+| REQ-2.1.2e | Puanlama kartı: büyük afiş + yıldız / x/10 | F3.5 | ✅ | `ActivityCard.vue` (`54750e5`) |
+| REQ-2.1.2f | İnceleme kartı: 150–200 karakter alıntı + "…daha fazlasını oku" | F3.4, F3.5 | ✅ | `ActivityCard.vue` (`54750e5`) |
+| REQ-2.1.2g | Sayfalama: ilk 10–15 + sonsuz kaydırma / daha fazla yükle | F1.8, F3.5 | ✅ | `FeedPage.vue` — 15'er, `IntersectionObserver`+buton (`54750e5`) |
 | REQ-2.1.3a | Arama → detay (kapak, başlık, yıl) | F1.6, F3.2 | ✅ | `ContentDetailPage.vue` (`1c23219`) |
 | REQ-2.1.3b | Vitrin: En Yüksek Puanlılar, En Popülerler | F1.10, F3.2 | ✅ | `DiscoverPage.vue`, kitapla curl ile doğrulandı (`dcffa45`) |
 | REQ-2.1.3c | Filtre: tür, yıl, puan | F1.6, F3.2 | ✅ | `FilterPanel.vue` + `useDiscover`, curl ile doğrulandı (`dcffa45`) |
@@ -352,6 +356,23 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-27] F3.5 — Akış (feed) sayfası — ✅
+
+- **Yapılanlar:**
+  - `api/social.ts`: `useFeed(scope)` (`CursorPage<ActivityOut>`, 15'er). `useLike()` — bu oturumun İLK gerçek TanStack cache-seviyeli iyimser güncellemesi: `onMutate`'te `queryClient.setQueriesData({queryKey:['feed']}, ...)` ile `['feed','following']` VE `['feed','global']` sorgularının her ikisinde de (aynı aktivite ikisinde de görünebileceği için) eşleşen kartı doğrudan yamalıyor (`liked_by_me`+`likes_count`), hata olursa `onError`'da `previous` snapshot'ıyla geri alıyor. Diğer bileşenlerdeki yerel-overlay deseninden bilinçli bir sapma — plan burada açıkça "akış önbelleğindeki kartı günceller" diyor.
+  - `utils/activity.ts` (yeni): `activityActionText(activity)` — planın 5 `card_type` için verdiği tam aksiyon metni eşlemesi (rating: "bir X puanladı"; review: "bir X hakkında inceleme yazdı"; status: film/dizi ve kitap için ayrı fiiller; list_add: "'{liste}' listesine ekledi"; list_create: "yeni bir liste oluşturdu"). 4 test.
+  - `ActivityCard.vue` (yeni): ortak başlık (avatar+ad+aksiyon metni+göreli tarih, `title` özniteliğinde tam tarih) + `card_type`'a göre 5 gövde + ortak alt bilgi (`LikeButton`+"Yorum yap"+Paylaş).
+  - **F3.4'te alınan bir kararın düzeltilmesi:** `CommentThread`'in `compact` modu girdi kutusunu gizliyordu; bu adımda planın "son 2 yorum + giriş + 'Tüm yorumlar'" ifadesiyle çeliştiği fark edildi — girdi kutusu artık `compact`'te de gösteriliyor, yalnızca gösterilen yorum sayısı ve "daha fazla" sayfalaması kısıtlanıyor. `CommentThread`'e yeni `expand` olayı eklendi ("Tüm yorumlar (N)" bağlantısı tıklanınca `compact→full`).
+  - `FeedPage.vue` (`/`): Takip Ettiklerim/Herkes sekmeleri — ilk `following` sonucu boş gelirse otomatik `global`'e geçiyor (doğrudan bir "takip sayısı" alanı olmadığı için "kimseyi takip etmiyorsa" durumunu dolaylı ama pratik biçimde yakalıyor; kullanıcı sekmeyi elle değiştirirse bu otomatik geçiş bir daha tetiklenmiyor), "Arkadaşlarını bul" kartı, gerçek `IntersectionObserver` (rootMargin 400px) + görünür "Daha fazla yükle" butonu + son sayfada "Hepsi bu kadar 🎉", masaüstü kenar çubuğu ("Kimi takip etmeli?" + "Trend Kitaplar"), 3 iskelet kart/hata/sekmeye özel boş durumlar.
+  - **Yeniden kullanım:** `composables/useFollowToggle.ts` (yeni) — F3.2'de `DiscoverPage`'e özel yazılmış takip et/bırak mantığı, `FeedPage`'in kenar çubuğu da aynı ihtiyacı duyunca paylaşılan composable'a çıkarıldı (ikinci gerçek ihtiyaç anı, erken soyutlama değil); `DiscoverPage` da kullanacak şekilde refactor edildi, davranış değişmedi.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `ActivityCard` sahte `ActivityOut` verisiyle eklendi (5 `card_type`'ın hepsi) — beğeni/yorum tıklamaları sahte aktivite kimliğine gittiği için hata toast'u gösterebilir, sayfada not olarak da belirtildi.
+- **Değişen dosyalar:** `frontend/src/api/social.ts`, `frontend/src/utils/{activity,activity.spec}.ts` (yeni), `frontend/src/components/content/{ActivityCard,CommentThread}.vue` (ActivityCard yeni), `frontend/src/composables/useFollowToggle.ts` (yeni), `frontend/src/pages/{FeedPage,DiscoverPage,UiShowcasePage}.vue` (FeedPage yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → **64 passed** (4 yeni) ✓ · `npm run build` → başarılı, `FeedPage` kendi lazy chunk'ında (11.14 KB, gzip 3.82 KB) ✓ · Vite dev sunucusunda 6 yeni/değişen modül + `/` rotası tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı (curl):** `GET /feed?scope=global&limit=50` gerçek seed verisiyle **5 `card_type`'ın tamamını** döndürdü (12 rating, 5 review, 23 status, 8 list_add, 2 list_create) — hepsi `ActivityOut` tipiyle birebir eşleşti; bir "status" (kitap, planned→"okunacaklarına ekledi") ve bir "review" (puan+kesilmemiş alıntı) örneği elle incelenip `activityActionText`'in ürettiği metinle karşılaştırıldı, doğru.
+- **Kapanan maddeler:** BUG-12 (tam), BUG-13 (tam), REQ-2.1.2 (tümü: a-g)
+- **Commit:** `54750e5`
+- **Notlar / sorunlar:** Tarayıcı aracı hâlâ yok — sekme geçişi/sonsuz kaydırma/iyimser beğeni animasyonunun görsel doğrulaması yalnızca kod incelemesi + yukarıdaki testlerle yapıldı.
+- **Sonraki adım:** F3.6 — Profil sayfası
 
 ### [2026-09-27] F3.4 — İnceleme sayfası ve yorum dizisi — ✅
 
