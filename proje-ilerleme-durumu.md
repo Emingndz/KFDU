@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 1 uygulanıyor — **oturum kullanım limiti nedeniyle duraklatıldı** |
+| Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim** |
+| Sıradaki adım | **F1.9 — Özel listeler** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `919615a` (feat(F1.7): kütüphane) |
+| Son commit | `9286a24` (feat(F1.8): sosyal modülü) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -44,7 +44,8 @@
 - **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekledi, veriyi tekrar tanımlamadı). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
 - **F1.6 tamamlandı — kitaplar artık çalışıyor:** `catalog` modülü uçtan uca: TMDB (film/dizi — yönetmen, oyuncu, süre, tür, fragman, TR platformları), Open Library (varsayılan kitap sağlayıcısı, anahtarsız), Google Books (opsiyonel). `get_or_create_content` 7 gün tazelikle DB'ye upsert ediyor; sağlayıcı çağrıları §6.5 sürelerine göre `ttl_cache`. Gerçek sunucuda Open Library ile `catalog/search`, `catalog/book/{id}`, `catalog/book/{id}/similar`, `catalog/genres` canlı doğrulandı (kapaklı, yazarlı, özetli gerçek sonuçlar döndü). **Önemli hata bulundu ve düzeltildi (D-17):** SQLite'ın `DateTime(timezone=True)`'ı okurken tzinfo düşürmesi — `UTCDateTime` TypeDecorator ile çözüldü, bunu doğrulayan bir test eklendi (`test_detail_upserts_and_second_call_skips_http`). TMDB fixture'ları U2 beklendiği için elle yazıldı (D-18 — düşük öncelikli takip maddesi). 17 yeni test (toplam 41) yeşil.
 - **F1.7 tamamlandı:** `library` modülü: kısmi güncelleme (`model_fields_set`), `is_empty` olunca satır siliniyor, `in_progress`/`completed` → `started_at`/`finished_at` otomatik (boşsa), `library.log_changed`/`log_removed`/`status_changed` olayları commit'ten önce yayınlanıyor (henüz dinleyen yok — F1.8'de `social/handlers.py` dinleyecek). `get_state` (platform ortalama/dağılım + takip edilenler), `lookup` (tek sorgu, ≤60 anahtar), incelemeler (409/403/422). **Not (F1.8 için önemli):** `delete_review`'da `db.delete(review)` sonrası `db.flush()` çağrısı gerekti — `SessionLocal` `autoflush=False` ile kurulu, bu yüzden silme işlemi sonraki `SELECT`'e otomatik yansımıyor. F1.8'de benzer sil-sonra-kontrol-et deseni varsa aynı şeye dikkat et. 10 yeni test (toplam 51) yeşil.
-- **⏸️ OTURUM DURAKLAT MA NOKTASI (kullanım limiti):** Faz 1'in 7/11 adımı bitti (F1.1–F1.7). Kalan: F1.8 (sosyal — akış/beğeni/yorum/bildirim, [L] büyük), F1.9 (listeler), F1.10 (istatistik+demo veri, içinde 🛑 opsiyonel eski veri aktarımı sorusu var), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Sonraki oturum bu dosyayı okuyup F1.8'den devam etsin. Hiçbir 🛑/🏁/👤 engeli yok, direkt devam edilebilir.
+- **F1.8 tamamlandı:** `social/handlers.py` tüm §3.5.2 olaylarını dinliyor (`lists.*` olayları F1.9'da gerçek bir emitter bulacak — şimdiden hazır). `get_feed`/`list_user_activities` toplu sorgularla (aktör/içerik/liste/beğeni/yorum/puan+inceleme hepsi IN/GROUP BY ile) N+1'siz; 15 kartlık akış testte ölçülüp ≤12 sorgu sınırının içinde kaldığı doğrulandı. `card_type` okuma anında (inceleme varsa `review`). Beğeni/bildirim tekilleştirme kuralları ayrı ayrı test edildi (kendine bildirim yok, aynı aktivite için ikinci kez yok; takip bildirimi yalnız okunmamışsa tekrar açılmaz). Gerçek sunucuda kayıt→puanla→akışta görünme→bildirim sayacı uçtan uca doğrulandı. 9 yeni test (toplam 60) yeşil. **Not:** İnceleme okuma uçları (`list_content_reviews`/`list_user_reviews`) bilinçli olarak feed kadar agresif batch-optimize edilmedi (basit platform ölçeği için yeterli) — ileride performans sorunu çıkarsa aynı toplu-sorgu deseni oraya da taşınabilir.
+- Kalan: F1.9 (özel listeler), F1.10 (istatistik+demo veri, içinde 🛑 opsiyonel eski veri aktarımı sorusu var), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Hiçbir 🛑/🏁/👤 engeli yok, direkt devam edilebilir.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -55,7 +56,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 7/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 8/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -107,7 +108,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.5 — Kullanıcılar ve takip — ✅ (2026-09-26)
 - [x] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir** — ✅ (2026-09-26)
 - [x] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅ (2026-09-26)
-- [ ] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim
+- [x] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅ (2026-09-26)
 - [ ] F1.9 — Özel listeler
 - [ ] F1.10 — Profil özeti, platform vitrinleri ve demo verisi (🛑 U6)
 - [ ] F1.11 — Faz 1 kapanışı 🏁
@@ -206,14 +207,14 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | 🔴 | |
 | BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | 🔴 | |
-| BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🔴 | |
-| BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | 🔴 | |
+| BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🟡 backend ✅ (`created_at`+`excerpt`+`card_type` API'de var); arayüz F3.5 | `9286a24` |
+| BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ backend (imleçli sayfalama + N+1 giderildi, testle doğrulandı) | `9286a24` |
 | BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🟡 backend ✅ (doğru sayfalama); arayüz F3.2 | `8c12de7` |
 | BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | ✅ | `8c12de7` |
 | BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
-| BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🔴 | |
+| BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🟡 yorum tarafı ✅ (403 doğru, sahip/aktivite sahibi kontrolü); liste tarafı F1.9 | `9286a24` |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🔴 | |
@@ -331,6 +332,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅
+
+- **Yapılanlar:** `social/handlers.py`: `register_handlers()` §3.5.2'deki 8 olayın tamamına abone (`library.log_changed/log_removed/status_changed`, `users.followed`, `lists.created/item_added/item_removed/visibility_changed` — sonuncular F1.9'u bekliyor). `log` aktivitesi (actor,content) başına tek; `status` aktivitesi 60 dk içinde günceller, dışında yeni açar. `social/service.py`: `_hydrate_activities` tüm kart alanlarını (aktör, içerik, liste bilgisi+kapaklar, beğeni sayısı+`liked_by_me`, yorum sayısı+son 2 önizleme, log kartları için puan+inceleme) birkaç toplu sorguyla dolduruyor — döngü içinde sorgu yok. `get_feed`/`list_user_activities` imleçli sayfalama. `like_activity`/`unlike_activity` idempotent + bildirim tekilleştirme. Yorum CRUD + yetki (`sahip veya aktivite sahibi silebilir`). Bildirim listesi/sayaç/okundu-işaretle. İnceleme okuma (`list_content_reviews` new/popular, `get_review_detail`, `list_user_reviews`).
+- **Değişen dosyalar:** `backend/app/modules/social/{handlers,schemas,service,router}.py` (yeni), `backend/app/main.py` (router + `register_handlers()`), `backend/tests/conftest.py` (`register_handlers()` çağrısı), `backend/tests/test_social.py` (yeni, 9 test).
+- **Doğrulama:** `pytest` → 60 passed (9 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · **N+1 testi:** `before_cursor_execute` sayacıyla 15 kartlık akışın gerçek SQL sorgu sayısı ölçüldü, ≤12 sınırının içinde ✓ · gerçek sunucu: kayıt → Open Library kitabını puanla → `GET /feed?scope=global` akışta `card_type:"rating"` kartı gösteriyor → `GET /notifications/unread-count` çalışıyor ✓
+- **Kapanan maddeler:** BUG-13 (backend, tam), BUG-12/BUG-19 (backend kısmı)
+- **Commit:** `9286a24`
+- **Notlar / sorunlar:** İnceleme okuma uçları feed kadar agresif optimize edilmedi (bilinçli sadelik tercihi — bkz. bağlam özeti). `lists.*` olay dinleyicileri F1.9'da gerçek bir yayıncı bulacak.
+- **Sonraki adım:** F1.9
 
 ### [2026-09-26] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅
 
