@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-26** — F2.4 tamamlandı (kimlik sayfaları ve onboarding).
+> Son güncelleme: **2026-09-26** — 🏁 Faz 2 kapandı, Faz 3'e geçildi.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 2 uygulanıyor |
-| Aktif faz | Faz 2 — Frontend Temeli |
-| Sıradaki adım | **F2.5 — 🏁 Faz 2 kapanışı** |
+| Proje durumu | 🟨 Faz 3 uygulanıyor |
+| Aktif faz | Faz 3 — Çekirdek Özellikler |
+| Sıradaki adım | **F3.1 — İçerik bileşenleri ve yardımcılar** |
 | Çalışma dalı | `v2` |
-| Son commit | `031befa` (feat(F2.4): kimlik sayfaları ve onboarding) |
+| Son commit | `55a8ac1` (docs(F2.4): ilerleme durumunu güncelle) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -44,12 +44,12 @@
   - **TMDB canlı doğrulama eksik:** Film/dizi kodu yazıldı ve mock'lu testlerle doğrulandı ama gerçek TMDB çağrısı U2'yi bekliyor. U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler otomatik eklenir.
   - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
 - **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.).
-- **F2.1 tamamlandı:** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı). Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Prettier — hepsi planın istediği sürümlerle eşleşiyor (create-vue'nün güncel şablonu). Tailwind 4 + `@tailwindcss/vite`, `openapi-typescript` (TS 6 peer uyuşmazlığı nedeniyle `--legacy-peer-deps` ile kuruldu — işlevsel sorun yok), TanStack Query, VueUse, lucide-vue-next, vue-sonner, fontsource Inter kuruldu. `vite.config.ts`'de `/api`+`/media` backend'e (8000) proxy'leniyor. `npm run dev/lint/type-check/build/test:unit` hepsi yeşil. **Not:** Bu oturumda tarayıcı aracı (claude-in-chrome / built-in browser) mevcut değildi — `npm run dev`'in gerçekten açıldığı yalnızca HTTP yanıtı ve loglarıyla doğrulandı, görsel/konsol kontrolü yapılamadı (F2.1'de gerçek bir UI yok — create-vue'nün varsayılan "You did it!" sayfası duruyor, F2.3'te değişecek).
-- **F2.2 tamamlandı:** `src/styles/main.css` (§3.7 — Tailwind v4 `@theme` token'ları, açık/koyu CSS değişkenleri), `useTheme` (`useColorMode` sarmalayıcı, Sistem/Açık/Koyu), `useConfirm` (modül-seviyeli tekil durum + Promise tabanlı onay), 13 temel bileşen (`components/ui/`), `App.vue`'ya `Toaster`+`ConfirmDialog` eklendi, `/_ui` vitrin sayfası (yalnız DEV). 9 yeni test (BaseAvatar + useConfirm). **Not:** `Spinner` bileşeni ESLint'in "çok kelimeli bileşen adı" kuralına takıldığı için `BaseSpinner` olarak adlandırıldı (plan metninde "Spinner" geçiyordu). Bu oturumda tarayıcı aracı yok — `/_ui`'nin açık/koyu tema ve klavye gezinme kabul kriteri yalnızca kod/HTTP seviyesinde doğrulandı, gerçek görsel/klavye testi yapılamadı.
-- **F2.3 tamamlandı:** `openapi-typescript` betiğindeki hatalı URL (`/api/v1/openapi.json`, 404 veriyordu) `/openapi.json` olarak düzeltildi (FastAPI'nin varsayılan OpenAPI yolu, router prefix'inden bağımsız — kök seviyede) ve `src/api/schema.d.ts` (3958 satır) yeniden üretildi; `src/types/index.ts` bu şemadan tip takma adları (`MeOut`, `TokenOut`, `RegisterIn`… + elle yazılan genel `Page<T>`/`CursorPage<T>`, `backend/app/core/pagination.py`'deki gerçek şemayla birebir doğrulandı) türetiyor. `src/api/client.ts`: `ApiError` sınıfı + `api<T>()` fonksiyonu (§3.6.3 iskeletinden) — sorgu parametrelerini otomatik URL-encode eder ve boş/undefined değerleri atlar (BUG-11 kapandı), Pinia `useAuthStore`'dan token okuyup `Authorization: Bearer` ekler, 401'de `handleUnauthorized()` çağırır (çıkış yapar + `/giris?redirect=...`'e yönlendirir + tek toast — art arda gelen 401'ler 1 sn'lik pencerede tekilleştirilir, BUG-06 frontend tarafı kapandı). `client.ts`↔`stores/auth.ts`↔`api/auth.ts`/`api/users.ts` arasında döngüsel import var ama tüm döngüsel referanslar yalnızca fonksiyon gövdelerinde (çalışma zamanında) kullanılıyor, modül değerlendirme anında değil — bu yüzden güvenli (ES modül canlı bağlama kuralı); `npm run build` bunu doğruladı (uyarısız). `src/api/auth.ts` + `src/api/users.ts`: ham istek fonksiyonları (§5.1/§5.2 tam kapsamı) + yakın vadede ihtiyaç duyulan composable'lar (`useLogin`, `useRegister`, `useChangePassword` vb.; `useMe`, `useUpdateMe`, `useSuggestions`) — henüz tüketicisi olmayan `getProfile`/`followUser`/`searchUsers` gibi uçlar için yalnız ham fonksiyon var, composable'ları Faz 3 ilgili sayfalarında eklenecek (erken soyutlama yok). `stores/auth.ts` (`token`→`localStorage['kfdu_token']`, `me`, `isAuthenticated`, `login/register/logout/fetchMe`) + `stores/ui.ts` (mobil menü). `main.ts`: `VueQueryPlugin` eklendi (`staleTime:60000`, `refetchOnWindowFocus:false`, yalnız 5xx'te 1 kez retry). `router/index.ts`: §3.6.7'nin tam rota tablosu (henüz yapılmamış tüm sayfalar `ComingSoonPage` ile), `RouteMeta` genişletmesi (`requiresAuth`/`guestOnly`/`title`), global guard (token var+`me` yok→`fetchMe()`, başarısızsa çıkış; `/`+misafir→`/kesfet` — bu özel kural `requiresAuth`'tan ÖNCE kontrol edilir, aksi halde misafir `/`'de girişe değil `/kesfet`'e yönlenme kuralı hiç tetiklenmezdi; korumalı rota+girişsiz→`/giris?redirect=`; `guestOnly`+girişli→`/`), `scrollBehavior`, `afterEach`→`document.title`. Düzen: `AppShell`+`AppHeader` (logo, Akış/Keşfet, arama kısayolu→şimdilik `/kesfet`'e yönlendiren buton — tam arama F3.2'de, kullanıcı menüsü: Profilim/Ayarlar/Tema/Çıkış, misafirde Giriş/Kayıt) + `AppBottomNav` (<768px, yalnız şu an işlevsel olan Akış/Keşfet/Profil — Öneriler/Bildirimler ilgili fazda eklenecek, henüz yapılmamış sayfalara link vermemek için bilinçli tercih) + `RouteProgress` (basit opacity tabanlı yükleniyor çubuğu). `App.vue` artık `<AppShell/>` render ediyor, create-vue'nün "You did it!" yer tutucusu kaldırıldı; `App.spec.ts` buna göre güncellendi (gerçek Pinia+router ile mount edilen duman testi).
-- **F2.4 tamamlandı:** `utils/validation.ts` — backend'in `users/validation.py`/`auth/schemas.py` kurallarıyla birebir eşleşen istemci doğrulaması (`validateUsername` — küçük harfe çevirip aynı regex `^[a-z][a-z0-9_.]{2,29}$` + ayrılmış ad listesi; `validatePasswordStrength` — ≥8 karakter + harf&rakam; `validatePasswordsMatch`; `validateEmail`; ayrıca yalnız istemci tarafı `passwordStrength()` göstergesi zayıf/orta/güçlü). 16 yeni test. `api/catalog.ts` (yeni, minimal — yalnız `getGenresRequest`/`useGenres`; F3.1 geri kalanını ekleyecek). `components/ui/OtpInput.vue` (6 kutulu kod girişi — otomatik ilerleme, backspace ile geri, yapıştırma desteği, `defineModel`). **BaseInput düzeltmesi:** `inheritAttrs:false` + `v-bind="$attrs"` iç `<input>`'a taşındı — önceden dışarıdan verilen `@keyup`/`@blur` gibi olay dinleyicileri yanlışlıkla dış `<div>`'e bağlanıyordu (asla tetiklenmiyordu); Caps Lock algılama ve `@blur` alan dokunma takibi ihtiyacıyla fark edilen gerçek bir kusurdu, düzeltme geriye dönük uyumlu (önceki hiçbir kullanım ekstra attr geçirmiyordu). `stores/auth.ts`: `login`/`register` artık gereksiz ekstra `fetchMe()` çağrısı yapmıyor, `TokenOut.user`'ı doğrudan kullanıyor (bir ağ turu tasarrufu). 4 sayfa: `LoginPage` (`login`+şifre, göster/gizle BaseInput'ta hazır, Caps Lock uyarısı, hata üstte, `redirect` sorgu parametresini okuyup girişten sonra oraya yönlendiriyor), `RegisterPage` (kullanıcı adı canlı ipucu+doğrulama, e-posta, şifre gücü göstergesi, şifre tekrarı, `EMAIL_TAKEN`/`USERNAME_TAKEN` 409'larını ilgili alanın altına yazıyor, başarıda `/hosgeldin`'e yönleniyor), `ForgotPasswordPage` (3 adım: e-posta→kod iste her durumda aynı nötr mesaj, `OtpInput` ile 6 haneli kod doğrula, yeni şifre+tekrar→onayla→toast+`/giris`; "kodu tekrar gönder" 60 sn geri sayımlı), `OnboardingPage` (1: film/dizi türleri ≥3 çip — `/catalog/genres?type=movie` ve `?type=tv` birleştirilip tekilleştiriliyor, 2: kitap türleri ≥2 çip + Atla, 3: `/users/suggestions` takip önerileri + yerinde takip et/bırak → `PATCH /users/me {favorite_genres}` → `/`). Login/Register mutasyonları TanStack `useMutation` yerine doğrudan `authStore.login/register` + yerel `submitting`/`formError` ref'leriyle yazıldı (mağaza yan etkisi gerektirmeyen şifre-sıfırlama adımları içinse zaten yazılmış olan `api/auth.ts` composable'ları — `useRequestPasswordReset` vb. — kullanıldı); TanStack Vue Query'nin `useMutation`/`useQuery` döndürdüğü her alanın (`isPending`, `data`, `error`...) gerçek bir `Ref` olduğu (`ToRefs<...>`) kütüphanenin kendi tip tanımlarından doğrulandı — hem script hem template'te `.value` gerekiyor. Router'da `/giris,/kayit,/sifremi-unuttum,/hosgeldin` artık `ComingSoonPage` değil gerçek sayfalara işaret ediyor.
-- **Gerçek backend'e karşı uçtan uca doğrulama (curl ile, tarayıcı yok):** kayıt→201+token ✓, aynı e-postayla tekrar kayıt→409 `EMAIL_TAKEN` ✓, doğru girişte 200 ✓, yanlış şifrede 401 `INVALID_CREDENTIALS` ✓, şifre sıfırlama isteği→202 nötr mesaj, kod `backend/uvicorn_err.log`'da bulundu (SMTP yokken beklenen dev davranışı) ✓, yanlış kodda 400 `INVALID_CODE` ✓, doğru kodda `{"valid":true}` ✓, yeni şifre onayı→200, yeni şifreyle giriş✓/eski şifreyle giriş artık 401 ✓ (token_version artışı doğru çalışıyor), `/catalog/genres?type=movie|tv|book` üçü de doğru `{key,label}[]` döndü ✓, girişli `/users/suggestions` demo kullanıcılarını döndü ✓, `PATCH /users/me {favorite_genres}` kalıcı olarak kaydetti ✓. Test kullanıcısı (`f24test`) doğrulama sonunda `DELETE /users/me` ile temizlendi.
-- **Sırada:** F2.5 — 🏁 Faz 2 kapanışı (doğrulama komutları + mümkünse ekran görüntüleri + kullanıcıya çalıştırma yönergesi ve push izni).
+- **Faz 2 ✅ TAMAMLANDI (F2.1–F2.5, 2026-09-26):** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı) — Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Tailwind 4/TanStack Query/VueUse/lucide-vue-next/vue-sonner. Tasarım sistemi (§3.7 token'ları) + 14 temel bileşen (`components/ui/`: Button/Input/Textarea/Select/Modal/Tabs/Avatar/Badge/Skeleton/EmptyState/ErrorState/Spinner/ConfirmDialog/OtpInput), `useTheme`/`useConfirm` composable'ları. API katmanı (`api/client.ts` — `ApiError`+otomatik URL-encode+401 yönetimi; `api/{auth,users,catalog}.ts`), `stores/{auth,ui}.ts`, `openapi-typescript` ile üretilen `api/schema.d.ts`+`types/index.ts`. Tam rota tablosu + guard (`requiresAuth`/`guestOnly`, `/`+misafir→`/kesfet`) + `AppShell` düzeni (header/bottomnav/footer). Kimlik sayfaları: Login/Register/ForgotPassword (3 adım)/Onboarding (3 adım: tür seçimi + takip önerileri) — hepsi backend kurallarıyla birebir eşleşen istemci doğrulamasıyla (`utils/validation.ts`) ve **gerçek backend'e karşı uçtan uca curl ile doğrulandı** (kayıt/giriş/şifre sıfırlama/tür listesi/takip önerileri/profil güncelleme, test kullanıcısı sonunda temizlendi). **32 frontend testi yeşil**, `lint`/`type-check`/`build` boyunca hep temiz; backend de bu fazda dokunulmamış olmasına rağmen kapanışta tekrar doğrulandı (69 test yeşil, ruff temiz). Ana JS paketi gzip 70 KB (hedef ≤200 KB'nin altında), her yeni sayfa kendi lazy chunk'ında.
+  - **D-20 (BaseInput kusur düzeltmesi):** `inheritAttrs:false` + `v-bind="$attrs"` iç `<input>`'a taşındı — önceden `@blur`/`@keyup` gibi dinleyiciler yanlışlıkla dış `<div>`'e bağlanıp hiç tetiklenmiyordu; F2.4'te Caps Lock/alan-dokunma ihtiyacıyla fark edildi, geriye dönük uyumlu.
+  - **Bilinçli kapsam sınırlamaları (erken soyutlama yok):** `api/catalog.ts` yalnız genres ile başladı (F3.1 genişletecek); onboarding'in takip butonu sayfaya özel, paylaşılan `FollowButton` değil (F3.6 yapacak).
+  - **Kalıcı sınırlama:** Bu oturumda (Faz 2 boyunca) tarayıcı aracı hiç yoktu — tüm doğrulama kod incelemesi + HTTP/modül seviyesi + birim testleri + gerçek backend'e karşı curl ile yapıldı; görsel düzen, klavye gezinme, tema geçişi ve gerçek form deneyimi tarayıcıda elle denenmedi. `docs/ekran-goruntuleri/` bu yüzden oluşturulmadı (plan F2.5'te "mümkünse" diyor — mümkün olmadı). Kullanıcı isterse kendisi tarayıcıda deneyip geri bildirebilir.
+- **Faz 2 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel, `55a8ac1`) ve Faz 3'e geçmeyi onayladı.
+- **Sırada:** F3.1 — İçerik bileşenleri ve yardımcılar (`utils/{content,format}.ts`, `PosterCard`/`ContentGrid`/`ContentRow`/`StarRating`/`RatingDisplay`/`RatingHistogram`/`LibraryButtons`/`FavoriteButton`/`GenreChips`/`AddToListMenu`, `useContentActions`, `api/{catalog,library,lists}.ts` genişletmesi).
 
 ---
 
@@ -59,13 +59,13 @@
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
-| 2 | Frontend temeli | 🟨 Devam ediyor | 4/5 | 2026-09-26 | – |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
+| 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 0/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **20/64** | | |
+| **Toplam** | | | **21/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -121,7 +121,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅ (2026-09-26)
 - [x] F2.3 — API katmanı, oturum, router ve uygulama iskeleti — ✅ (2026-09-26)
 - [x] F2.4 — Kimlik sayfaları ve onboarding — ✅ (2026-09-26)
-- [ ] F2.5 — Faz 2 kapanışı 🏁
+- [x] 🏁 F2.5 — Faz 2 kapanışı — ✅ (2026-09-26)
 
 ### Faz 3 — Çekirdek Özellikler
 
@@ -335,6 +335,18 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F2.5 — 🏁 Faz 2 kapanışı — ✅
+
+- **Yapılanlar:** Tüm doğrulama komutları yeniden çalıştırıldı (yalnız frontend değil, dokunulmamış olsa da backend de dahil — genel proje sağlığını teyit için). Kullanıcıya Faz 2 özeti + iki terminalle çalıştırma yönergesi + denenebilecekler listesi sunuldu, iki karar soruldu: (1) `v2`'yi push et — kullanıcı **evet** dedi; (2) sıradaki adım — kullanıcı **Faz 3'e geç** dedi. `git push origin v2` çalıştırıldı.
+- **Ekran görüntüleri:** Plan "mümkünse" diyor — bu oturumda (tüm Faz 2 boyunca) tarayıcı aracı hiç mevcut olmadığı için `/_ui` ve giriş sayfasının ekran görüntüsü alınamadı, `docs/ekran-goruntuleri/` oluşturulmadı. Bunun yerine tüm doğrulama kod incelemesi + `npm run lint/type-check/test/build` + gerçek backend'e karşı curl ile yapıldı (F2.3/F2.4 günlüklerinde ayrıntılı).
+- **Değişen dosyalar:** Yalnızca `proje-ilerleme-durumu.md` (bu kapanış özeti + bağlam özeti Faz 2 için kısaltıldı, F1 kapanışında yapıldığı gibi).
+- **Doğrulama:** Frontend: `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → **32 passed** ✓ · `npm run build` → başarılı, ana JS gzip 70.20 KB ✓. Backend (dokunulmadı ama kapanışta yeniden koşuldu): `pytest` → 69 passed ✓ · `ruff check` → "All checks passed!" ✓ · `ruff format --check` → 79 dosya zaten biçimli ✓.
+- **Kapanan maddeler:** —
+- **Commit:** `55a8ac1` (bu özet notu; push işleminin kendisi ayrı bir commit üretmez)
+- **Kullanıcı kararları:** Push = evet (uygulandı, `origin/v2` → `55a8ac1`). Sıradaki adım = Faz 3'e geç.
+- **Notlar / sorunlar:** U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ ⬜ — hatırlatıldı, kodu ilerletmeyi engellemiyor.
+- **Sonraki adım:** F3.1 — İçerik bileşenleri ve yardımcılar
 
 ### [2026-09-26] F2.4 — Kimlik sayfaları ve onboarding — ✅
 
