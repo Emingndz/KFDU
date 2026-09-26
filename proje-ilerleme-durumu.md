@@ -22,20 +22,20 @@
 |---|---|
 | Proje durumu | 🟨 Faz 0 uygulanıyor |
 | Aktif faz | Faz 0 — Güvenlik, temizlik ve hazırlık |
-| Sıradaki adım | **F0.3 — Sırları koddan çıkarma** |
+| Sıradaki adım | **F0.4 — Geliştirme ortamı** |
 | Çalışma dalı | `v2` |
-| Son commit | `c80451f` (chore(F0.2): .gitignore ve depo temizliği) |
+| Son commit | `7610a0c` (fix(F0.3): sırları koddan çıkar) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
-| Açık engeller | 👤 U1 hâlâ acil bekliyor (Gmail uygulama şifresi iptali) — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
+| Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
 
 ### Bağlam özeti (yeni oturum açan uygulayıcı için)
 
 - **Proje:** KFDU — film/kitap sosyal kütüphane platformu. v1: FastAPI + SQLAlchemy + SQLite backend, tek dosya Vue 3 (CDN) frontend; Kocaeli Üniversitesi Yazlab-I Proje II ödevi.
 - **Analiz (2026-09-26):** Bulgular planın §2'sinde — SEC-01…09, BUG-01…20, DEBT-01…07; ödev eksikleri Ek A'da.
 - **Kitaplar neden bozuk:** Google Books anahtarsız çağrılıyor → HTTP 429 (anonim kota 0) → API `null` dönüyor. Çözüm: Open Library (F1.6).
-- **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır.
-- **Durum:** F0.1 tamamlandı — plan dosyaları `main`e commit edildi (`ef2ccda`), `legacy-v1` etiketi o commit'te oluşturuldu, çalışma dalı `v2`'ye geçirildi, v1 veritabanı `backend/legacy_backup/sql_app_v1.db`'ye yedeklendi (izlenmiyor, F0.2'de gitignore'a eklenecek). Henüz kod (backend/frontend) değişikliği yok.
+- **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır. **F0.3 ile kod tarafı kapandı ama eski Gmail şifresi ve eski TMDB anahtarı hâlâ geçerli/aktif** — U1 ve U2 kullanıcı tarafından yapılana kadar risk devam ediyor (bkz. 👤 Kullanıcı Eylemleri).
+- **Durum:** F0.1–F0.3 tamamlandı. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
 ---
@@ -44,7 +44,7 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 2/5 | 2026-09-26 | – |
+| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 3/5 | 2026-09-26 | – |
 | 1 | Backend temeli | ⬜ Başlamadı | 0/11 | – | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
@@ -83,7 +83,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 - [x] F0.1 — Yedekleme ve çalışma dalı — ✅ (2026-09-26)
 - [x] F0.2 — `.gitignore` ve depo temizliği — ✅ (2026-09-26)
-- [ ] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4)
+- [x] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4) — ✅ kod tarafı (2026-09-26); 👤 anahtar iptali/yenileme hâlâ bekliyor
 - [ ] F0.4 — Geliştirme ortamı (👤 U3)
 - [ ] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme
 - [ ] 🏁 Faz 0 kapanışı
@@ -176,9 +176,9 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 
 | ID | Özet | Hedef adım | Durum | Kapandığı commit |
 |---|---|---|---|---|
-| SEC-01 | Gmail uygulama şifresi ve adresi kodda (public depo) | 👤 U1 + F0.3 | 🔴 | |
-| SEC-02 | Sabit JWT `SECRET_KEY` (token sahteciliği mümkün) | F0.3, F1.2 | 🔴 | |
-| SEC-03 | TMDB anahtarı kodda | 👤 U2 + F0.3 | 🔴 | |
+| SEC-01 | Gmail uygulama şifresi ve adresi kodda (public depo) | 👤 U1 + F0.3 | 🟡 kod tarafı ✅ (`7610a0c`) — **eski şifre hâlâ geçerli, U1 iptali bekliyor** | |
+| SEC-02 | Sabit JWT `SECRET_KEY` (token sahteciliği mümkün) | F0.3, F1.2 | ✅ | `7610a0c` |
+| SEC-03 | TMDB anahtarı kodda | 👤 U2 + F0.3 | 🟡 kod tarafı ✅ (`7610a0c`) — eski anahtar hâlâ geçerli, U2 yenileme bekliyor | |
 | SEC-04 | Veritabanı ve `__pycache__` depoda, `.gitignore` yok | F0.2 (+ F0.5) | ✅ (güncel ağaç; geçmiş için F0.5 opsiyonel) | `c80451f` |
 | SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | 🔴 | |
 | SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | 🔴 | |
@@ -314,6 +314,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F0.3 — Sırları koddan çıkarma — ✅ (kod tarafı)
+
+- **Yapılanlar:** `backend/.env.example` (Ek E içeriği, boş değerler) ve `backend/.env` (izlenmiyor; yeni üretilen rastgele `SECRET_KEY` + kullanıcının dolduracağı boş TMDB/SMTP alanları) oluşturuldu. `config.py`: `TMDB_API_KEY`/`SMTP_USER`/`SMTP_PASSWORD` varsayılanları boşaltıldı, varsayılansız `SECRET_KEY: str` eklendi, `SettingsConfigDict(env_file=".env", ...)` ile `.env` okuma etkinleştirildi. `security.py`: sabit `SECRET_KEY` sabiti kaldırıldı, yerine `settings.SECRET_KEY` kullanıldı. v1 backend geçici olarak ayağa kaldırılıp doğrulandı, sonra durduruldu.
+- **Değişen dosyalar:** `backend/app/core/config.py`, `backend/app/core/security.py`, `backend/.env.example` (yeni), `backend/.env` (yeni, izlenmiyor).
+- **Doğrulama:** `git grep -nE '(SMTP_PASSWORD|TMDB_API_KEY|SECRET_KEY)[^=\n]*=\s*"[^"]{8,}"' -- backend` → boş ✓ · `git grep -n "@gmail.com" -- backend` → boş ✓ · `python -m uvicorn main:app --port 8000` + `GET /api/v1/movies/popular` → HTTP 200 (içerik `null`, TMDB anahtarı boş olduğu için beklenen) ✓
+- **Kapanan maddeler:** SEC-02 tam kapandı. SEC-01 ve SEC-03 yalnızca **kod tarafı** kapandı — eski Gmail uygulama şifresi ve eski TMDB anahtarı hâlâ geçerli olduğu için gerçek risk, kullanıcı U1/U2'yi yapana kadar sürüyor.
+- **Commit:** `7610a0c`
+- **Notlar / sorunlar:** ⚠️ **U1 ve U2 hâlâ yapılmadı.** Kullanıcıya tekrar hatırlatıldı: (1) https://myaccount.google.com/apppasswords → eski KFDU şifresini sil; (2) https://www.themoviedb.org/settings/api → anahtarı yenile, yenisini `backend/.env` → `TMDB_API_KEY`'e kendisi yazsın.
+- **Sonraki adım:** F0.4
 
 ### [2026-09-26] F0.2 — `.gitignore` ve depo temizliği — ✅
 
