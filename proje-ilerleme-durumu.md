@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.6 — Katalog: TMDB + Open Library (+ Google Books)** |
+| Sıradaki adım | **F1.7 — Kütüphane: durum, puan, favori, inceleme yazma** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `90c6ed0` (feat(F1.5): kullanıcılar ve takip) |
+| Son commit | `8c12de7` (feat(F1.6): katalog modülü) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -41,7 +41,8 @@
 - **F1.2 tamamlandı:** `app/core/` tam (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + `app/main.py` (`create_app()`, CORS allowlist, hata yakalayıcılar, slowapi, `/media`, `GET /api/v1/health`). `tests/conftest.py` bellek içi SQLite ile `get_db` override ediyor; 5 test yeşil, ruff temiz. Gerçek sunucuda `/api/v1/health`, `/docs` ve bilinmeyen rota 404 formatı doğrulandı.
 - **F1.3 tamamlandı:** §4.2'deki 12 tablo modüllerin `models.py`'sinde (auth/users/catalog/library/social/lists), tüm CHECK/UNIQUE kısıtları ve `ON DELETE CASCADE` FK'ler mevcut. `Base.type_annotation_map` sayesinde her `datetime` alanı otomatik `DateTime(timezone=True)`. Alembic kuruldu, ilk migration (`fa1eb17da6a0_v2_ilk_sema`) `backend/kfdu.db`'ye uygulandı, `alembic check` temiz. `backend/kfdu.db` gitignore'da (`*.db`), depoya girmiyor; her geliştirici kendi makinesinde `alembic upgrade head` ile oluşturur.
 - **F1.4 tamamlandı:** `auth` modülü uçtan uca çalışıyor: `/auth/register|login|token|password-reset/{request,verify,confirm}|change-password|logout-all`. `users/deps.py` (`CurrentUser`/`OptionalUser`), `users/validation.py` (kullanıcı adı kuralı — paylaşılan, F1.5 de kullanacak). **Dikkat (F1.5 için):** `users/schemas.py` zaten var ama yalnızca `PublicUserOut`+`MeOut` içeriyor — F1.5 bu dosyayı genişletecek, üzerine yazmayacak. Gerçek sunucuda OAuth2 `/auth/token` ile Swagger "Authorize" akışı ve korumalı uç (401+`WWW-Authenticate: Bearer` / 204 başarı) doğrulandı. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` eklendi. 13 yeni test (toplam 22) yeşil.
-- **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekleyecek, veriyi tekrar tanımlamayacak). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
+- **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekledi, veriyi tekrar tanımlamadı). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
+- **F1.6 tamamlandı — kitaplar artık çalışıyor:** `catalog` modülü uçtan uca: TMDB (film/dizi — yönetmen, oyuncu, süre, tür, fragman, TR platformları), Open Library (varsayılan kitap sağlayıcısı, anahtarsız), Google Books (opsiyonel). `get_or_create_content` 7 gün tazelikle DB'ye upsert ediyor; sağlayıcı çağrıları §6.5 sürelerine göre `ttl_cache`. Gerçek sunucuda Open Library ile `catalog/search`, `catalog/book/{id}`, `catalog/book/{id}/similar`, `catalog/genres` canlı doğrulandı (kapaklı, yazarlı, özetli gerçek sonuçlar döndü). **Önemli hata bulundu ve düzeltildi (D-17):** SQLite'ın `DateTime(timezone=True)`'ı okurken tzinfo düşürmesi — `UTCDateTime` TypeDecorator ile çözüldü, bunu doğrulayan bir test eklendi (`test_detail_upserts_and_second_call_skips_http`). TMDB fixture'ları U2 beklendiği için elle yazıldı (D-18 — düşük öncelikli takip maddesi). 17 yeni test (toplam 41) yeşil.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -52,7 +53,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 5/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 6/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -102,7 +103,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.3 — Veri modeli ve Alembic — ✅ (2026-09-26)
 - [x] F1.4 — Kimlik doğrulama modülü — ✅ (2026-09-26)
 - [x] F1.5 — Kullanıcılar ve takip — ✅ (2026-09-26)
-- [ ] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir**
+- [x] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir** — ✅ (2026-09-26)
 - [ ] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma
 - [ ] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim
 - [ ] F1.9 — Özel listeler
@@ -192,8 +193,8 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | ✅ | `cf0ff06` |
 | SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | 🟡 kısmi (kimlik: F1.4 ✅; puan/metin uzunluğu F1.7) | `cf0ff06` |
 | SEC-09 | CORS `*` + credentials | F1.2 | ✅ | `845b3e8` |
-| BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | 🔴 | |
-| BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🔴 | |
+| BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | ✅ | `8c12de7` |
+| BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🟡 backend ✅; frontend gösterimi F3.3 | `8c12de7` |
 | BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | ✅ | `cf0ff06` |
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
@@ -205,18 +206,18 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | 🔴 | |
 | BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🔴 | |
 | BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | 🔴 | |
-| BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🔴 | |
-| BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | 🔴 | |
+| BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🟡 backend ✅ (doğru sayfalama); arayüz F3.2 | `8c12de7` |
+| BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | ✅ | `8c12de7` |
 | BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
-| BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | 🟡 altyapı ✅ (F1.2 `core/http.py`), sağlayıcı kullanımı F1.6'da | `845b3e8` |
+| BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🔴 | |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🔴 | |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🔴 | |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
-| DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | 🔴 | |
-| DEBT-05 | Ham dış API JSON'u frontend'e gidiyor | F1.6 | 🔴 | |
+| DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | 🟡 katalog tarafı ✅ (tek `get_or_create_content`); kütüphane tarafı F1.7 | `8c12de7` |
+| DEBT-05 | Ham dış API JSON'u frontend'e gidiyor | F1.6 | ✅ | `8c12de7` |
 | DEBT-06 | `print` loglama; test/lint/README/`.env.example` yok | F1.2, Faz 7 | 🟡 kısmi (loglama + test/lint altyapısı hazır; README Faz 7'de) | `845b3e8` |
 | DEBT-07 | Açılışta `create_all` (migrasyon yok) | F1.3 | ✅ | `0f29f74` |
 
@@ -257,9 +258,9 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.5d | Sekmeli kütüphane (4 sekme) | F1.7, F3.6 | ⬜ | |
 | REQ-2.1.5e | Özel listeler | F1.9, F3.6, F3.7 | ⬜ | |
 | REQ-2.1.5f | Son aktiviteler (yorum + puan) | F1.8, F3.6 | ⬜ | |
-| REQ-2.2.1a | Film verisi TMDb (başlık, özet, yıl, yönetmen, oyuncular, türler, kapak) | F1.6 | ⬜ | |
-| REQ-2.2.1b | Kitap verisi Open Library / Google Books (başlık, yazar, açıklama, sayfa, kapak) | F1.6 | ⬜ | |
-| REQ-2.2.1c | Manuel veri girişi yok | F1.6 | ⬜ | |
+| REQ-2.2.1a | Film verisi TMDb (başlık, özet, yıl, yönetmen, oyuncular, türler, kapak) | F1.6 | ✅ | `8c12de7` (respx testleri + fixture) |
+| REQ-2.2.1b | Kitap verisi Open Library / Google Books (başlık, yazar, açıklama, sayfa, kapak) | F1.6 | ✅ | `8c12de7` (gerçek sunucuda canlı doğrulandı) |
+| REQ-2.2.1c | Manuel veri girişi yok | F1.6 | ✅ | `8c12de7` (tüm içerik `catalog` modülünden upsert edilir) |
 | REQ-3 | Tutarlı ve verimli veritabanı | F1.3 | ⬜ | |
 
 ---
@@ -272,6 +273,8 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-26 | D-14 | F0.5 (git geçmişi temizliği) atlansın — U1/U2 asıl çözüm, F0.5 yalnız kozmetik | ✅ Kullanıcı kararı |
 | 2026-09-26 | D-15 | `v2` dalı ve `legacy-v1` etiketi origin'e (public GitHub) push edilsin | ✅ Kullanıcı onayı, uygulandı |
 | 2026-09-26 | D-16 | Ek C kanonik tür verisi plandaki gibi yalnız `catalog/genres.py`'de değil, `core/genres.py`'de tutulacak (ham tablo + `GENRE_KEYS`); `catalog/genres.py` (F1.6) bunun üzerine TMDB/OL yardımcılarını ekleyecek | ✅ Uygulayıcı kararı — §3.5.2 bağımlılık kuralı (`users` yalnız `core`'u içe aktarabilir, `catalog`'u içe aktaramaz) `favorite_genres` doğrulamasını `catalog`'a bağımlı kılmadan mümkün kılmak için gerekliydi. Veri tekrarı yok, tek kaynak `core/genres.py`. |
+| 2026-09-26 | D-17 | `core/database.py`'ye `UTCDateTime` TypeDecorator eklendi | ✅ Uygulayıcı kararı — canlı testte bulunan gerçek hata: SQLite, `DateTime(timezone=True)` olsa bile okurken tzinfo'yu düşürüyor; `datetime.now(UTC) - row.fetched_at` gibi Python-seviyesi çıkarma işlemleri `TypeError` fırlatıyordu. Bu, F1.7/F1.8'de de (rated_at, 60 dk aktivite penceresi vb.) tekrar edecek bir hataydı; kökten düzeltildi. PostgreSQL'de no-op (zaten tz-aware döner). Alembic'te yeni migration gerekmedi (`alembic check` temiz). |
+| 2026-09-26 | D-18 | TMDB fixture'ları (`tmdb_movie_detail_27205.json`, `tmdb_search_movie.json`, `tmdb_tv_detail_1396.json`) gerçek API'den yakalanmadı, TMDB'nin bilinen genel şemasına göre elle yazıldı | ⚠️ Geçici — U2 (TMDB anahtarı yenileme) tamamlanınca gerçek API'den yeniden yakalanması önerilir (düşük öncelik; testler zaten yeşil, yalnızca fixture'ların gerçekliği artar) |
 
 ---
 
@@ -326,6 +329,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — ✅
+
+- **Yapılanlar:** `catalog/genres.py` (core/genres üzerine TMDB/OL yardımcıları). `catalog/schemas.py` (ContentType/Source, Person, Providers, ContentSummary/Detail, GenreOut, DiscoverParams). `providers/tmdb.py`: search/discover/trending/collection/detail/similar; TR özet boşsa en-US'ye düşer; fragman seçimi (resmî + TR öncelikli); TR izleme platformları; anahtar yoksa 503. `providers/openlibrary.py`: search/discover/trending/detail (2 çağrı: key-search + work.json)/similar (yazarın diğer eserleri + konu); `description` string/`{"value"}` biçimleri; kapak URL'si; puan ×2. `providers/google_books.py` (opsiyonel). `catalog/service.py`: `resolve_source` (`^OL\d+W$` ile OL/Google ayrımı), `get_or_create_content` (7 gün tazelik, DB upsert), `get_detail`, arama/keşfet/trend/koleksiyon/benzer (§6.5 ttl_cache süreleriyle), `genres()`, `search_best()` (F6.3 için, `difflib` başlık benzerliği ≥0.6). `catalog/router.py` (§5.3) — statik yollar (`search/discover/trending/collections/{name}/genres`) `{type}/{external_id}`'den önce. **Kritik düzeltme (D-17):** `core/database.py`'ye `UTCDateTime` TypeDecorator eklendi — canlı testte `datetime.now(UTC) - row.fetched_at` çıkarma işleminin `TypeError` fırlattığı görüldü (SQLite, timezone=True olsa bile tzinfo'yu okurken düşürüyor); artık okuma sırasında UTC geri ekleniyor, PostgreSQL'de no-op.
+- **Değişen dosyalar:** `backend/app/modules/catalog/**` (genres, schemas, service, router, providers/{tmdb,openlibrary,google_books}.py — yeni), `backend/app/core/database.py` (`UTCDateTime`), `backend/app/main.py` (router kaydı), `backend/tests/fixtures/*.json` (7 dosya — 4'ü Open Library'den gerçek yakalandı, 3'ü TMDB U2 beklediği için elle yazıldı — bkz. D-18), `backend/tests/test_catalog_{normalize,api}.py` (yeni, 17 test).
+- **Doğrulama:** `pytest` → 41 passed (17 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · `alembic check` → değişiklik yok (UTCDateTime aynı DDL'i üretiyor) ✓ · **Gerçek sunucu (Open Library, anahtarsız):** `GET /catalog/search?q=sefiller&type=book` → kapaklı/yazarlı sonuçlar ✓ · `GET /catalog/book/OL45804W` → tam normalize detay (yazar, açıklama, sayfa sayısı, tür) ✓ · ikinci çağrı DB önbellekten (hızlı, hatasız) ✓ · `GET /catalog/book/OL45804W/similar` ✓ · `GET /catalog/genres?type=book` ✓ · **TMDB (anahtar boş):** `GET /catalog/movie/27205` → 503 `TMDB_NOT_CONFIGURED` (beklenen, U2 bekliyor) ✓
+- **Kapanan maddeler:** BUG-01, BUG-15, BUG-18 (tam), DEBT-05, REQ-2.2.1a/b/c (tam); BUG-02/BUG-14/DEBT-04 kısmi (backend tarafı)
+- **Commit:** `8c12de7`
+- **Notlar / sorunlar:** D-18 — TMDB fixture'ları elle yazıldı, U2 sonrası gerçek API'den yeniden yakalanması önerilir (düşük öncelik). TMDB'nin canlı uçtan uca doğrulaması (movie/tv detay, discover, trending, collections) U2 tamamlanana kadar bekliyor; kod respx-mock'lu testlerle doğrulandı.
+- **Sonraki adım:** F1.7
 
 ### [2026-09-26] F1.5 — Kullanıcılar ve takip — ✅
 
