@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 2 uygulanıyor |
 | Aktif faz | Faz 2 — Frontend Temeli |
-| Sıradaki adım | **F2.2 — Tasarım sistemi ve temel UI bileşenleri** |
+| Sıradaki adım | **F2.3 — API katmanı, oturum, router ve uygulama iskeleti** |
 | Çalışma dalı | `v2` |
-| Son commit | `123467f` (feat(F2.1): Vite + Vue 3 + TypeScript iskeleti) |
+| Son commit | `f3e2894` (feat(F2.2): tasarım sistemi ve temel UI bileşenleri) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -45,7 +45,8 @@
   - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
 - **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.).
 - **F2.1 tamamlandı:** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı). Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Prettier — hepsi planın istediği sürümlerle eşleşiyor (create-vue'nün güncel şablonu). Tailwind 4 + `@tailwindcss/vite`, `openapi-typescript` (TS 6 peer uyuşmazlığı nedeniyle `--legacy-peer-deps` ile kuruldu — işlevsel sorun yok), TanStack Query, VueUse, lucide-vue-next, vue-sonner, fontsource Inter kuruldu. `vite.config.ts`'de `/api`+`/media` backend'e (8000) proxy'leniyor. `npm run dev/lint/type-check/build/test:unit` hepsi yeşil. **Not:** Bu oturumda tarayıcı aracı (claude-in-chrome / built-in browser) mevcut değildi — `npm run dev`'in gerçekten açıldığı yalnızca HTTP yanıtı ve loglarıyla doğrulandı, görsel/konsol kontrolü yapılamadı (F2.1'de gerçek bir UI yok — create-vue'nün varsayılan "You did it!" sayfası duruyor, F2.3'te değişecek).
-- **Sırada:** F2.2 — Tasarım sistemi ve temel UI bileşenleri (§3.7 stil kuralları + temel bileşenler).
+- **F2.2 tamamlandı:** `src/styles/main.css` (§3.7 — Tailwind v4 `@theme` token'ları, açık/koyu CSS değişkenleri), `useTheme` (`useColorMode` sarmalayıcı, Sistem/Açık/Koyu), `useConfirm` (modül-seviyeli tekil durum + Promise tabanlı onay), 13 temel bileşen (`components/ui/`), `App.vue`'ya `Toaster`+`ConfirmDialog` eklendi, `/_ui` vitrin sayfası (yalnız DEV). 9 yeni test (BaseAvatar + useConfirm). **Not:** `Spinner` bileşeni ESLint'in "çok kelimeli bileşen adı" kuralına takıldığı için `BaseSpinner` olarak adlandırıldı (plan metninde "Spinner" geçiyordu). Bu oturumda tarayıcı aracı yok — `/_ui`'nin açık/koyu tema ve klavye gezinme kabul kriteri yalnızca kod/HTTP seviyesinde doğrulandı, gerçek görsel/klavye testi yapılamadı.
+- **Sırada:** F2.3 — API katmanı, oturum, router ve uygulama iskeleti (§3.6.2–3.6.7).
 
 ---
 
@@ -55,7 +56,7 @@
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
-| 2 | Frontend temeli | 🟨 Devam ediyor | 1/5 | 2026-09-26 | – |
+| 2 | Frontend temeli | 🟨 Devam ediyor | 2/5 | 2026-09-26 | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
@@ -114,7 +115,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 ### Faz 2 — Frontend Temeli
 
 - [x] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅ (2026-09-26)
-- [ ] F2.2 — Tasarım sistemi ve temel UI bileşenleri
+- [x] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅ (2026-09-26)
 - [ ] F2.3 — API katmanı, oturum, router ve uygulama iskeleti
 - [ ] F2.4 — Kimlik sayfaları ve onboarding
 - [ ] F2.5 — Faz 2 kapanışı 🏁
@@ -200,7 +201,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
 | BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | 🟡 backend ✅ (F1.4: 7 gün token, 401+WWW-Authenticate); frontend 401 yönetimi F2.3 | `cf0ff06` |
-| BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🔴 | |
+| BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🟡 bileşen düzeyi ✅ (BaseAvatar kırık/yok görselde deterministik baş harf); tüm sayfalarda kullanım F3.9 | `f3e2894` |
 | BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | 🔴 | |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | 🔴 | |
@@ -215,7 +216,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | ✅ | `51373cc` |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
-| DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🔴 | |
+| DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🟡 altyapı ✅ (vue-sonner toast + ConfirmDialog hazır); eski `alert/confirm` kaldırma Faz 3 sayfalarında | `f3e2894` |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
 | DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | ✅ (tek `get_or_create_content` + tek `upsert_entry`, film/kitap ayrımı yok) | `919615a` |
 | DEBT-05 | Ham dış API JSON'u frontend'e gidiyor | F1.6 | ✅ | `8c12de7` |
@@ -331,6 +332,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅
+
+- **Yapılanlar:** `src/styles/main.css` §3.7'den birebir (marka/tür/durum renk token'ları, `--radius-card`, açık/koyu `:root`/`.dark` değişkenleri, `@theme inline` köprüsü) + `body` için taban bg/fg (token'ların gerçekten uygulanması için gerekliydi, planın CSS özetinde yoktu ama işlevsel olarak zorunlu). `main.ts`: `@fontsource-variable/inter`, `vue-sonner/style.css`, `main.css` içe aktarıldı. `composables/useTheme.ts` (`useColorMode`, Sistem/Açık/Koyu). `composables/useConfirm.ts` (modül-seviyeli paylaşılan `state` + `resolver`, `confirm()` bir `Promise<boolean>` döndürür). 13 bileşen: `BaseButton` (variant×5/size×3/loading/ikon slot/`to` ile RouterLink), `BaseInput` (etiket/ipucu/hata/karakter sayacı/şifre göster-gizle, `useId()`), `BaseTextarea`, `BaseSelect`, `BaseModal` (Teleport, Esc, Tab focus tuzağı, kapanınca odak eski yerine döner, `role=dialog`+`aria-modal`), `BaseTabs` (`role=tablist/tab`, ←/→ ile gezinme), `BaseAvatar` (isimden hash ile deterministik gradyan + baş harfler, `@error` ile kırık görsel fallback'i — via.placeholder yok), `BaseBadge`, `BaseSkeleton`, `EmptyState`, `ErrorState`, `BaseSpinner`, `ConfirmDialog`. `App.vue`'ya `<Toaster rich-colors position="top-center">` + `<ConfirmDialog>` eklendi (ana içerik "You did it!" hâlâ duruyor — F2.3'te AppShell ile değişecek). `pages/UiShowcasePage.vue` tüm bileşenleri iki temada gösteriyor; `router/index.ts`'e yalnızca `import.meta.env.DEV` iken eklenen `/_ui` rotası.
+- **Değişen dosyalar:** `frontend/src/styles/main.css`, `composables/{useTheme,useConfirm}.ts`, `components/ui/*.vue` (13 dosya), `App.vue`, `main.ts`, `router/index.ts`, `pages/UiShowcasePage.vue`, `__tests__/{BaseAvatar,useConfirm}.spec.ts` (yeni).
+- **Doğrulama:** `npm run type-check` → temiz ✓ · `npm run lint` → temiz (bir tur "Spinner çok kelimeli değil" hatası bulundu, `BaseSpinner`'a yeniden adlandırılıp düzeltildi) ✓ · `npm run test:unit` → 10 passed (9 yeni) ✓ · `npm run build` → başarılı (CSS 33 KB, JS 126 KB gzip 47 KB) ✓ · dev sunucusunda `/_ui` → HTTP 200 ✓ (tarayıcı aracı yok, görsel/klavye kontrolü yapılamadı).
+- **Kapanan maddeler:** BUG-07 (bileşen düzeyi), DEBT-02 (altyapı)
+- **Commit:** `f3e2894`
+- **Notlar / sorunlar:** Tarayıcı aracı (claude-in-chrome / built-in browser) bu oturumda mevcut değil — `/_ui`'nin "açık ve koyu temada düzgün, klavyeyle gezilebilir" kabul kriteri yalnızca statik/HTTP seviyesinde doğrulanabildi. Kullanıcı isterse kendisi `/_ui`'yi tarayıcıda açıp gözden geçirebilir.
+- **Sonraki adım:** F2.3
 
 ### [2026-09-26] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅
 
