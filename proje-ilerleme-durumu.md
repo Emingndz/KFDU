@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🏁 **Faz 1 tamamlandı** — özet sunuldu, push izni bekleniyor |
-| Aktif faz | Faz 1 tamamlandı → Faz 2'ye geçiş bekliyor |
-| Sıradaki adım | Push onayı sonrası **F2.1 — Vite + Vue 3 + TypeScript iskeleti** (Önkoşul: Node ≥22.18 — **U3 hâlâ yapılmadı**) |
-| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası 23 commit henüz pushlanmadı) |
-| Son commit | `0813d2c` (docs(F1.11): Faz 1 kapanışı) |
+| Proje durumu | ⛔ **Faz 2 önkoşulu eksik** — F2.1 için Node ≥22.18 gerekiyor, kullanıcıdan U3 bekleniyor |
+| Aktif faz | Faz 1 ✅ tamamlandı ve push edildi → Faz 2 (Frontend Temeli) başlayamıyor |
+| Sıradaki adım | **F2.1 — Vite + Vue 3 + TypeScript iskeleti** — 👤 U3 (Node.js ≥22.18, tercihen 24 LTS) tamamlanana kadar başlanamaz |
+| Çalışma dalı | `v2` (origin'e tamamen push edildi — `origin/v2` = `v2`) |
+| Son commit | `4979ab2` (docs: son commit referansını düzelt) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -43,8 +43,8 @@
   - **D-19:** U6 — v1'in gerçek verisi (3 kullanıcı, 12 etkileşim, 7 liste) kullanıcı kararıyla yeni DB'ye aktarılmadı; yalnızca yedekte duruyor.
   - **TMDB canlı doğrulama eksik:** Film/dizi kodu yazıldı ve mock'lu testlerle doğrulandı ama gerçek TMDB çağrısı U2'yi bekliyor. U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler otomatik eklenir.
   - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
-- **Push bekliyor:** `v2` dalında `origin/v2`'nin 22 commit ilerisinde — F1.11 🏁 kapanışında kullanıcıya push izni soruluyor.
-- **Sırada:** Faz 2 — Frontend Temeli (F2.1 önkoşulu: Node ≥22.18, yani **U3 önce yapılmalı**).
+- **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` artık güncel) ve Faz 2'ye geçmeyi onayladı. **Ancak Faz 2'nin ilk adımı F2.1'in önkoşulu Node ≥22.18 — kontrol edildiğinde Node hâlâ 22.12.0 çıktı (U3 yapılmamış).** Protokol gereği (plan §0.2 madde 3: önkoşul eksikse durup kullanıcıya söyle) F2.1 başlatılmadı; kullanıcıdan Node güncellemesi bekleniyor.
+- **Sırada:** Kullanıcı Node.js'i (24 LTS önerilir, en az 22.18) güncelledikten sonra "devam et" dediğinde F2.1 ile Faz 2 başlayacak.
 
 ---
 
