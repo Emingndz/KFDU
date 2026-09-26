@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 0 uygulanıyor |
-| Aktif faz | Faz 0 — Güvenlik, temizlik ve hazırlık |
-| Sıradaki adım | **🏁 Faz 0 kapanışı** (özet + kullanıcı onayı bekleniyor; F0.5 opsiyonel — 🛑 karar bekliyor; F0.4 Node güncellemesiyle tam kapanacak) |
-| Çalışma dalı | `v2` |
-| Son commit | `8628d89` (chore(F0.4): VS Code eklenti önerileri) |
+| Proje durumu | 🟨 Faz 1 uygulanıyor |
+| Aktif faz | Faz 1 — Backend Temeli |
+| Sıradaki adım | **F1.1 — Bağımlılıklar ve proje iskeleti** |
+| Çalışma dalı | `v2` (origin'e push edildi) |
+| Son commit | `dfe2088` (F0 kapanış notu) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -36,7 +36,8 @@
 - **Kitaplar neden bozuk:** Google Books anahtarsız çağrılıyor → HTTP 429 (anonim kota 0) → API `null` dönüyor. Çözüm: Open Library (F1.6).
 - **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır. **F0.3 ile kod tarafı kapandı ama eski Gmail şifresi ve eski TMDB anahtarı hâlâ geçerli/aktif** — U1 ve U2 kullanıcı tarafından yapılana kadar risk devam ediyor (bkz. 👤 Kullanıcı Eylemleri).
 - **Durum:** F0.1–F0.3 tamamlandı, F0.4 kısmi. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). `backend/.venv` oluşturuldu ve doğrulandı; `.vscode/extensions.json` eklendi (`8628d89`). **Node.js hâlâ 22.12.0** (≥22.18 gerekli) — F0.4 bu yüzden tam kapanmadı, Faz 2'den önce güncellenmeli. Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
-- **Faz 0 kapanışı bekliyor:** F0.5 (opsiyonel, git geçmişinden sır temizleme — force push gerektirir) kullanıcı kararı bekliyor. `v2` dalını uzak depoya göndermek için de kullanıcı onayı gerekiyor (bkz. U12).
+- **Faz 0 kapandı (2026-09-26):** Kullanıcı F0.5'i (git geçmişi temizliği) atlamayı, `v2` + `legacy-v1`'i hemen push etmeyi seçti (D-14, D-15). İkisi de yapıldı — `origin/v2` ve `origin` üzerinde `legacy-v1` etiketi mevcut. **F0.4 hâlâ asılı** (Node ≥22.18 gerekli, kullanıcı henüz güncellemedi) ama bu Faz 1'i (backend, Python) engellemiyor; yalnızca Faz 2 (frontend) öncesi şart.
+- **Faz 1 başladı:** Eski backend `legacy/backend-v1/`'e taşınacak, yeni modüler backend §3.4 klasör yapısına göre sıfırdan kurulacak. Faz 1–2 boyunca eski arayüz (v1 frontend, hâlâ `frontend/` klasöründe olduğu varsayılıyor — F2.1'de kontrol edilecek) yeni API ile çalışmayacak; `legacy-v1` etiketinden eski sürüm çalıştırılabilir.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
 ---
@@ -45,8 +46,8 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 3/5 (+ F0.4 kısmi) | 2026-09-26 | – |
-| 1 | Backend temeli | ⬜ Başlamadı | 0/11 | – | – |
+| 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 0/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -67,7 +68,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 | U2 | TMDB API anahtarını yenile (https://www.themoviedb.org/settings/api) ve yenisini `backend/.env`'ye yaz | F0.3 | ⬜ |
 | U3 | Node.js'i 24 LTS'e güncelle (en az 22.18): https://nodejs.org veya `winget install OpenJS.NodeJS.LTS` | F0.4 (Faz 2'den önce) | ⬜ |
 | U4 | `backend/.env` değerlerini doldur (TMDB; isteğe bağlı yeni SMTP uygulama şifresi; `CONTACT_EMAIL`) | F0.3 | ⬜ |
-| U5 | Karar: Git geçmişi temizlensin mi? (F0.5 — force push gerektirir) | Faz 0 | ⬜ |
+| U5 | Karar: Git geçmişi temizlensin mi? (F0.5 — force push gerektirir) | Faz 0 | ✅ Hayır — atlandı (2026-09-26) |
 | U6 | Karar: v1 verileri (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına taşınsın mı? (F1.10) | Faz 1 | ⬜ |
 | U7 | NVIDIA API anahtarı al (https://build.nvidia.com → "Get API Key") ve `backend/.env` → `NVIDIA_API_KEY` | F6.1 | ⬜ |
 | U8 | Karar: LLM model seçimi (`check_llm.py` tablosuna göre) | F6.1 | ⬜ |
@@ -86,8 +87,8 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F0.2 — `.gitignore` ve depo temizliği — ✅ (2026-09-26)
 - [x] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4) — ✅ kod tarafı (2026-09-26); 👤 anahtar iptali/yenileme hâlâ bekliyor
 - [~] F0.4 — Geliştirme ortamı (👤 U3) — 🟡 kısmi (2026-09-26): venv + ortam kaydı yapıldı, Node güncellemesi 👤 bekliyor
-- [ ] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme
-- [~] 🏁 Faz 0 kapanışı — özet sunuldu (2026-09-26), kullanıcıdan F0.5 ve push kararı bekleniyor
+- [⏭️] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme — kullanıcı onayıyla atlandı (2026-09-26); ileride istenirse ayrıca yapılabilir
+- [x] 🏁 Faz 0 kapanışı — ✅ (2026-09-26): `v2` dalı ve `legacy-v1` etiketi origin'e push edildi
 
 ### Faz 1 — Backend Temeli
 
@@ -262,7 +263,9 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 
 | Tarih | ID | Karar | Durum |
 |---|---|---|---|
-| 2026-09-26 | D-01 … D-13 | Plan §12.1'deki mimari, teknoloji, veri modeli, AI ve git kararları | ⏳ Kullanıcı "başla" dediğinde onaylanmış sayılır |
+| 2026-09-26 | D-01 … D-13 | Plan §12.1'deki mimari, teknoloji, veri modeli, AI ve git kararları | ✅ Kullanıcı "devam et" ile onayladı |
+| 2026-09-26 | D-14 | F0.5 (git geçmişi temizliği) atlansın — U1/U2 asıl çözüm, F0.5 yalnız kozmetik | ✅ Kullanıcı kararı |
+| 2026-09-26 | D-15 | `v2` dalı ve `legacy-v1` etiketi origin'e (public GitHub) push edilsin | ✅ Kullanıcı onayı, uygulandı |
 
 ---
 
@@ -317,6 +320,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F0.5 (atlandı) + 🏁 Faz 0 kapanışı — ✅
+
+- **Yapılanlar:** Kullanıcıya Faz 0 özeti sunuldu, iki karar soruldu: (1) F0.5 (opsiyonel git geçmişi temizliği) yapılsın mı — kullanıcı **hayır, atla** dedi (D-14); (2) `v2` + `legacy-v1` origin'e push edilsin mi — kullanıcı **evet** dedi (D-15). `git push -u origin v2` ve `git push origin legacy-v1` çalıştırıldı.
+- **Değişen dosyalar:** Kod değişikliği yok; yalnızca git push (yeni uzak dal + etiket) ve ilerleme dosyası güncellemesi.
+- **Doğrulama:** Push çıktısı: `v2 -> v2` (yeni dal), `legacy-v1 -> legacy-v1` (yeni etiket), hata yok.
+- **Kapanan maddeler:** —
+- **Commit:** `dfe2088` (özet notu; push işleminin kendisi bir commit üretmez)
+- **Notlar / sorunlar:** F0.4 hâlâ kısmi (Node bekliyor) ama Faz 1'i engellemediği için kullanıcı onayıyla Faz 1'e geçiliyor. U1/U2/U3 hâlâ açık — her fırsatta hatırlatılacak.
+- **Sonraki adım:** F1.1
 
 ### [2026-09-26] F0.4 — Geliştirme ortamı — 🟡 kısmi
 
