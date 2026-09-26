@@ -1,5 +1,5 @@
 import { type MaybeRefOrGetter, toValue } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { api } from './client'
 import { useAuthStore } from '@/stores/auth'
 import type { CatalogContentType } from './catalog'
@@ -24,6 +24,14 @@ export function deleteEntryRequest(type: CatalogContentType, externalId: string)
 
 export function getContentStateRequest(type: CatalogContentType, externalId: string) {
   return api<ContentState>(`/library/${type}/${externalId}/state`)
+}
+
+export function useContentState(type: MaybeRefOrGetter<CatalogContentType>, externalId: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['content-state', toValue(type), toValue(externalId)],
+    queryFn: () => getContentStateRequest(toValue(type), toValue(externalId)),
+    staleTime: 30_000,
+  }))
 }
 
 export function lookupLibraryRequest(keys: string[]) {
@@ -64,4 +72,33 @@ export function updateReviewRequest(reviewId: number, payload: ReviewUpdateIn) {
 
 export function deleteReviewRequest(reviewId: number) {
   return api<void>(`/reviews/${reviewId}`, { method: 'DELETE' })
+}
+
+function invalidateReviewRelated(queryClient: ReturnType<typeof useQueryClient>, type: CatalogContentType, externalId: string) {
+  void queryClient.invalidateQueries({ queryKey: ['content-state', type, externalId] })
+  void queryClient.invalidateQueries({ queryKey: ['reviews', type, externalId] })
+}
+
+export function useCreateReview() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createReviewRequest,
+    onSuccess: (_, payload) => invalidateReviewRelated(queryClient, payload.type as CatalogContentType, payload.external_id),
+  })
+}
+
+export function useUpdateReview(type: CatalogContentType, externalId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ reviewId, payload }: { reviewId: number; payload: ReviewUpdateIn }) => updateReviewRequest(reviewId, payload),
+    onSuccess: () => invalidateReviewRelated(queryClient, type, externalId),
+  })
+}
+
+export function useDeleteReview(type: CatalogContentType, externalId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteReviewRequest,
+    onSuccess: () => invalidateReviewRelated(queryClient, type, externalId),
+  })
 }

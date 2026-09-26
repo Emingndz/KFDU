@@ -6,6 +6,7 @@ import respx
 from httpx import Response
 from sqlalchemy import event
 
+from app.modules.library.models import Review
 from app.modules.social.models import Activity, ActivityComment, ActivityLike, Notification
 from tests.conftest import auth_headers
 from tests.conftest import engine as test_engine
@@ -66,6 +67,37 @@ def test_review_on_same_content_reuses_activity_and_sets_review_card_type(client
     feed = client.get("/api/v1/feed", params={"scope": "global"})
     card = feed.json()["items"][0]
     assert card["card_type"] == "review"
+
+
+@respx.mock
+def test_review_is_edited_false_until_actually_updated(client, db, user_factory):
+    # D-21: created_at/updated_at, TimestampMixin'de iki ayrı datetime.now(UTC) çağrısıyla
+    # ayarlanıyor; bu yüzden is_edited hesaplaması saf `updated_at > created_at` yerine
+    # gerçek bir düzenlemeyi ayırt edecek bir tolerans kullanmalı (bkz. app/modules/social/service.py).
+    _mock_book_detail()
+    user = user_factory(username="duzenleyen", email="duzenleyen@example.com")
+    headers = auth_headers(user)
+
+    create_resp = client.post(
+        "/api/v1/reviews",
+        json={"type": "book", "external_id": "OL45804W", "body": "İlk hâli, henüz düzenlenmedi."},
+        headers=headers,
+    )
+    review_id = create_resp.json()["id"]
+
+    reviews = client.get("/api/v1/reviews", params={"type": "book", "external_id": "OL45804W"})
+    fresh = next(r for r in reviews.json()["items"] if r["id"] == review_id)
+    assert fresh["is_edited"] is False
+
+    review_row = db.get(Review, review_id)
+    review_row.created_at = review_row.created_at - timedelta(minutes=5)
+    db.commit()
+
+    client.patch(f"/api/v1/reviews/{review_id}", json={"body": "Düzenlendi, artık farklı."}, headers=headers)
+
+    reviews_after = client.get("/api/v1/reviews", params={"type": "book", "external_id": "OL45804W"})
+    edited = next(r for r in reviews_after.json()["items"] if r["id"] == review_id)
+    assert edited["is_edited"] is True
 
 
 @respx.mock

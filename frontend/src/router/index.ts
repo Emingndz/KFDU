@@ -63,15 +63,15 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/film/:id',
     name: 'movie-detail',
-    component: ComingSoonPage,
-    props: { title: 'Film' },
+    component: () => import('@/pages/ContentDetailPage.vue'),
+    props: (route) => ({ type: 'movie', externalId: String(route.params.id) }),
     meta: { title: 'Film' },
   },
   {
     path: '/kitap/:id',
     name: 'book-detail',
-    component: ComingSoonPage,
-    props: { title: 'Kitap' },
+    component: () => import('@/pages/ContentDetailPage.vue'),
+    props: (route) => ({ type: 'book', externalId: String(route.params.id) }),
     meta: { title: 'Kitap' },
   },
   {

@@ -487,7 +487,7 @@ def _review_to_out(
         rating=rating,
         created_at=review.created_at,
         updated_at=review.updated_at,
-        is_edited=review.updated_at > review.created_at,
+        is_edited=(review.updated_at - review.created_at).total_seconds() > 1,
         activity_id=activity.id if activity else None,
         likes_count=likes_count,
         liked_by_me=liked_by_me,

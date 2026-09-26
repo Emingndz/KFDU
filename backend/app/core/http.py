@@ -5,7 +5,7 @@ import time
 import httpx
 
 from app.core.config import settings
-from app.core.errors import AppError
+from app.core.errors import AppError, not_found
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,8 @@ def request_json(
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                raise not_found(f"{service} içinde bulunamadı") from exc
             if exc.response.status_code != 429 and exc.response.status_code < 500:
                 raise
             if attempt == max_attempts:

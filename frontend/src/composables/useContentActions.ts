@@ -70,8 +70,10 @@ export function useContentActions(
     void apply({ status: status.value === next ? null : next })
   }
 
-  function setRating(next: number) {
-    void apply({ rating: rating.value === next ? null : next })
+  function setRating(next: number | null) {
+    // StarRating aynı değere tıklayınca zaten kendi içinde null yayar (bkz. F3.1) — burada
+    // ikinci bir eşitlik kontrolü yapmıyoruz, StarRating'in kararını olduğu gibi uyguluyoruz.
+    void apply({ rating: next })
   }
 
   function toggleFavorite() {
