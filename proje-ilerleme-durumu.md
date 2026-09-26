@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 1 uygulanıyor |
+| Proje durumu | 🟨 Faz 1 uygulanıyor — **oturum kullanım limiti nedeniyle duraklatıldı** |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.7 — Kütüphane: durum, puan, favori, inceleme yazma** |
+| Sıradaki adım | **F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `8c12de7` (feat(F1.6): katalog modülü) |
+| Son commit | `919615a` (feat(F1.7): kütüphane) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -43,6 +43,8 @@
 - **F1.4 tamamlandı:** `auth` modülü uçtan uca çalışıyor: `/auth/register|login|token|password-reset/{request,verify,confirm}|change-password|logout-all`. `users/deps.py` (`CurrentUser`/`OptionalUser`), `users/validation.py` (kullanıcı adı kuralı — paylaşılan, F1.5 de kullanacak). **Dikkat (F1.5 için):** `users/schemas.py` zaten var ama yalnızca `PublicUserOut`+`MeOut` içeriyor — F1.5 bu dosyayı genişletecek, üzerine yazmayacak. Gerçek sunucuda OAuth2 `/auth/token` ile Swagger "Authorize" akışı ve korumalı uç (401+`WWW-Authenticate: Bearer` / 204 başarı) doğrulandı. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` eklendi. 13 yeni test (toplam 22) yeşil.
 - **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekledi, veriyi tekrar tanımlamadı). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
 - **F1.6 tamamlandı — kitaplar artık çalışıyor:** `catalog` modülü uçtan uca: TMDB (film/dizi — yönetmen, oyuncu, süre, tür, fragman, TR platformları), Open Library (varsayılan kitap sağlayıcısı, anahtarsız), Google Books (opsiyonel). `get_or_create_content` 7 gün tazelikle DB'ye upsert ediyor; sağlayıcı çağrıları §6.5 sürelerine göre `ttl_cache`. Gerçek sunucuda Open Library ile `catalog/search`, `catalog/book/{id}`, `catalog/book/{id}/similar`, `catalog/genres` canlı doğrulandı (kapaklı, yazarlı, özetli gerçek sonuçlar döndü). **Önemli hata bulundu ve düzeltildi (D-17):** SQLite'ın `DateTime(timezone=True)`'ı okurken tzinfo düşürmesi — `UTCDateTime` TypeDecorator ile çözüldü, bunu doğrulayan bir test eklendi (`test_detail_upserts_and_second_call_skips_http`). TMDB fixture'ları U2 beklendiği için elle yazıldı (D-18 — düşük öncelikli takip maddesi). 17 yeni test (toplam 41) yeşil.
+- **F1.7 tamamlandı:** `library` modülü: kısmi güncelleme (`model_fields_set`), `is_empty` olunca satır siliniyor, `in_progress`/`completed` → `started_at`/`finished_at` otomatik (boşsa), `library.log_changed`/`log_removed`/`status_changed` olayları commit'ten önce yayınlanıyor (henüz dinleyen yok — F1.8'de `social/handlers.py` dinleyecek). `get_state` (platform ortalama/dağılım + takip edilenler), `lookup` (tek sorgu, ≤60 anahtar), incelemeler (409/403/422). **Not (F1.8 için önemli):** `delete_review`'da `db.delete(review)` sonrası `db.flush()` çağrısı gerekti — `SessionLocal` `autoflush=False` ile kurulu, bu yüzden silme işlemi sonraki `SELECT`'e otomatik yansımıyor. F1.8'de benzer sil-sonra-kontrol-et deseni varsa aynı şeye dikkat et. 10 yeni test (toplam 51) yeşil.
+- **⏸️ OTURUM DURAKLAT MA NOKTASI (kullanım limiti):** Faz 1'in 7/11 adımı bitti (F1.1–F1.7). Kalan: F1.8 (sosyal — akış/beğeni/yorum/bildirim, [L] büyük), F1.9 (listeler), F1.10 (istatistik+demo veri, içinde 🛑 opsiyonel eski veri aktarımı sorusu var), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Sonraki oturum bu dosyayı okuyup F1.8'den devam etsin. Hiçbir 🛑/🏁/👤 engeli yok, direkt devam edilebilir.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -53,7 +55,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 6/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 7/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -104,7 +106,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.4 — Kimlik doğrulama modülü — ✅ (2026-09-26)
 - [x] F1.5 — Kullanıcılar ve takip — ✅ (2026-09-26)
 - [x] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir** — ✅ (2026-09-26)
-- [ ] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma
+- [x] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅ (2026-09-26)
 - [ ] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim
 - [ ] F1.9 — Özel listeler
 - [ ] F1.10 — Profil özeti, platform vitrinleri ve demo verisi (🛑 U6)
@@ -191,7 +193,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | ✅ | `cf0ff06` |
 | SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | ✅ | `90c6ed0` |
 | SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | ✅ | `cf0ff06` |
-| SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | 🟡 kısmi (kimlik: F1.4 ✅; puan/metin uzunluğu F1.7) | `cf0ff06` |
+| SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | ✅ | `919615a` |
 | SEC-09 | CORS `*` + credentials | F1.2 | ✅ | `845b3e8` |
 | BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | ✅ | `8c12de7` |
 | BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🟡 backend ✅; frontend gösterimi F3.3 | `8c12de7` |
@@ -212,11 +214,11 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🔴 | |
-| BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🔴 | |
+| BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🔴 | |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
-| DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | 🟡 katalog tarafı ✅ (tek `get_or_create_content`); kütüphane tarafı F1.7 | `8c12de7` |
+| DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | ✅ (tek `get_or_create_content` + tek `upsert_entry`, film/kitap ayrımı yok) | `919615a` |
 | DEBT-05 | Ham dış API JSON'u frontend'e gidiyor | F1.6 | ✅ | `8c12de7` |
 | DEBT-06 | `print` loglama; test/lint/README/`.env.example` yok | F1.2, Faz 7 | 🟡 kısmi (loglama + test/lint altyapısı hazır; README Faz 7'de) | `845b3e8` |
 | DEBT-07 | Açılışta `create_all` (migrasyon yok) | F1.3 | ✅ | `0f29f74` |
@@ -329,6 +331,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅
+
+- **Yapılanlar:** `catalog/service.py`'ye genel `content_to_summary()` eklendi (library ve sonraki modüller reuse edecek). `library/schemas.py`: `LibraryStatus`, `EntryUpdateIn`, `EntryOut`, `ContentState` (+ `PlatformStats`, `MeState`, `FriendEntry`), `LookupIn/EntryOut`, `Review*`. `library/service.py`: `upsert_entry` (`model_fields_set` ile kısmi güncelleme; `is_empty` → satır silinir; `in_progress`/`completed` → `started_at`/`finished_at` otomatik boşsa; `log_changed`/`log_removed`/`status_changed` olayları commit'ten önce), `delete_entry`, `get_state` (platform ortalama+dağılım tek gruplu sorgu, takip edilenlerin puanları), `lookup` (tek sorgu, JOIN+IN), `list_user_library`, `create/update/delete_review` (409/403). `library/router.py` (§5.4).
+- **Değişen dosyalar:** `backend/app/modules/catalog/service.py` (`content_to_summary` eklendi), `backend/app/modules/library/{schemas,service,router}.py` (yeni), `backend/app/main.py` (router kaydı), `backend/tests/test_library.py` (yeni, 10 test).
+- **Doğrulama:** `pytest` → 51 passed (10 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓
+- **Kapanan maddeler:** SEC-08 (tam), BUG-20 (backend), DEBT-04 (tam)
+- **Commit:** `919615a`
+- **Notlar / sorunlar:** `delete_review`'da silme sonrası `_has_review` kontrolü yanlış sonuç veriyordu (autoflush=False) — `db.flush()` ekleyerek düzeltildi, testte doğrulandı. `library.*` olayları şu an dinleyicisiz (no-op) — F1.8 `social/handlers.py` ile dinleyecek.
+- **Sonraki adım:** F1.8 — **oturum kullanım limiti nedeniyle burada duraklatıldı, sonraki oturum buradan devam etsin**
 
 ### [2026-09-26] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — ✅
 
