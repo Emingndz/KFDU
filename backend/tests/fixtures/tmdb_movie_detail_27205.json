@@ -1,0 +1,82 @@
+{
+  "id": 27205,
+  "title": "Inception",
+  "original_title": "Inception",
+  "overview": "Cobb, usta bir hırsızdır; rüya paylaşım teknolojisi kullanarak zihinlerin en değerli sırlarını çalar. Bu nadir yeteneği onu kurumsal casusluk dünyasında aranan bir adam yapmış, ama aynı zamanda uluslararası bir kaçak konumuna düşürmüş ve sevdiklerini kaybetmesine yol açmıştır. Cobb'a artık bir fikri çalmak yerine tam tersini, bir kişinin zihnine bir fikri yerleştirmeyi başarırsa geçmişini geri kazanma şansı verilir.",
+  "tagline": "Zihin gerçek bir suç mahallidir.",
+  "release_date": "2010-07-16",
+  "poster_path": "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+  "backdrop_path": "/s3TBrRGB1iav7gFOCNx3H8r4mko.jpg",
+  "runtime": 148,
+  "original_language": "en",
+  "vote_average": 8.4,
+  "vote_count": 35000,
+  "genres": [
+    { "id": 28, "name": "Action" },
+    { "id": 878, "name": "Science Fiction" },
+    { "id": 12, "name": "Adventure" }
+  ],
+  "credits": {
+    "crew": [
+      {
+        "id": 525,
+        "name": "Christopher Nolan",
+        "job": "Director",
+        "profile_path": "/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg"
+      },
+      {
+        "id": 526,
+        "name": "Emma Thomas",
+        "job": "Producer",
+        "profile_path": null
+      }
+    ],
+    "cast": [
+      {
+        "id": 6193,
+        "name": "Leonardo DiCaprio",
+        "character": "Cobb",
+        "profile_path": "/wo2hJpn04vbtmh0B9utCFdliQiD.jpg"
+      },
+      {
+        "id": 24045,
+        "name": "Joseph Gordon-Levitt",
+        "character": "Arthur",
+        "profile_path": "/4U9G4YwTlIEbAQ4NoRcyIYRDS4W.jpg"
+      },
+      {
+        "id": 27578,
+        "name": "Elliot Page",
+        "character": "Ariadne",
+        "profile_path": null
+      }
+    ]
+  },
+  "videos": {
+    "results": [
+      {
+        "key": "YoHD9XEInc0",
+        "site": "YouTube",
+        "type": "Trailer",
+        "official": true,
+        "iso_639_1": "en"
+      }
+    ]
+  },
+  "watch/providers": {
+    "results": {
+      "TR": {
+        "link": "https://www.themoviedb.org/movie/27205-inception/watch?locale=TR",
+        "flatrate": [{ "provider_name": "Netflix" }],
+        "rent": [{ "provider_name": "Google Play Filmler" }],
+        "buy": [{ "provider_name": "Google Play Filmler" }]
+      }
+    }
+  },
+  "keywords": {
+    "keywords": [
+      { "id": 1721, "name": "dream" },
+      { "id": 9663, "name": "subconscious" }
+    ]
+  }
+}

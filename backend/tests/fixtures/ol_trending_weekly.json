@@ -1,0 +1,584 @@
+{
+  "query": "/trending/weekly",
+  "works": [
+    {
+      "key": "/works/OL17930368W",
+      "title": "Atomic Habits",
+      "author_name": [
+        "James Clear"
+      ],
+      "author_key": [
+        "OL7422948A"
+      ],
+      "cover_edition_key": "OL36647151M",
+      "cover_height": 500,
+      "cover_i": 12539702,
+      "cover_width": 369,
+      "ebook_access": "printdisabled",
+      "edition_count": 42,
+      "first_publish_year": 2016,
+      "has_fulltext": true,
+      "ia": [
+        "hbitosatmicos0000jame",
+        "hbitosatmicosumm0000jona",
+        "die1methodeminim0000clea",
+        "atomichabitseasy0000clea"
+      ],
+      "ia_collection": [
+        "internetarchivebooks",
+        "printdisabled"
+      ],
+      "language": [
+        "eng",
+        "ind",
+        "fre",
+        "spa",
+        "por",
+        "ger",
+        "tur"
+      ],
+      "public_scan_b": false,
+      "editions": {
+        "numFound": 42,
+        "start": 0,
+        "numFoundExact": true,
+        "docs": [
+          {
+            "key": "/books/OL27918581M",
+            "title": "Atomic Habits",
+            "subtitle": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+            "cover_i": 15217381,
+            "cover_width": 2104,
+            "cover_height": 3209,
+            "language": [
+              "eng"
+            ],
+            "ia": [
+              "atomichabitseasy0000clea"
+            ],
+            "ia_collection": [
+              "printdisabled",
+              "internetarchivebooks"
+            ],
+            "ebook_access": "printdisabled",
+            "has_fulltext": true,
+            "public_scan_b": false,
+            "providers": [
+              {
+                "access": "sample",
+                "format": "web",
+                "price": null,
+                "url": "https://archive.org/details/atomichabitseasy0000clea?view=theater&wrapper=false",
+                "provider_name": "ia"
+              }
+            ],
+            "availability": {
+              "status": "private",
+              "available_to_browse": false,
+              "available_to_borrow": false,
+              "available_to_waitlist": false,
+              "is_printdisabled": true,
+              "is_readable": false,
+              "is_lendable": false,
+              "is_previewable": true,
+              "identifier": "atomichabitseasy0000clea",
+              "isbn": "9781847941831",
+              "oclc": null,
+              "openlibrary_work": "OL17930368W",
+              "openlibrary_edition": "OL27918581M",
+              "last_loan_date": null,
+              "num_waitlist": null,
+              "last_waitlist_date": null,
+              "is_restricted": true,
+              "is_browseable": false,
+              "__src__": "core.models.lending.get_availability"
+            }
+          }
+        ]
+      },
+      "providers": []
+    },
+    {
+      "key": "/works/OL1968368W",
+      "title": "The 48 Laws of Power",
+      "author_name": [
+        "Robert Greene"
+      ],
+      "author_key": [
+        "OL236414A"
+      ],
+      "cover_edition_key": "OL24274306M",
+      "cover_height": 680,
+      "cover_i": 6424160,
+      "cover_width": 510,
+      "ebook_access": "borrowable",
+      "edition_count": 51,
+      "first_publish_year": 1998,
+      "has_fulltext": true,
+      "ia": [
+        "powerdie48gesetz0000robe",
+        "48lawsofpow00gree",
+        "48lawsofpower00greerich",
+        "48lawsofpower00gree"
+      ],
+      "ia_collection": [
+        "americana",
+        "delawarecountydistrictlibrary",
+        "gbell",
+        "inlibrary",
+        "internetarchivebooks",
+        "nclive",
+        "printdisabled",
+        "unclibraries"
+      ],
+      "language": [
+        "eng",
+        "ind",
+        "rus",
+        "fre",
+        "spa",
+        "ara",
+        "ger",
+        "tur"
+      ],
+      "lending_edition_s": "OL9036414M",
+      "lending_identifier_s": "powerdie48gesetz0000robe",
+      "public_scan_b": false,
+      "editions": {
+        "numFound": 51,
+        "start": 0,
+        "numFoundExact": true,
+        "docs": [
+          {
+            "key": "/books/OL16120130M",
+            "title": "The 48 laws of power",
+            "cover_i": 15258283,
+            "cover_width": 1219,
+            "cover_height": 1796,
+            "language": [
+              "eng"
+            ],
+            "ia": [
+              "48lawsofpower00gree"
+            ],
+            "ia_collection": [
+              "printdisabled",
+              "internetarchivebooks",
+              "delawarecountydistrictlibrary",
+              "americana"
+            ],
+            "ebook_access": "printdisabled",
+            "has_fulltext": true,
+            "public_scan_b": false,
+            "providers": [
+              {
+                "access": "sample",
+                "format": "web",
+                "price": null,
+                "url": "https://archive.org/details/48lawsofpower00gree?view=theater&wrapper=false",
+                "provider_name": "ia"
+              }
+            ],
+            "availability": {
+              "status": "private",
+              "available_to_browse": false,
+              "available_to_borrow": false,
+              "available_to_waitlist": false,
+              "is_printdisabled": true,
+              "is_readable": false,
+              "is_lendable": false,
+              "is_previewable": true,
+              "identifier": "48lawsofpower00gree",
+              "isbn": "0140280197",
+              "oclc": null,
+              "openlibrary_work": "OL1968368W",
+              "openlibrary_edition": "OL16120130M",
+              "last_loan_date": "2020-09-07T22:59:43Z",
+              "num_waitlist": "1",
+              "last_waitlist_date": "2020-09-08T11:35:27Z",
+              "is_restricted": true,
+              "is_browseable": false,
+              "__src__": "core.models.lending.get_availability"
+            }
+          }
+        ]
+      },
+      "providers": []
+    },
+    {
+      "key": "/works/OL2010879W",
+      "title": "Rich Dad, Poor Dad",
+      "author_name": [
+        "Robert T. Kiyosaki",
+        "Sharon L. Lechter"
+      ],
+      "author_key": [
+        "OL242220A",
+        "OL2711033A"
+      ],
+      "cover_edition_key": "OL26632040M",
+      "cover_height": 500,
+      "cover_i": 8315603,
+      "cover_width": 333,
+      "ebook_access": "borrowable",
+      "edition_count": 115,
+      "first_publish_year": 1990,
+      "has_fulltext": true,
+      "ia": [
+        "perericheperepau0000kiyo",
+        "pairicopaipobreo0000kiyo",
+        "richdadpoordadwh0000kiyo",
+        "fubabaqiongbabar0000kiyo_r0c3",
+        "fubabaqiongbaba0001kiyo_k5t1",
+        "fubabaqiongbaba0001kiyo",
+        "fubabaqiongbabar0000kiyo",
+        "kanemochitsanbin0000kiyo",
+        "bogatypapabednyp0000kiyo",
+        "richdadpoordadwh0000kiyo_t8n6",
+        "richdadpoordadwh00kiyo",
+        "paparicopapapobr0000kiyo",
+        "fubabaqiongbabar0000kiyo_g2v1",
+        "isbn_9780453677455",
+        "richdadpoordadwi0000kiyo",
+        "padrericopadrepo0000kiyo",
+        "fubabaqiongbabar0004kiyo",
+        "ricadaidapuarada0000kiyo"
+      ],
+      "ia_collection": [
+        "americana",
+        "binghamton-ol",
+        "cnusd-ol",
+        "delawarecountydistrictlibrary",
+        "delawarecountydistrictlibrary-ol",
+        "drakeuniversity-ol",
+        "inlibrary",
+        "internetarchivebooks",
+        "library_of_atlantis",
+        "miltonpubliclibrary-ol",
+        "popularchinesebooks",
+        "printdisabled",
+        "riceuniversity-ol",
+        "rochester-ol",
+        "worthingtonlibraries-ol"
+      ],
+      "language": [
+        "ita",
+        "jpn",
+        "eng",
+        "ind",
+        "rus",
+        "hin",
+        "fre",
+        "spa",
+        "por",
+        "chi",
+        "ger",
+        "tur"
+      ],
+      "lending_edition_s": "OL30091063M",
+      "lending_identifier_s": "perericheperepau0000kiyo",
+      "public_scan_b": false,
+      "editions": {
+        "numFound": 115,
+        "start": 0,
+        "numFoundExact": true,
+        "docs": [
+          {
+            "key": "/books/OL27085675M",
+            "title": "Rich dad poor dad",
+            "subtitle": "what the rich teach their kids about money-- that the poor and middle class do not!",
+            "cover_i": 8715673,
+            "cover_width": 3555,
+            "cover_height": 5450,
+            "language": [
+              "eng",
+              "ind"
+            ],
+            "ia": [
+              "richdadpoordadwh0000kiyo"
+            ],
+            "ia_collection": [
+              "inlibrary",
+              "printdisabled",
+              "internetarchivebooks"
+            ],
+            "ebook_access": "borrowable",
+            "has_fulltext": true,
+            "public_scan_b": false,
+            "providers": [
+              {
+                "access": "borrow",
+                "format": "web",
+                "price": null,
+                "url": "https://archive.org/details/richdadpoordadwh0000kiyo?view=theater&wrapper=false",
+                "provider_name": "ia"
+              }
+            ],
+            "availability": {
+              "status": "borrow_available",
+              "available_to_browse": true,
+              "available_to_borrow": false,
+              "available_to_waitlist": false,
+              "is_printdisabled": true,
+              "is_readable": false,
+              "is_lendable": true,
+              "is_previewable": true,
+              "identifier": "richdadpoordadwh0000kiyo",
+              "isbn": "9780446567404",
+              "oclc": null,
+              "openlibrary_work": "OL19899994W",
+              "openlibrary_edition": "OL27085675M",
+              "last_loan_date": null,
+              "num_waitlist": null,
+              "last_waitlist_date": null,
+              "is_restricted": true,
+              "is_browseable": true,
+              "__src__": "core.models.lending.get_availability"
+            }
+          }
+        ]
+      },
+      "providers": []
+    },
+    {
+      "key": "/works/OL21640039W",
+      "title": "The Psychology of Money",
+      "author_name": [
+        "Morgan Housel"
+      ],
+      "author_key": [
+        "OL8276761A"
+      ],
+      "cover_edition_key": "OL29412746M",
+      "cover_height": 500,
+      "cover_i": 10389354,
+      "cover_width": 319,
+      "ebook_access": "printdisabled",
+      "edition_count": 27,
+      "first_publish_year": 2020,
+      "has_fulltext": true,
+      "ia": [
+        "psychologyofmone0000unse_e5d2",
+        "psychologyofmone0000hous",
+        "lapsicologadeldi0000unse"
+      ],
+      "ia_collection": [
+        "internetarchivebooks",
+        "printdisabled"
+      ],
+      "language": [
+        "eng",
+        "ind",
+        "fre",
+        "spa",
+        "ger"
+      ],
+      "public_scan_b": false,
+      "editions": {
+        "numFound": 27,
+        "start": 0,
+        "numFoundExact": true,
+        "docs": [
+          {
+            "key": "/books/OL51726888M",
+            "title": "The Psychology of Money",
+            "subtitle": "Timeless lessons on wealth, greed, and happiness",
+            "cover_i": 15215448,
+            "cover_width": 1080,
+            "cover_height": 1771,
+            "language": [
+              "eng"
+            ],
+            "ia": [
+              "psychologyofmone0000unse_e5d2"
+            ],
+            "ia_collection": [
+              "printdisabled",
+              "internetarchivebooks"
+            ],
+            "ebook_access": "printdisabled",
+            "has_fulltext": true,
+            "public_scan_b": false,
+            "providers": [
+              {
+                "access": "sample",
+                "format": "web",
+                "price": null,
+                "url": "https://archive.org/details/psychologyofmone0000unse_e5d2?view=theater&wrapper=false",
+                "provider_name": "ia"
+              }
+            ],
+            "availability": {
+              "status": "private",
+              "available_to_browse": false,
+              "available_to_borrow": false,
+              "available_to_waitlist": false,
+              "is_printdisabled": true,
+              "is_readable": false,
+              "is_lendable": false,
+              "is_previewable": true,
+              "identifier": "psychologyofmone0000unse_e5d2",
+              "isbn": "9781804090114",
+              "oclc": null,
+              "openlibrary_work": "OL38076643W",
+              "openlibrary_edition": "OL51726888M",
+              "last_loan_date": null,
+              "num_waitlist": null,
+              "last_waitlist_date": null,
+              "is_restricted": true,
+              "is_browseable": false,
+              "__src__": "core.models.lending.get_availability"
+            }
+          }
+        ]
+      },
+      "providers": []
+    },
+    {
+      "key": "/works/OL2629977W",
+      "title": "The 7 Habits of Highly Effective People",
+      "author_name": [
+        "Stephen R. Covey"
+      ],
+      "author_key": [
+        "OL383159A"
+      ],
+      "cover_edition_key": "OL28136651M",
+      "cover_height": 500,
+      "cover_i": 10079937,
+      "cover_width": 329,
+      "ebook_access": "borrowable",
+      "edition_count": 78,
+      "first_publish_year": 1989,
+      "has_fulltext": true,
+      "ia": [
+        "gaoxiaonengrensh0000cove_a2i5",
+        "gaoxiaonengrensh0000step",
+        "gaoxiaonengrensh0007cove",
+        "yuchenggongyouyu0000cove",
+        "sevenhabitshigly00cove",
+        "sevenhabitsofhig00cove",
+        "los7habitosdelag0000cove_m9q0",
+        "sevenhabitsofhi00cove",
+        "os7hbitosdaspess0000inva",
+        "sevenhabitsofhig00cove_0",
+        "7habitsofhighlye0000cove_c0q4",
+        "7habitsofhighlye00cove_0",
+        "7habitsofhighlye00cove",
+        "7habitsofhighlye0000cove_q9q4",
+        "isbn_5961402517"
+      ],
+      "ia_collection": [
+        "ambslibrary-ol",
+        "americana",
+        "barryuniversity-ol",
+        "belmont-ol",
+        "binghamton-ol",
+        "cnusd-ol",
+        "cua-ol",
+        "dartmouthlibrary-ol",
+        "delawarecountydistrictlibrary",
+        "delawarecountydistrictlibrary-ol",
+        "georgetown-university-law-library-ol",
+        "goffstownlibrary-ol",
+        "gwulibraries-ol",
+        "hamiltonpubliclibrary-ol",
+        "howard-ol",
+        "inlibrary",
+        "internetarchivebooks",
+        "johnshopkins-ol",
+        "kalamazoocollege-ol",
+        "marymount-ol",
+        "miltonpubliclibrary-ol",
+        "openlibrary-d-ol",
+        "popularchinesebooks",
+        "printdisabled",
+        "rochester-ol",
+        "salisburyfreelibrary-ol",
+        "schroederlibrary-ol",
+        "stmaryscountylibrary",
+        "udc-ol",
+        "uhmauicollege-ol",
+        "uni-ol",
+        "universityofcoloradoboulder-ol",
+        "uslprototype"
+      ],
+      "language": [
+        "jpn",
+        "por",
+        "spa",
+        "kor",
+        "rus",
+        "eng",
+        "chi",
+        "cze",
+        "vie"
+      ],
+      "lending_edition_s": "OL27934042M",
+      "lending_identifier_s": "gaoxiaonengrensh0000cove_a2i5",
+      "public_scan_b": false,
+      "editions": {
+        "numFound": 78,
+        "start": 0,
+        "numFoundExact": true,
+        "docs": [
+          {
+            "key": "/books/OL24362766M",
+            "title": "The 7 Habits of Highly Effective People",
+            "cover_i": 15134031,
+            "cover_width": 2371,
+            "cover_height": 3646,
+            "language": [
+              "eng"
+            ],
+            "ia": [
+              "sevenhabitshigly00cove"
+            ],
+            "ia_collection": [
+              "stmaryscountylibrary",
+              "inlibrary",
+              "printdisabled",
+              "americana"
+            ],
+            "ebook_access": "borrowable",
+            "has_fulltext": true,
+            "public_scan_b": false,
+            "providers": [
+              {
+                "access": "borrow",
+                "format": "web",
+                "price": null,
+                "url": "https://archive.org/details/sevenhabitshigly00cove?view=theater&wrapper=false",
+                "provider_name": "ia"
+              }
+            ],
+            "availability": {
+              "status": "borrow_unavailable",
+              "available_to_browse": false,
+              "available_to_borrow": false,
+              "available_to_waitlist": false,
+              "is_printdisabled": true,
+              "is_readable": false,
+              "is_lendable": true,
+              "is_previewable": true,
+              "identifier": "sevenhabitshigly00cove",
+              "isbn": "0671663984",
+              "oclc": null,
+              "openlibrary_work": "OL2629977W",
+              "openlibrary_edition": "OL24362766M",
+              "last_loan_date": null,
+              "num_waitlist": null,
+              "last_waitlist_date": null,
+              "is_restricted": true,
+              "is_browseable": false,
+              "__src__": "core.models.lending.get_availability"
+            }
+          }
+        ]
+      },
+      "providers": []
+    }
+  ],
+  "days": 7,
+  "hours": 0
+}

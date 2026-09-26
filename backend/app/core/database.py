@@ -1,11 +1,12 @@
 import sqlite3
 from collections.abc import Generator
 from datetime import UTC, datetime
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from sqlalchemy import DateTime, MetaData, create_engine, event
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Dialect, Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+from sqlalchemy.types import TypeDecorator
 
 from app.core.config import settings
 
@@ -18,9 +19,26 @@ NAMING_CONVENTION = {
 }
 
 
+class UTCDateTime(TypeDecorator):
+    """SQLite, timezone=True olsa bile okurken tzinfo'yu kaybeder; burada geri ekleniyor."""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect: Dialect) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value
+
+    def process_result_value(self, value: datetime | None, dialect: Dialect) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value
+
+
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
-    type_annotation_map: ClassVar[dict[type, object]] = {datetime: DateTime(timezone=True)}
+    type_annotation_map: ClassVar[dict[type, Any]] = {datetime: UTCDateTime()}
 
 
 class TimestampMixin:
