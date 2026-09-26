@@ -1,7 +1,16 @@
 import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { api } from './client'
-import type { DeleteAccountIn, EmailChangeIn, MeOut, MeUpdateIn, Page, ProfileOut, PublicUserOut } from '@/types'
+import type {
+  DeleteAccountIn,
+  EmailChangeIn,
+  MeOut,
+  MeUpdateIn,
+  Page,
+  ProfileOut,
+  PublicUserOut,
+  PublicUserWithFollowOut,
+} from '@/types'
 
 export function fetchMeRequest() {
   return api<MeOut>('/users/me')
@@ -21,6 +30,68 @@ export function deleteAccountRequest(payload: DeleteAccountIn) {
 
 export function getProfileRequest(username: string) {
   return api<ProfileOut>(`/users/${username}`)
+}
+
+export function useProfile(username: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['profile', toValue(username)],
+    queryFn: () => getProfileRequest(toValue(username)),
+    staleTime: 60_000,
+  }))
+}
+
+export function getFollowersRequest(username: string, page = 1) {
+  return api<Page<PublicUserWithFollowOut>>(`/users/${username}/followers`, { query: { page } })
+}
+
+export function getFollowingRequest(username: string, page = 1) {
+  return api<Page<PublicUserWithFollowOut>>(`/users/${username}/following`, { query: { page } })
+}
+
+export function useFollowers(username: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['followers', toValue(username)],
+    queryFn: ({ pageParam }: { pageParam: number }) => getFollowersRequest(toValue(username), pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: Page<PublicUserWithFollowOut>) => (lastPage.has_next ? lastPage.page + 1 : undefined),
+    enabled: toValue(enabled),
+  }))
+}
+
+export function useFollowing(username: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['following', toValue(username)],
+    queryFn: ({ pageParam }: { pageParam: number }) => getFollowingRequest(toValue(username), pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: Page<PublicUserWithFollowOut>) => (lastPage.has_next ? lastPage.page + 1 : undefined),
+    enabled: toValue(enabled),
+  }))
+}
+
+export function uploadAvatarRequest(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  return api<{ avatar_url: string }>('/users/me/avatar', { method: 'POST', body: form })
+}
+
+export function removeAvatarRequest() {
+  return api<{ avatar_url: null }>('/users/me/avatar', { method: 'DELETE' })
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: uploadAvatarRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'me'] }),
+  })
+}
+
+export function useRemoveAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: removeAvatarRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'me'] }),
+  })
 }
 
 export function followUserRequest(username: string) {
@@ -67,7 +138,9 @@ export function useUserSearch(q: MaybeRefOrGetter<string>) {
 }
 
 function invalidateFollowRelated(queryClient: ReturnType<typeof useQueryClient>, username: string) {
-  void queryClient.invalidateQueries({ queryKey: ['user', username] })
+  void queryClient.invalidateQueries({ queryKey: ['profile', username] })
+  void queryClient.invalidateQueries({ queryKey: ['followers', username] })
+  void queryClient.invalidateQueries({ queryKey: ['following'] })
   void queryClient.invalidateQueries({ queryKey: ['user-suggestions'] })
   void queryClient.invalidateQueries({ queryKey: ['user-search'] })
 }

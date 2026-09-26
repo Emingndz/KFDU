@@ -2,7 +2,19 @@ import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { api } from './client'
 import type { CatalogContentType } from './catalog'
-import type { ContentSummary, Page } from '@/types'
+import type { ContentSummary, Page, ProfileSummaryOut } from '@/types'
+
+export function getProfileSummaryRequest(username: string) {
+  return api<ProfileSummaryOut>(`/users/${username}/summary`)
+}
+
+export function useProfileSummary(username: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['user-summary', toValue(username)],
+    queryFn: () => getProfileSummaryRequest(toValue(username)),
+    staleTime: 60_000,
+  }))
+}
 
 export function getTopRatedRequest(type?: CatalogContentType, limit = 20) {
   return api<Page<ContentSummary>>('/platform/top-rated', { query: { type, limit } })

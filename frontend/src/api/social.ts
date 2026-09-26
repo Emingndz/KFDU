@@ -165,3 +165,31 @@ export function useDeleteComment(activityId: number) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', activityId] }),
   })
 }
+
+export function getUserActivitiesRequest(username: string, cursor?: string, limit = 15) {
+  return api<CursorPage<ActivityOut>>(`/users/${username}/activities`, { query: { cursor, limit } })
+}
+
+export function useUserActivities(username: MaybeRefOrGetter<string>) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['user-activities', toValue(username)],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => getUserActivitiesRequest(toValue(username), pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: CursorPage<ActivityOut>) => lastPage.next_cursor ?? undefined,
+    staleTime: 30_000,
+  }))
+}
+
+export function getUserReviewsRequest(username: string, page = 1) {
+  return api<Page<ReviewOut>>(`/users/${username}/reviews`, { query: { page } })
+}
+
+export function useUserReviews(username: MaybeRefOrGetter<string>) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['user-reviews', toValue(username)],
+    queryFn: ({ pageParam }: { pageParam: number }) => getUserReviewsRequest(toValue(username), pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: Page<ReviewOut>) => (lastPage.has_next ? lastPage.page + 1 : undefined),
+    staleTime: 60_000,
+  }))
+}

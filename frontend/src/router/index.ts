@@ -90,8 +90,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/u/:username',
     name: 'profile',
-    component: ComingSoonPage,
-    props: { title: 'Profil' },
+    component: () => import('@/pages/ProfilePage.vue'),
+    props: (route) => ({ username: String(route.params.username) }),
     meta: { title: 'Profil' },
   },
   {
