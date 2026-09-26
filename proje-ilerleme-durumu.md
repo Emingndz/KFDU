@@ -87,7 +87,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4) — ✅ kod tarafı (2026-09-26); 👤 anahtar iptali/yenileme hâlâ bekliyor
 - [~] F0.4 — Geliştirme ortamı (👤 U3) — 🟡 kısmi (2026-09-26): venv + ortam kaydı yapıldı, Node güncellemesi 👤 bekliyor
 - [ ] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme
-- [ ] 🏁 Faz 0 kapanışı
+- [~] 🏁 Faz 0 kapanışı — özet sunuldu (2026-09-26), kullanıcıdan F0.5 ve push kararı bekleniyor
 
 ### Faz 1 — Backend Temeli
 
