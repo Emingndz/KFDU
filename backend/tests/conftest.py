@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import models_registry  # noqa: F401  (Base.metadata'ya tüm tabloları kaydeder)
 from app.core.cache import clear_all_caches
 from app.core.database import Base, get_db
 from app.main import app
@@ -41,3 +42,12 @@ def _setup_database():
 def client():
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def db():
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()

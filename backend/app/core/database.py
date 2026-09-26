@@ -1,6 +1,7 @@
 import sqlite3
 from collections.abc import Generator
 from datetime import UTC, datetime
+from typing import ClassVar
 
 from sqlalchemy import DateTime, MetaData, create_engine, event
 from sqlalchemy.engine import Engine
@@ -19,12 +20,12 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+    type_annotation_map: ClassVar[dict[type, object]] = {datetime: DateTime(timezone=True)}
 
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
