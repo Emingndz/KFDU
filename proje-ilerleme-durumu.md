@@ -23,8 +23,8 @@
 | Proje durumu | 🏁 **Faz 1 tamamlandı** — özet sunuldu, push izni bekleniyor |
 | Aktif faz | Faz 1 tamamlandı → Faz 2'ye geçiş bekliyor |
 | Sıradaki adım | Push onayı sonrası **F2.1 — Vite + Vue 3 + TypeScript iskeleti** (Önkoşul: Node ≥22.18 — **U3 hâlâ yapılmadı**) |
-| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası 22 commit henüz pushlanmadı) |
-| Son commit | `c5e3fa9` (docs(F1.11): README) |
+| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası 23 commit henüz pushlanmadı) |
+| Son commit | `0813d2c` (docs(F1.11): Faz 1 kapanışı) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
