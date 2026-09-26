@@ -20,3 +20,23 @@ export type Page<T> = { items: T[]; page: number; page_size: number; total: numb
 export type CursorPage<T> = { items: T[]; next_cursor: string | null }
 
 export type GenreOut = components['schemas']['GenreOut']
+
+export type ContentSummary = components['schemas']['ContentSummary']
+export type ContentDetail = components['schemas']['ContentDetail']
+
+export type LibraryStatus = components['schemas']['LibraryStatus']
+export type EntryOut = components['schemas']['EntryOut']
+export type EntryUpdateIn = components['schemas']['EntryUpdateIn']
+export type ContentState = components['schemas']['ContentState']
+export type LookupEntryOut = components['schemas']['LookupEntryOut']
+export type ReviewCreateIn = components['schemas']['ReviewCreateIn']
+export type ReviewUpdateIn = components['schemas']['ReviewUpdateIn']
+export type ReviewBasicOut = components['schemas']['ReviewBasicOut']
+
+export type ListCreateIn = components['schemas']['ListCreateIn']
+export type ListUpdateIn = components['schemas']['ListUpdateIn']
+export type ListItemIn = components['schemas']['ListItemIn']
+export type ListOut = components['schemas']['ListOut']
+export type ListDetail = components['schemas']['ListDetail']
+export type ListItemOut = components['schemas']['ListItemOut']
+export type MyListOut = components['schemas']['MyListOut']

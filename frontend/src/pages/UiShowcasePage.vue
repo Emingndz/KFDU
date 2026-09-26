@@ -19,6 +19,18 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 import BaseSpinner from '@/components/ui/BaseSpinner.vue'
 
+import StarRating from '@/components/content/StarRating.vue'
+import RatingDisplay from '@/components/content/RatingDisplay.vue'
+import RatingHistogram from '@/components/content/RatingHistogram.vue'
+import GenreChips from '@/components/content/GenreChips.vue'
+import PosterCard from '@/components/content/PosterCard.vue'
+import ContentGrid from '@/components/content/ContentGrid.vue'
+import ContentRow from '@/components/content/ContentRow.vue'
+import LibraryButtons from '@/components/content/LibraryButtons.vue'
+import FavoriteButton from '@/components/content/FavoriteButton.vue'
+import AddToListMenu from '@/components/content/AddToListMenu.vue'
+import type { ContentSummary, LibraryStatus } from '@/types'
+
 const { mode, options: themeOptions } = useTheme()
 const { confirm } = useConfirm()
 
@@ -28,6 +40,53 @@ const selectValue = ref('')
 const modalOpen = ref(false)
 const activeTab = ref('genel')
 const loadingDemo = ref(false)
+
+const demoContent: ContentSummary[] = [
+  {
+    id: 1,
+    type: 'movie',
+    source: 'tmdb',
+    external_id: '27205',
+    title: 'Inception',
+    original_title: null,
+    year: 2010,
+    poster_url: null,
+    genres: ['science_fiction', 'action'],
+    external_rating: 8.4,
+    creators: ['Christopher Nolan'],
+  },
+  {
+    id: 2,
+    type: 'book',
+    source: 'openlibrary',
+    external_id: 'OL45804W',
+    title: 'Sefiller',
+    original_title: null,
+    year: 1862,
+    poster_url: null,
+    genres: ['classics', 'historical_fiction'],
+    external_rating: 9.1,
+    creators: ['Victor Hugo'],
+  },
+  {
+    id: 3,
+    type: 'tv',
+    source: 'tmdb',
+    external_id: '1396',
+    title: 'Breaking Bad',
+    original_title: null,
+    year: 2008,
+    poster_url: null,
+    genres: ['drama', 'crime'],
+    external_rating: 8.9,
+    creators: [],
+  },
+]
+
+const demoRating = ref<number | null>(7)
+const demoStatus = ref<LibraryStatus | null>('in_progress')
+const demoFavorite = ref(false)
+
 
 async function onConfirmDemo() {
   const ok = await confirm({
@@ -154,6 +213,45 @@ function toggleLoadingDemo() {
       <div class="rounded-card border border-border">
         <ErrorState message="Sunucuya ulaşılamadı." @retry="toast.info('Tekrar deneniyor…')" />
       </div>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-xl font-semibold">Puanlama</h2>
+      <div class="flex flex-wrap items-center gap-6">
+        <div class="flex flex-col gap-1">
+          <StarRating v-model="demoRating" />
+          <p class="text-xs text-muted">Seçilen: {{ demoRating ?? '—' }}/10</p>
+        </div>
+        <RatingDisplay :rating="8" />
+        <StarRating :model-value="6" readonly size="sm" />
+      </div>
+      <RatingHistogram :distribution="{ '1': 1, '2': 0, '3': 2, '4': 1, '5': 3, '6': 5, '7': 9, '8': 14, '9': 7, '10': 4 }" />
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-xl font-semibold">Tür etiketleri</h2>
+      <GenreChips :genres="['Bilim Kurgu', 'Aksiyon', 'Gerilim']" />
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-xl font-semibold">İçerik kartları</h2>
+      <div class="flex gap-4">
+        <PosterCard v-for="item in demoContent" :key="`${item.type}:${item.external_id}`" :content="item" />
+      </div>
+      <ContentRow title="Örnek şerit" :items="demoContent" />
+      <ContentGrid :items="demoContent" />
+      <ContentGrid :items="[]" loading :skeleton-count="6" />
+      <ContentGrid :items="[]" empty-title="Sonuç yok" empty-message="Filtreleri değiştirip tekrar dene." />
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-xl font-semibold">Kütüphane eylemleri</h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <LibraryButtons type="movie" :status="demoStatus" @update:status="(v) => (demoStatus = demoStatus === v ? null : v)" />
+        <FavoriteButton v-model="demoFavorite" />
+        <AddToListMenu type="movie" external-id="27205" :content-id="1" />
+      </div>
+      <p class="text-xs text-muted">Durum: {{ demoStatus ?? '—' }} · Favori: {{ demoFavorite }}</p>
     </section>
   </div>
 </template>
