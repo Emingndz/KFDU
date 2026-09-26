@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | ⛔ **Faz 2 önkoşulu eksik** — F2.1 için Node ≥22.18 gerekiyor, kullanıcıdan U3 bekleniyor |
-| Aktif faz | Faz 1 ✅ tamamlandı ve push edildi → Faz 2 (Frontend Temeli) başlayamıyor |
-| Sıradaki adım | **F2.1 — Vite + Vue 3 + TypeScript iskeleti** — 👤 U3 (Node.js ≥22.18, tercihen 24 LTS) tamamlanana kadar başlanamaz |
-| Çalışma dalı | `v2` (origin'e tamamen push edildi — `origin/v2` = `v2`) |
-| Son commit | `4979ab2` (docs: son commit referansını düzelt) |
+| Proje durumu | 🟨 Faz 2 uygulanıyor |
+| Aktif faz | Faz 2 — Frontend Temeli |
+| Sıradaki adım | **F2.1 — Vite + Vue 3 + TypeScript iskeleti** |
+| Çalışma dalı | `v2` |
+| Son commit | (F0.4/U3 güncellemesi bu commit'te) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -34,7 +34,7 @@
 - **Proje:** KFDU — film/kitap/dizi sosyal kütüphane platformu. v1: FastAPI + SQLAlchemy + SQLite backend, tek dosya Vue 3 (CDN) frontend; Kocaeli Üniversitesi Yazlab-I Proje II ödevi. v1 analiz bulguları planın §2'sinde (SEC-01…09, BUG-01…20, DEBT-01…07); ödev eksikleri Ek A'da. `legacy-v1` git etiketi ve `backend/legacy_backup/sql_app_v1.db` v1'in tam yedeğidir.
 - **Faz 0 ✅ (güvenlik/temizlik/hazırlık):** Sırlar koddan temizlendi (`config.py`/`security.py`), `.gitignore` + `.env`/`.env.example`, `v2` dalı açıldı. F0.5 (git geçmişi temizliği) kullanıcı kararıyla atlandı (D-14); `v2`+`legacy-v1` push edildi (D-15).
 - **⚠️ Hâlâ açık güvenlik riski:** Kod tarafı kapandı ama **eski Gmail uygulama şifresi ve eski TMDB anahtarı hâlâ geçerli** — U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) kullanıcı tarafından yapılana kadar risk sürüyor. Her ikisi de hâlâ ⬜ (yapılmadı).
-- **⚠️ Node.js hâlâ 22.12.0** (≥22.18/tercihen 24 LTS gerekli) — U3 yapılmadı. Faz 2 (frontend) için kesin önkoşul, Faz 1'i (backend) etkilemedi.
+- **✅ Node.js 24.19.0'a güncellendi (2026-09-26, U3 tamamlandı):** Kullanıcı onayıyla `winget install OpenJS.NodeJS.LTS` çalıştırıldı (eski `OpenJS.NodeJS.22` paketiyle çakışmaması için önce kaldırılmaya çalışıldı, iki kurulum da kayıt defterinde/PATH'te tek "Node.js 24.19.0" olarak sonuçlandı — temiz). Faz 2'nin önkoşulu artık karşılanıyor.
 - **Faz 1 ✅ TAMAMLANDI (F1.1–F1.11, 2026-09-26):** Yeni modüler backend sıfırdan kuruldu — `app/core/` (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + 8 modül: `auth`, `users`, `catalog` (TMDB/Open Library/Google Books sağlayıcıları), `library`, `social`, `lists`, `stats`. Eski backend yalnız referans olarak `legacy/backend-v1/`'de duruyor, yeni kod ona bağımlı değil (F1.11'de doğrulandı). **69 test yeşil, kapsam %80** (hedef ≥%70). `ruff check`+`format` temiz. `scripts/seed.py` ile demo veri (6 kullanıcı, 40 kütüphane girişi, 12 inceleme, 3 liste) gerçek ortamda yüklendi ve doğrulandı. **Kitaplar artık çalışıyor** (BUG-01 kapandı, Open Library ile). Tüm OpenAPI uçları Türkçe özetli, doğru etiketli, `tag-fonksiyon` biçiminde operationId'li.
 - **Bilinen sınırlamalar / takip maddeleri (Faz 1'den kalan):**
   - **D-16:** Ek C kanonik tür verisi `core/genres.py`'de (planın önerdiği gibi yalnız `catalog/genres.py`'de değil) — `users` modülünün `catalog`'a bağımlı olmadan `favorite_genres` doğrulaması yapabilmesi için gerekliydi.
@@ -43,8 +43,7 @@
   - **D-19:** U6 — v1'in gerçek verisi (3 kullanıcı, 12 etkileşim, 7 liste) kullanıcı kararıyla yeni DB'ye aktarılmadı; yalnızca yedekte duruyor.
   - **TMDB canlı doğrulama eksik:** Film/dizi kodu yazıldı ve mock'lu testlerle doğrulandı ama gerçek TMDB çağrısı U2'yi bekliyor. U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler otomatik eklenir.
   - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
-- **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` artık güncel) ve Faz 2'ye geçmeyi onayladı. **Ancak Faz 2'nin ilk adımı F2.1'in önkoşulu Node ≥22.18 — kontrol edildiğinde Node hâlâ 22.12.0 çıktı (U3 yapılmamış).** Protokol gereği (plan §0.2 madde 3: önkoşul eksikse durup kullanıcıya söyle) F2.1 başlatılmadı; kullanıcıdan Node güncellemesi bekleniyor.
-- **Sırada:** Kullanıcı Node.js'i (24 LTS önerilir, en az 22.18) güncelledikten sonra "devam et" dediğinde F2.1 ile Faz 2 başlayacak.
+- **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.). Şimdi F2.1 ile Faz 2 başlıyor.
 
 ---
 
@@ -52,7 +51,7 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
+| 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
@@ -72,7 +71,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 |---|---|---|---|
 | U1 | **ACİL — Gmail uygulama şifresini iptal et:** https://myaccount.google.com/apppasswords (şifre public depoda açıkta) | Hemen | ⬜ |
 | U2 | TMDB API anahtarını yenile (https://www.themoviedb.org/settings/api) ve yenisini `backend/.env`'ye yaz | F0.3 | ⬜ |
-| U3 | Node.js'i 24 LTS'e güncelle (en az 22.18): https://nodejs.org veya `winget install OpenJS.NodeJS.LTS` | F0.4 (Faz 2'den önce) | ⬜ |
+| U3 | Node.js'i 24 LTS'e güncelle (en az 22.18): https://nodejs.org veya `winget install OpenJS.NodeJS.LTS` | F0.4 (Faz 2'den önce) | ✅ Yapıldı (2026-09-26) — Node 24.19.0 |
 | U4 | `backend/.env` değerlerini doldur (TMDB; isteğe bağlı yeni SMTP uygulama şifresi; `CONTACT_EMAIL`) | F0.3 | ⬜ |
 | U5 | Karar: Git geçmişi temizlensin mi? (F0.5 — force push gerektirir) | Faz 0 | ✅ Hayır — atlandı (2026-09-26) |
 | U6 | Karar: v1 verileri (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına taşınsın mı? (F1.10) | Faz 1 | ✅ Hayır — atlandı (2026-09-26) |
@@ -92,7 +91,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F0.1 — Yedekleme ve çalışma dalı — ✅ (2026-09-26)
 - [x] F0.2 — `.gitignore` ve depo temizliği — ✅ (2026-09-26)
 - [x] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4) — ✅ kod tarafı (2026-09-26); 👤 anahtar iptali/yenileme hâlâ bekliyor
-- [~] F0.4 — Geliştirme ortamı (👤 U3) — 🟡 kısmi (2026-09-26): venv + ortam kaydı yapıldı, Node güncellemesi 👤 bekliyor
+- [x] F0.4 — Geliştirme ortamı (👤 U3) — ✅ (2026-09-26, Node 24.19.0 kurulumuyla tamamlandı)
 - [⏭️] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme — kullanıcı onayıyla atlandı (2026-09-26); ileride istenirse ayrıca yapılabilir
 - [x] 🏁 Faz 0 kapanışı — ✅ (2026-09-26): `v2` dalı ve `legacy-v1` etiketi origin'e push edildi
 
@@ -308,7 +307,7 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 |---|---|---|
 | İşletim sistemi | Windows 11 Pro | |
 | Python | 3.13.1 | ✓ |
-| Node.js | 22.12.0 | ⚠️ ≥ 22.18 gerekli, hâlâ güncellenmedi (U3 / F0.4) |
+| Node.js | 24.19.0 | ✅ güncellendi (2026-09-26, U3 tamamlandı) |
 | npm | 11.20.0 | |
 | Git | 2.47.1.windows.1 | ✓ |
 | Git uzak depo | GitHub (public) | |
@@ -330,6 +329,15 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] U3 — Node.js güncellemesi (F0.4 tam kapanışı) — ✅
+
+- **Yapılanlar:** Sistemde tek bir Node kurulumu olduğu doğrulandı (v22.12.0; kullanıcının hatırladığı ikinci v24 kurulumu yoktu — kayıt defteri, PATH, Program Files, `winget list` ile kapsamlı kontrol edildi). Kullanıcının açık onayıyla `winget uninstall OpenJS.NodeJS.22` denendi (yönetici izni olmadığı için 1603 ile başarısız oldu), ardından `winget install OpenJS.NodeJS.LTS` çalıştırıldı; Windows UAC yönetici onayı istedi, kullanıcı ekranından onayladı, kurulum tamamlandı.
+- **Doğrulama:** `node -v` → `v24.19.0` ✓ · `npm -v` → `11.20.0` ✓ · `where.exe node` → tek konum (`C:\Program Files\nodejs\node.exe`) ✓ · kayıt defterinde tek "Node.js 24.19.0" girdisi, eski 22 girdisi yok ✓ — PATH çakışması veya çifte kurulum yok.
+- **Kapanan maddeler:** F0.4 (artık tam ✅), U3
+- **Commit:** (bu adımın ilerleme güncellemesiyle birlikte)
+- **Notlar / sorunlar:** Sistem genelinde yazılım kurulumu/kaldırma — kullanıcının açık talebi ve onayı üzerine yapıldı.
+- **Sonraki adım:** F2.1
 
 ### [2026-09-26] F1.11 — 🏁 Faz 1 kapanışı — ✅
 
