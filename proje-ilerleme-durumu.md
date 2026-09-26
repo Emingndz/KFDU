@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.1 — Bağımlılıklar ve proje iskeleti** |
-| Çalışma dalı | `v2` (origin'e push edildi) |
-| Son commit | `dfe2088` (F0 kapanış notu) |
+| Sıradaki adım | **F1.2 — Çekirdek altyapı** |
+| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
+| Son commit | `61c08c2` (feat(F1.1): backend iskeleti) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -37,7 +37,8 @@
 - **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır. **F0.3 ile kod tarafı kapandı ama eski Gmail şifresi ve eski TMDB anahtarı hâlâ geçerli/aktif** — U1 ve U2 kullanıcı tarafından yapılana kadar risk devam ediyor (bkz. 👤 Kullanıcı Eylemleri).
 - **Durum:** F0.1–F0.3 tamamlandı, F0.4 kısmi. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). `backend/.venv` oluşturuldu ve doğrulandı; `.vscode/extensions.json` eklendi (`8628d89`). **Node.js hâlâ 22.12.0** (≥22.18 gerekli) — F0.4 bu yüzden tam kapanmadı, Faz 2'den önce güncellenmeli. Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
 - **Faz 0 kapandı (2026-09-26):** Kullanıcı F0.5'i (git geçmişi temizliği) atlamayı, `v2` + `legacy-v1`'i hemen push etmeyi seçti (D-14, D-15). İkisi de yapıldı — `origin/v2` ve `origin` üzerinde `legacy-v1` etiketi mevcut. **F0.4 hâlâ asılı** (Node ≥22.18 gerekli, kullanıcı henüz güncellemedi) ama bu Faz 1'i (backend, Python) engellemiyor; yalnızca Faz 2 (frontend) öncesi şart.
-- **Faz 1 başladı:** Eski backend `legacy/backend-v1/`'e taşınacak, yeni modüler backend §3.4 klasör yapısına göre sıfırdan kurulacak. Faz 1–2 boyunca eski arayüz (v1 frontend, hâlâ `frontend/` klasöründe olduğu varsayılıyor — F2.1'de kontrol edilecek) yeni API ile çalışmayacak; `legacy-v1` etiketinden eski sürüm çalıştırılabilir.
+- **F1.1 tamamlandı:** Eski backend `legacy/backend-v1/`'e taşındı (yalnız referans, yeni koddan içe aktarılmayacak — bkz. F1.11 doğrulaması). `backend/` artık yeni modüler iskelet: `app/core/`, `app/modules/{auth,users,catalog(+providers),library,social,lists,stats}/` (hepsi boş `__init__.py`), `tests/`, `tests/fixtures/`, `scripts/`. `backend/.venv` içinde tüm bağımlılıklar kuruldu (`pip check` temiz), `pytest` (1 smoke testi) ve `ruff check/format` yeşil. Faz 1–2 boyunca eski arayüz (v1 frontend, hâlâ `frontend/` klasöründe olduğu varsayılıyor — F2.1'de kontrol edilecek) yeni API ile çalışmayacak; `legacy-v1` etiketinden eski sürüm çalıştırılabilir.
+- **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
 ---
@@ -47,7 +48,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 0/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 1/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -92,7 +93,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 ### Faz 1 — Backend Temeli
 
-- [ ] F1.1 — Bağımlılıklar ve proje iskeleti
+- [x] F1.1 — Bağımlılıklar ve proje iskeleti — ✅ (2026-09-26)
 - [ ] F1.2 — Çekirdek altyapı
 - [ ] F1.3 — Veri modeli ve Alembic
 - [ ] F1.4 — Kimlik doğrulama modülü
@@ -202,7 +203,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | 🔴 | |
 | BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🔴 | |
 | BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | 🔴 | |
-| BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | 🔴 | |
+| BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | 🔴 | |
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | 🔴 | |
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🔴 | |
@@ -320,6 +321,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.1 — Bağımlılıklar ve proje iskeleti — ✅
+
+- **Yapılanlar:** v1 backend kodu `git mv` ile `legacy/backend-v1/`'e taşındı. Yeni `backend/requirements.txt` + `requirements-dev.txt` (§3.2 sürümleri) yazıldı, `.venv` içine kuruldu. `backend/pyproject.toml` (ruff + pytest ayarları) eklendi. §3.4 modül iskeleti (`app/core/`, `app/modules/{auth,users,catalog,catalog/providers,library,social,lists,stats}/`, `tests/`, `tests/fixtures/`, `scripts/`) boş `__init__.py` dosyalarıyla oluşturuldu. `tests/test_smoke.py` (`import app`) eklendi.
+- **Değişen dosyalar:** `legacy/backend-v1/**` (taşındı, 32 dosya); `backend/requirements.txt`, `backend/requirements-dev.txt`, `backend/pyproject.toml`, `backend/app/**/__init__.py` (11 adet), `backend/tests/__init__.py`, `backend/tests/fixtures/__init__.py`, `backend/tests/test_smoke.py`, `backend/scripts/__init__.py`.
+- **Doğrulama:** `pip install -r requirements-dev.txt` → başarılı · `pip check` → "No broken requirements found" ✓ · `pytest` → 1 passed ✓ · `ruff check .` → "All checks passed!" ✓ · `ruff format --check .` → "15 files already formatted" ✓
+- **Kapanan maddeler:** BUG-16
+- **Commit:** `61c08c2`
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F1.2
 
 ### [2026-09-26] F0.5 (atlandı) + 🏁 Faz 0 kapanışı — ✅
 
