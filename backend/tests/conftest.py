@@ -15,7 +15,10 @@ from app.core.cache import clear_all_caches
 from app.core.database import Base, get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
+from app.modules.social.handlers import register_handlers
 from app.modules.users.models import User
+
+register_handlers()
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
