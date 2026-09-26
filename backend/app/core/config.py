@@ -1,20 +1,20 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore")
+
     PROJECT_NAME: str = "Yazlab Proje 2"
     API_V1_STR: str = "/api/v1"
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///./sql_app.db"
-    TMDB_API_KEY: str = "224eeadad3cc958c58809c8e71247a44"
-    
+    SECRET_KEY: str
+    TMDB_API_KEY: str = ""
+
     # SMTP Email Settings
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-    SMTP_USER: str = "m.eminsocail27@gmail.com"  # Gmail adresin
-    SMTP_PASSWORD: str = "qidywplezojijihb"  # Buraya App Password yaz (16 karakter)
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
     EMAILS_FROM_EMAIL: str = "noreply@kfdu.com"
     EMAILS_FROM_NAME: str = "KFDU Platform"
-
-    class Config:
-        case_sensitive = True
 
 settings = Settings()

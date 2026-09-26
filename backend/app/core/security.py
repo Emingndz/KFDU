@@ -7,9 +7,7 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
-# We need a secret key. For now I'll add a default one in config if not present, 
-# but ideally it should be in settings.
-SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_THIS" 
+SECRET_KEY = settings.SECRET_KEY
 
 def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
     if expires_delta:
