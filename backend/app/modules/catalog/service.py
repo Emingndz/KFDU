@@ -182,16 +182,13 @@ def get_or_create_content(db: Session, content_type: str, external_id: str) -> C
     return row
 
 
-def _content_to_detail(content: Content) -> ContentDetail:
+def content_to_summary(content: Content) -> ContentSummary:
     people = content.people or {}
-    extra = content.extra or {}
     directors = [Person(**p) for p in people.get("directors", [])]
     authors = [Person(**p) for p in people.get("authors", [])]
-    cast = [Person(**p) for p in people.get("cast", [])]
-    providers_data = extra.get("providers") or {}
     creators = [p.name for p in (directors or authors)]
 
-    return ContentDetail(
+    return ContentSummary(
         id=content.id,
         type=content.type,
         source=content.source,
@@ -203,6 +200,20 @@ def _content_to_detail(content: Content) -> ContentDetail:
         genres=content.genres or [],
         external_rating=content.external_rating,
         creators=creators,
+    )
+
+
+def _content_to_detail(content: Content) -> ContentDetail:
+    summary = content_to_summary(content)
+    people = content.people or {}
+    extra = content.extra or {}
+    directors = [Person(**p) for p in people.get("directors", [])]
+    authors = [Person(**p) for p in people.get("authors", [])]
+    cast = [Person(**p) for p in people.get("cast", [])]
+    providers_data = extra.get("providers") or {}
+
+    return ContentDetail(
+        **summary.model_dump(),
         backdrop_url=content.backdrop_url,
         overview=content.overview,
         runtime_minutes=content.runtime_minutes,
