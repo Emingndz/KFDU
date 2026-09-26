@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-27** — F3.3 tamamlandı (İçerik detay sayfası).
+> Son güncelleme: **2026-09-27** — F3.4 tamamlandı (İnceleme sayfası ve yorum dizisi).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.4 — İnceleme sayfası ve yorum dizisi** |
+| Sıradaki adım | **F3.5 — Akış (feed) sayfası** |
 | Çalışma dalı | `v2` |
-| Son commit | `1c23219` (feat(F3.3): İçerik detay sayfası) |
+| Son commit | `6979589` (feat(F3.4): İnceleme sayfası ve yorum dizisi) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -59,7 +59,10 @@
   - **D-22 (backend düzeltmesi — sahte "düzenlendi" etiketi):** `social/service.py`'de `is_edited=review.updated_at > review.created_at` kullanılıyordu; ama `TimestampMixin` her iki alanı da AYRI `datetime.now(UTC)` çağrılarıyla dolduruyor (bkz. `core/database.py`), bu yüzden her yeni inceleme oluşturulduğunda mikrosaniyelik farktan dolayı `is_edited` yanlışlıkla `true` çıkıyordu (canlı testte fark edildi). 1 saniyelik tolerans eşiğine çevrildi (`(updated_at - created_at).total_seconds() > 1`) — gerçek düzenlemeler (dakikalar/saatler sonra) doğru tespit ediliyor, oluşturma anındaki mikrosaniye farkı artık yanlış pozitif üretmiyor. Yeni regresyon testi eklendi (`test_review_is_edited_false_until_actually_updated`, DB üzerinden `created_at`'i geriye alarak gerçek zaman beklemeden test ediyor).
   - **Bilinçli kapsam sınırlamaları:** REQ-2.1.4f/g/h (yorumlar) bu adıma dahil değil — ContentDetailPage'de yorum bölümü yok, `CommentThread` F3.4'ün işi (plan da böyle ayırıyor).
   - **Gerçek backend'e karşı uçtan uca (curl, kitap tarafı, iki test kullanıcısıyla):** içerik detayı+benzer içerikler+boş inceleme listesi ✓; inceleme oluştur (uzun metin, kesme testi için) → `is_truncated:true`, `activity_id` dolu ✓; `content-state.me.review_id` doğru güncelleniyor ✓; başka kullanıcı beğeniyor → `likes_count` artıyor ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `is_edited:true` (gerçek zaman farkıyla) ✓; sil → 204, `review_id` tekrar `null` ✓. Test kullanıcıları temizlendi. Film tarafı hâlâ U2'yi bekliyor.
-- **Sırada:** F3.4 — İnceleme sayfası ve yorum dizisi (`CommentThread`, `LikeButton` — F3.3'te `useLikeActivity`/`useUnlikeActivity` zaten yazıldı, `ReviewPage` `/inceleme/:id`).
+- **F3.4 tamamlandı (2026-09-27):** `api/social.ts` genişletildi: `useComments` (`CursorPage`, `list_comments` gerçekte **eskiden yeniye** ilerliyor — planın "Önceki yorumları göster" ifadesi bu yönle tam örtüşmüyor, buton nötr "Daha fazla yorum göster" olarak adlandırıldı), `useAddComment`/`useUpdateComment`/`useDeleteComment`. `LikeButton` (yeni, paylaşılan — kalp+sayı, `aria-pressed`, kısa CSS keyframe "pulse"; `ReviewItem`'in F3.3'te yazılmış kendi iç kalp butonu bu bileşene geçirildi, mantık `ReviewItem`'de kaldı). `CommentThread` (yeni): imleçli liste + "Daha fazla yorum göster", ekleme (Enter gönderir/Shift+Enter yeni satır/1000 karakter sayacı, yerel `pendingComments` overlay'iyle iyimser ekleme — TanStack cache'i değil, `useContentActions`'daki aynı desen), satır içi düzenleme, silme (`can_edit`/`can_delete` — **backend zaten hesaplayıp gönderiyor**, "sahip VEYA aktivite sahibi silebilir" kuralı dahil, istemci tarafında ayrıca hesaplama gerekmedi), `compact` modu (son 2 yorum). `ReviewPage.vue` (`/inceleme/:id`): içerik mini başlığı, yazar bilgisi, `RatingDisplay`, tam metin+spoiler bulanıklığı, `LikeButton`, Paylaş, sahibiyse satır içi Düzenle (`ReviewEditor`'ı yeniden kullanmak yerine kendi küçük düzenleme formu — ReviewEditor kendi `useReviewDetail` sorgusunu tekrar tetikleyip çift veri çekimine yol açardı, ayrıca yazar bilgisi/puan/beğeni gibi ReviewPage'e özel alanları göstermiyor) + Sil (onay → içerik sayfasına dön), `CommentThread`.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `CommentThread` eklenmedi (gerçek bir `activityId` gerektiriyor, sahte biriyle yalnızca hata durumu gösterirdi) — bunun yerine gerçek backend'e karşı curl ile kapsamlı doğrulandı. `LikeButton` yerel sahte durumla vitrine eklendi.
+  - **Gerçek backend'e karşı uçtan uca (curl, iki test kullanıcısıyla):** yorum ekle → `can_edit`/`can_delete` sahibi için `true` ✓; başka kullanıcı görünce ikisi de `false` ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `updated_at` değişiyor ✓; **aktivite sahibi (yorum sahibi değil) başkasının yorumunu siliyor → 204** (F1.8'in "sahip veya aktivite sahibi silebilir" kuralı doğrulandı) ✓. Test kullanıcıları temizlendi.
+- **Sırada:** F3.5 — Akış (feed) sayfası (`api/social.ts`'e `useFeed`/`useLike` eklenecek, `ActivityCard`, `FeedPage` `/`).
 - **Sırada:** F3.3 — İçerik detay sayfası (`ContentDetailPage`, `useContentState`'in gerçek ilk tüketicisi — `useContentActions`'ın iyimser katmanı burada TanStack cache'iyle entegrasyonu yeniden değerlendirilecek).
 
 ---
@@ -71,12 +74,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 3/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 4/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **24/64** | | |
+| **Toplam** | | | **25/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -139,7 +142,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.1 — İçerik bileşenleri ve yardımcılar — ✅ (2026-09-27)
 - [x] F3.2 — Keşfet sayfası — ✅ (2026-09-27)
 - [x] F3.3 — İçerik detay sayfası — ✅ (2026-09-27)
-- [ ] F3.4 — İnceleme sayfası ve yorum dizisi
+- [x] F3.4 — İnceleme sayfası ve yorum dizisi — ✅ (2026-09-27)
 - [ ] F3.5 — Akış (feed) sayfası
 - [ ] F3.6 — Profil sayfası
 - [ ] F3.7 — Listeler
@@ -267,7 +270,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.4e | "Özel Listeye Ekle" menüsü | F1.9, F3.1, F3.7 | ✅ (plan hedefi F3.7 diyordu ama `AddToListMenu` F3.1'de yazılıp F3.3'te gerçek bir sayfaya bağlandı — işlevsel olarak tamam, F3.7/ListPage ayrıca kendi tarafından da kullanacak) | `1c23219` |
 | REQ-2.1.4f | Yorumlar listesi (ad, metin, tarih) | F1.8, F3.3 | ⬜ | |
 | REQ-2.1.4g | Yorum ekleme alanı + Gönder | F1.7, F3.3 | ⬜ | |
-| REQ-2.1.4h | Yalnız kendi yorumunu düzenle/sil | F1.7, F1.8, F3.3, F3.4 | ⬜ | |
+| REQ-2.1.4h | Yalnız kendi yorumunu düzenle/sil | F1.7, F1.8, F3.3, F3.4 | ✅ | `CommentThread.vue`, curl ile 403+yetki kuralı doğrulandı (`6979589`) |
 | REQ-2.1.5a | Profil: kullanıcı adı, avatar, biyografi | F1.5, F3.6 | ⬜ | |
 | REQ-2.1.5b | Kendi profili: Profili Düzenle, Yeni Özel Liste | F3.6, F3.7 | ⬜ | |
 | REQ-2.1.5c | Başkasının profili: Takip Et / Takipten Çık | F1.5, F3.6 | ⬜ | |
@@ -349,6 +352,22 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-27] F3.4 — İnceleme sayfası ve yorum dizisi — ✅
+
+- **Yapılanlar:**
+  - `api/social.ts`: `useComments` (`useInfiniteQuery`, `CursorPage` — backend'in `list_comments`'ı gerçekte **eskiden yeniye** ilerliyor, `cursor` "bu id'den büyük olanları getir" anlamına geliyor; planın "imleçli 'Önceki yorumları göster'" ifadesi bu yönle tam örtüşmediği için buton nötr "Daha fazla yorum göster" adlandırıldı — küçük ölçekli bir uygulamada bu ayrım pratikte önemli değil, çoğu aktivitenin 20'den az yorumu olacak), `useAddComment`/`useUpdateComment`/`useDeleteComment`.
+  - `LikeButton.vue` (yeni, paylaşılan): kalp+sayı, `aria-pressed`, kısa CSS keyframe "pulse" (beğenince). `ReviewItem`'in F3.3'te yazılmış kendi iç kalp butonu bu bileşene geçirildi (mantık/optimistic state `ReviewItem`'de kaldı, yalnız görsel kısım paylaşıldı).
+  - `CommentThread.vue` (yeni): yorum listesi + "Daha fazla yorum göster", ekleme (Enter gönderir/Shift+Enter yeni satır/1000 karakter sayacı), yerel `pendingComments` overlay'iyle iyimser ekleme (TanStack cache'i değil — `useContentActions`'daki aynı yerel-overlay deseni), satır içi düzenleme, silme — `can_edit`/`can_delete` bayrakları **backend tarafından zaten hesaplanıp gönderiliyor** (istemci tarafında ayrıca `author.id===me.id` hesabı gerekmedi), `compact` prop'u (son 2 yorum, F3.5'in akış kartlarında kullanılacak).
+  - `ReviewPage.vue` (`/inceleme/:id`, route-level `props` ile `id` enjekte ediliyor): içerik mini başlığı (afiş+başlık+yıl→detay), yazar (avatar+ad→profil+göreli tarih+"düzenlendi"), `RatingDisplay`, tam metin+spoiler bulanıklığı, `LikeButton`, Paylaş, sahibiyse satır içi Düzenle+Sil, `CommentThread`. 404/hata/yükleniyor durumları, `document.title`.
+  - **Tasarım kararı (ReviewEditor'ı burada yeniden kullanmadım):** `ReviewEditor` kendi `useReviewDetail` sorgusunu tekrar tetikleyip çift veri çekimine yol açardı ve yazar bilgisi/puan/beğeni gibi ReviewPage'e özel alanları göstermiyor; bu yüzden ReviewPage kendi küçük düzenleme formunu (textarea+spoiler onay kutusu+Kaydet/Vazgeç) doğrudan yazdı — küçük, göze görünür bir tekrar ama iki farklı görüntüleme bağlamını zorla birleştirmekten daha temiz.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `CommentThread` eklenmedi (gerçek bir `activityId` gerektiriyor, sahte biriyle yalnızca hata durumu gösterirdi); bunun yerine gerçek backend'e karşı curl ile kapsamlı doğrulandı. `LikeButton` yerel sahte durumla vitrine eklendi.
+- **Değişen dosyalar:** `frontend/src/api/social.ts`, `frontend/src/components/content/{LikeButton,CommentThread}.vue` (yeni), `frontend/src/components/content/ReviewItem.vue` (LikeButton'a geçirildi), `frontend/src/pages/ReviewPage.vue` (yeni), `frontend/src/pages/UiShowcasePage.vue`, `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → 60 passed ✓ · `npm run build` → başarılı, `ReviewPage` kendi lazy chunk'ında (11.37 KB, gzip 4.02 KB) ✓ · Vite dev sunucusunda 5 yeni/değişen modül + `/inceleme/:id` rotası tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (curl, iki test kullanıcısıyla):** yorum ekle → sahibi için `can_edit`/`can_delete:true` ✓; başkası görünce ikisi de `false` ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `updated_at` değişiyor ✓; **aktivite sahibi (yorum sahibi değil) başkasının yorumunu siliyor → 204** (F1.8'in "sahip veya aktivite sahibi silebilir" kuralı canlı doğrulandı) ✓. Test kullanıcıları temizlendi.
+- **Kapanan maddeler:** REQ-2.1.4h
+- **Commit:** `6979589`
+- **Notlar / sorunlar:** REQ-2.1.2f (akış kartında alıntı → tam metin) bu adımda kapatılmadı — o, F3.5'in `ActivityCard`'ının işi (bu adım yalnızca HEDEF sayfayı, yani `/inceleme/:id`'yi kurdu). Tarayıcı aracı hâlâ yok.
+- **Sonraki adım:** F3.5 — Akış (feed) sayfası
 
 ### [2026-09-27] F3.3 — İçerik detay sayfası — ✅
 
