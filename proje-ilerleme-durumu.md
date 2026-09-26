@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.4 — Kimlik doğrulama modülü** |
+| Sıradaki adım | **F1.5 — Kullanıcılar ve takip** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `0f29f74` (feat(F1.3): veri modeli ve Alembic) |
+| Son commit | `cf0ff06` (feat(F1.4): kimlik doğrulama modülü) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -39,7 +39,8 @@
 - **Faz 0 kapandı (2026-09-26):** Kullanıcı F0.5'i (git geçmişi temizliği) atlamayı, `v2` + `legacy-v1`'i hemen push etmeyi seçti (D-14, D-15). İkisi de yapıldı — `origin/v2` ve `origin` üzerinde `legacy-v1` etiketi mevcut. **F0.4 hâlâ asılı** (Node ≥22.18 gerekli, kullanıcı henüz güncellemedi) ama bu Faz 1'i (backend, Python) engellemiyor; yalnızca Faz 2 (frontend) öncesi şart.
 - **F1.1 tamamlandı:** Eski backend `legacy/backend-v1/`'e taşındı (yalnız referans, yeni koddan içe aktarılmayacak — bkz. F1.11 doğrulaması). `backend/` artık yeni modüler iskelet: `app/core/`, `app/modules/{auth,users,catalog(+providers),library,social,lists,stats}/` (hepsi boş `__init__.py`), `tests/`, `tests/fixtures/`, `scripts/`. `backend/.venv` içinde tüm bağımlılıklar kuruldu (`pip check` temiz), `pytest` (1 smoke testi) ve `ruff check/format` yeşil. Faz 1–2 boyunca eski arayüz (v1 frontend, hâlâ `frontend/` klasöründe olduğu varsayılıyor — F2.1'de kontrol edilecek) yeni API ile çalışmayacak; `legacy-v1` etiketinden eski sürüm çalıştırılabilir.
 - **F1.2 tamamlandı:** `app/core/` tam (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + `app/main.py` (`create_app()`, CORS allowlist, hata yakalayıcılar, slowapi, `/media`, `GET /api/v1/health`). `tests/conftest.py` bellek içi SQLite ile `get_db` override ediyor; 5 test yeşil, ruff temiz. Gerçek sunucuda `/api/v1/health`, `/docs` ve bilinmeyen rota 404 formatı doğrulandı.
-- **F1.3 tamamlandı:** §4.2'deki 12 tablo modüllerin `models.py`'sinde (auth/users/catalog/library/social/lists), tüm CHECK/UNIQUE kısıtları ve `ON DELETE CASCADE` FK'ler mevcut. `Base.type_annotation_map` sayesinde her `datetime` alanı otomatik `DateTime(timezone=True)`. Alembic kuruldu, ilk migration (`fa1eb17da6a0_v2_ilk_sema`) `backend/kfdu.db`'ye uygulandı, `alembic check` temiz. **Not:** Henüz hiçbir modülde `router.py`/`service.py` yok — yalnız veri modeli var, uçlar F1.4'ten itibaren gelecek. `backend/kfdu.db` gitignore'da (`*.db`), depoya girmiyor; her geliştirici kendi makinesinde `alembic upgrade head` ile oluşturur.
+- **F1.3 tamamlandı:** §4.2'deki 12 tablo modüllerin `models.py`'sinde (auth/users/catalog/library/social/lists), tüm CHECK/UNIQUE kısıtları ve `ON DELETE CASCADE` FK'ler mevcut. `Base.type_annotation_map` sayesinde her `datetime` alanı otomatik `DateTime(timezone=True)`. Alembic kuruldu, ilk migration (`fa1eb17da6a0_v2_ilk_sema`) `backend/kfdu.db`'ye uygulandı, `alembic check` temiz. `backend/kfdu.db` gitignore'da (`*.db`), depoya girmiyor; her geliştirici kendi makinesinde `alembic upgrade head` ile oluşturur.
+- **F1.4 tamamlandı:** `auth` modülü uçtan uca çalışıyor: `/auth/register|login|token|password-reset/{request,verify,confirm}|change-password|logout-all`. `users/deps.py` (`CurrentUser`/`OptionalUser`), `users/validation.py` (kullanıcı adı kuralı — paylaşılan, F1.5 de kullanacak). **Dikkat (F1.5 için):** `users/schemas.py` zaten var ama yalnızca `PublicUserOut`+`MeOut` içeriyor — F1.5 bu dosyayı genişletecek, üzerine yazmayacak. Gerçek sunucuda OAuth2 `/auth/token` ile Swagger "Authorize" akışı ve korumalı uç (401+`WWW-Authenticate: Bearer` / 204 başarı) doğrulandı. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` eklendi. 13 yeni test (toplam 22) yeşil.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -50,7 +51,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 3/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 4/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -98,7 +99,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.1 — Bağımlılıklar ve proje iskeleti — ✅ (2026-09-26)
 - [x] F1.2 — Çekirdek altyapı — ✅ (2026-09-26)
 - [x] F1.3 — Veri modeli ve Alembic — ✅ (2026-09-26)
-- [ ] F1.4 — Kimlik doğrulama modülü
+- [x] F1.4 — Kimlik doğrulama modülü — ✅ (2026-09-26)
 - [ ] F1.5 — Kullanıcılar ve takip
 - [ ] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir**
 - [ ] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma
@@ -185,17 +186,17 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-02 | Sabit JWT `SECRET_KEY` (token sahteciliği mümkün) | F0.3, F1.2 | ✅ | `7610a0c` |
 | SEC-03 | TMDB anahtarı kodda | 👤 U2 + F0.3 | 🟡 kod tarafı ✅ (`7610a0c`) — eski anahtar hâlâ geçerli, U2 yenileme bekliyor | |
 | SEC-04 | Veritabanı ve `__pycache__` depoda, `.gitignore` yok | F0.2 (+ F0.5) | ✅ (güncel ağaç; geçmiş için F0.5 opsiyonel) | `c80451f` |
-| SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | 🔴 | |
+| SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | ✅ | `cf0ff06` |
 | SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | 🔴 | |
-| SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | 🔴 | |
-| SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | 🔴 | |
+| SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | ✅ | `cf0ff06` |
+| SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | 🟡 kısmi (kimlik: F1.4 ✅; puan/metin uzunluğu F1.7) | `cf0ff06` |
 | SEC-09 | CORS `*` + credentials | F1.2 | ✅ | `845b3e8` |
 | BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | 🔴 | |
 | BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🔴 | |
-| BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | 🔴 | |
+| BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | ✅ | `cf0ff06` |
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | 🔴 | |
-| BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | 🔴 | |
-| BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | 🔴 | |
+| BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
+| BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | 🟡 backend ✅ (F1.4: 7 gün token, 401+WWW-Authenticate); frontend 401 yönetimi F2.3 | `cf0ff06` |
 | BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🔴 | |
 | BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | 🔴 | |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
@@ -323,6 +324,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.4 — Kimlik doğrulama modülü — ✅
+
+- **Yapılanlar:** `users/deps.py` (`get_current_user`/`get_optional_user`, `OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)`, 401 yanıtlarında `WWW-Authenticate: Bearer`), `users/validation.py` (kullanıcı adı regex + ayrılmış adlar, §4.2), `users/schemas.py` (`PublicUserOut`, `MeOut` — F1.5 genişletecek). `auth/schemas.py`: `RegisterIn` (kullanıcı adı/e-posta/şifre gücü/şifre eşleşme doğrulaması), `LoginIn`, `TokenOut`, `ResetRequestIn/VerifyIn/ConfirmIn`, `ChangePasswordIn`. `auth/service.py`: `register` (409 EMAIL_TAKEN/USERNAME_TAKEN), `login` (401 INVALID_CREDENTIALS, 403 USER_INACTIVE, bcrypt→Argon2 otomatik yükseltme), şifre sıfırlama akışı (15 dk geçerlilik, e-postaya bağlı, son 15 dk'da ≤3 istek, `hmac.compare_digest` ile kod doğrulama, 5 yanlış denemede 429, `sha256(code+SECRET_KEY)` ile hash), `change_password`/`logout_all` (`token_version` artırımı → eski token'lar geçersiz). `auth/router.py` (§5.1, prefix `/auth`): login 10/dk/IP, reset request 10/saat/IP (`slowapi`). `app/main.py`'ye router eklendi. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` parametresi eklendi. `tests/conftest.py`'ye `user_factory` fixture + `auth_headers()` yardımcı fonksiyonu eklendi.
+- **Değişen dosyalar:** `backend/app/modules/auth/{schemas,service,router}.py` (yeni), `backend/app/modules/users/{deps,schemas,validation}.py` (yeni), `backend/app/core/errors.py` (headers desteği), `backend/app/main.py` (router kaydı), `backend/tests/conftest.py`, `backend/tests/test_auth.py` (yeni, 13 test).
+- **Doğrulama:** `pytest` → 22 passed (13 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · gerçek sunucu: `/auth/register` → 201 ✓, `/auth/token` (OAuth2 form) → 200 ✓, token ile `/auth/logout-all` → 204 ✓, tokensiz aynı uç → 401 + `WWW-Authenticate: Bearer` ✓, `/docs` → 200, OpenAPI `securitySchemes` içinde `OAuth2PasswordBearer` ✓.
+- **Kapanan maddeler:** SEC-05, SEC-07, SEC-08 (kimlik kısmı), BUG-03, BUG-05, BUG-06 (backend kısmı)
+- **Commit:** `cf0ff06`
+- **Notlar / sorunlar:** REQ-2.1.1 (Ek A) maddeleri henüz ✅ işaretlenmedi — plan §9/F3.10 gereği bu maddeler frontend (F2.4) tamamlanınca kanıtla kapatılacak; backend tarafı burada bitti. `users/schemas.py` kasıtlı olarak yarım (F1.5 tamamlayacak).
+- **Sonraki adım:** F1.5
 
 ### [2026-09-26] F1.3 — Veri modeli ve Alembic — ✅
 
