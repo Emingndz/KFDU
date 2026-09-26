@@ -24,7 +24,7 @@
 | Aktif faz | Faz 2 — Frontend Temeli |
 | Sıradaki adım | **F2.1 — Vite + Vue 3 + TypeScript iskeleti** |
 | Çalışma dalı | `v2` |
-| Son commit | (F0.4/U3 güncellemesi bu commit'te) |
+| Son commit | `4cc5fde` (docs(U3): Node.js 24.19.0'a güncellendi) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
