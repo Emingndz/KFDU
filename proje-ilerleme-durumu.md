@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-26** — Analiz ve plan hazırlandı; henüz kod değişikliği yok.
+> Son güncelleme: **2026-09-26** — F2.3 tamamlandı (API katmanı, oturum, router, uygulama iskeleti).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 2 uygulanıyor |
 | Aktif faz | Faz 2 — Frontend Temeli |
-| Sıradaki adım | **F2.3 — API katmanı, oturum, router ve uygulama iskeleti** |
+| Sıradaki adım | **F2.4 — Kimlik sayfaları ve onboarding** |
 | Çalışma dalı | `v2` |
-| Son commit | `f3e2894` (feat(F2.2): tasarım sistemi ve temel UI bileşenleri) |
+| Son commit | `e104538` (feat(F2.3): API katmanı, oturum, router ve uygulama iskeleti) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -46,7 +46,8 @@
 - **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.).
 - **F2.1 tamamlandı:** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı). Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Prettier — hepsi planın istediği sürümlerle eşleşiyor (create-vue'nün güncel şablonu). Tailwind 4 + `@tailwindcss/vite`, `openapi-typescript` (TS 6 peer uyuşmazlığı nedeniyle `--legacy-peer-deps` ile kuruldu — işlevsel sorun yok), TanStack Query, VueUse, lucide-vue-next, vue-sonner, fontsource Inter kuruldu. `vite.config.ts`'de `/api`+`/media` backend'e (8000) proxy'leniyor. `npm run dev/lint/type-check/build/test:unit` hepsi yeşil. **Not:** Bu oturumda tarayıcı aracı (claude-in-chrome / built-in browser) mevcut değildi — `npm run dev`'in gerçekten açıldığı yalnızca HTTP yanıtı ve loglarıyla doğrulandı, görsel/konsol kontrolü yapılamadı (F2.1'de gerçek bir UI yok — create-vue'nün varsayılan "You did it!" sayfası duruyor, F2.3'te değişecek).
 - **F2.2 tamamlandı:** `src/styles/main.css` (§3.7 — Tailwind v4 `@theme` token'ları, açık/koyu CSS değişkenleri), `useTheme` (`useColorMode` sarmalayıcı, Sistem/Açık/Koyu), `useConfirm` (modül-seviyeli tekil durum + Promise tabanlı onay), 13 temel bileşen (`components/ui/`), `App.vue`'ya `Toaster`+`ConfirmDialog` eklendi, `/_ui` vitrin sayfası (yalnız DEV). 9 yeni test (BaseAvatar + useConfirm). **Not:** `Spinner` bileşeni ESLint'in "çok kelimeli bileşen adı" kuralına takıldığı için `BaseSpinner` olarak adlandırıldı (plan metninde "Spinner" geçiyordu). Bu oturumda tarayıcı aracı yok — `/_ui`'nin açık/koyu tema ve klavye gezinme kabul kriteri yalnızca kod/HTTP seviyesinde doğrulandı, gerçek görsel/klavye testi yapılamadı.
-- **Sırada:** F2.3 — API katmanı, oturum, router ve uygulama iskeleti (§3.6.2–3.6.7).
+- **F2.3 tamamlandı:** `openapi-typescript` betiğindeki hatalı URL (`/api/v1/openapi.json`, 404 veriyordu) `/openapi.json` olarak düzeltildi (FastAPI'nin varsayılan OpenAPI yolu, router prefix'inden bağımsız — kök seviyede) ve `src/api/schema.d.ts` (3958 satır) yeniden üretildi; `src/types/index.ts` bu şemadan tip takma adları (`MeOut`, `TokenOut`, `RegisterIn`… + elle yazılan genel `Page<T>`/`CursorPage<T>`, `backend/app/core/pagination.py`'deki gerçek şemayla birebir doğrulandı) türetiyor. `src/api/client.ts`: `ApiError` sınıfı + `api<T>()` fonksiyonu (§3.6.3 iskeletinden) — sorgu parametrelerini otomatik URL-encode eder ve boş/undefined değerleri atlar (BUG-11 kapandı), Pinia `useAuthStore`'dan token okuyup `Authorization: Bearer` ekler, 401'de `handleUnauthorized()` çağırır (çıkış yapar + `/giris?redirect=...`'e yönlendirir + tek toast — art arda gelen 401'ler 1 sn'lik pencerede tekilleştirilir, BUG-06 frontend tarafı kapandı). `client.ts`↔`stores/auth.ts`↔`api/auth.ts`/`api/users.ts` arasında döngüsel import var ama tüm döngüsel referanslar yalnızca fonksiyon gövdelerinde (çalışma zamanında) kullanılıyor, modül değerlendirme anında değil — bu yüzden güvenli (ES modül canlı bağlama kuralı); `npm run build` bunu doğruladı (uyarısız). `src/api/auth.ts` + `src/api/users.ts`: ham istek fonksiyonları (§5.1/§5.2 tam kapsamı) + yakın vadede ihtiyaç duyulan composable'lar (`useLogin`, `useRegister`, `useChangePassword` vb.; `useMe`, `useUpdateMe`, `useSuggestions`) — henüz tüketicisi olmayan `getProfile`/`followUser`/`searchUsers` gibi uçlar için yalnız ham fonksiyon var, composable'ları Faz 3 ilgili sayfalarında eklenecek (erken soyutlama yok). `stores/auth.ts` (`token`→`localStorage['kfdu_token']`, `me`, `isAuthenticated`, `login/register/logout/fetchMe`) + `stores/ui.ts` (mobil menü). `main.ts`: `VueQueryPlugin` eklendi (`staleTime:60000`, `refetchOnWindowFocus:false`, yalnız 5xx'te 1 kez retry). `router/index.ts`: §3.6.7'nin tam rota tablosu (henüz yapılmamış tüm sayfalar `ComingSoonPage` ile), `RouteMeta` genişletmesi (`requiresAuth`/`guestOnly`/`title`), global guard (token var+`me` yok→`fetchMe()`, başarısızsa çıkış; `/`+misafir→`/kesfet` — bu özel kural `requiresAuth`'tan ÖNCE kontrol edilir, aksi halde misafir `/`'de girişe değil `/kesfet`'e yönlenme kuralı hiç tetiklenmezdi; korumalı rota+girişsiz→`/giris?redirect=`; `guestOnly`+girişli→`/`), `scrollBehavior`, `afterEach`→`document.title`. Düzen: `AppShell`+`AppHeader` (logo, Akış/Keşfet, arama kısayolu→şimdilik `/kesfet`'e yönlendiren buton — tam arama F3.2'de, kullanıcı menüsü: Profilim/Ayarlar/Tema/Çıkış, misafirde Giriş/Kayıt) + `AppBottomNav` (<768px, yalnız şu an işlevsel olan Akış/Keşfet/Profil — Öneriler/Bildirimler ilgili fazda eklenecek, henüz yapılmamış sayfalara link vermemek için bilinçli tercih) + `RouteProgress` (basit opacity tabanlı yükleniyor çubuğu). `App.vue` artık `<AppShell/>` render ediyor, create-vue'nün "You did it!" yer tutucusu kaldırıldı; `App.spec.ts` buna göre güncellendi (gerçek Pinia+router ile mount edilen duman testi).
+- **Sırada:** F2.4 — Kimlik sayfaları ve onboarding (§3.6.4'teki form kuralları + Login/Register/ForgotPassword/Onboarding sayfaları).
 
 ---
 
@@ -56,13 +57,13 @@
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
-| 2 | Frontend temeli | 🟨 Devam ediyor | 2/5 | 2026-09-26 | – |
+| 2 | Frontend temeli | 🟨 Devam ediyor | 3/5 | 2026-09-26 | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **0/64** | | |
+| **Toplam** | | | **19/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -116,7 +117,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 - [x] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅ (2026-09-26)
 - [x] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅ (2026-09-26)
-- [ ] F2.3 — API katmanı, oturum, router ve uygulama iskeleti
+- [x] F2.3 — API katmanı, oturum, router ve uygulama iskeleti — ✅ (2026-09-26)
 - [ ] F2.4 — Kimlik sayfaları ve onboarding
 - [ ] F2.5 — Faz 2 kapanışı 🏁
 
@@ -200,12 +201,12 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | ✅ | `cf0ff06` |
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
-| BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | 🟡 backend ✅ (F1.4: 7 gün token, 401+WWW-Authenticate); frontend 401 yönetimi F2.3 | `cf0ff06` |
+| BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | ✅ (backend F1.4: 7 gün token, 401+WWW-Authenticate; frontend F2.3: `client.ts` 401'de çıkış+yönlendirme+tekil toast) | `cf0ff06` |
 | BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🟡 bileşen düzeyi ✅ (BaseAvatar kırık/yok görselde deterministik baş harf); tüm sayfalarda kullanım F3.9 | `f3e2894` |
 | BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | 🔴 | |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | 🔴 | |
-| BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | 🔴 | |
+| BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | ✅ (`client.ts`'teki `api()` tüm sorgu parametrelerini `URLSearchParams` ile otomatik kodluyor) | `e104538` |
 | BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🟡 backend ✅ (`created_at`+`excerpt`+`card_type` API'de var); arayüz F3.5 | `9286a24` |
 | BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ backend (imleçli sayfalama + N+1 giderildi, testle doğrulandı) | `9286a24` |
 | BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🟡 backend ✅ (doğru sayfalama); arayüz F3.2 | `8c12de7` |
@@ -215,7 +216,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | ✅ | `51373cc` |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
-| DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
+| DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | ✅ (v2: bileşenler F2.2, gerçek rota tablosu+guard F2.3; v1 dosyası `legacy/frontend-v1/`'de yalnız referans) | `e104538` |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🟡 altyapı ✅ (vue-sonner toast + ConfirmDialog hazır); eski `alert/confirm` kaldırma Faz 3 sayfalarında | `f3e2894` |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
 | DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | ✅ (tek `get_or_create_content` + tek `upsert_entry`, film/kitap ayrımı yok) | `919615a` |
@@ -332,6 +333,27 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F2.3 — API katmanı, oturum, router ve uygulama iskeleti — ✅
+
+- **Yapılanlar:**
+  - **Düzeltme:** `package.json`'daki `gen:api` betiği planın literal URL'iyle (`http://127.0.0.1:8000/api/v1/openapi.json`) 404 veriyordu; FastAPI'nin OpenAPI şeması her zaman kök seviyede yayınlanır (router prefix'inden etkilenmez) — `http://127.0.0.1:8000/openapi.json` olarak düzeltildi. `npm run gen:api` çalıştırıldı → `src/api/schema.d.ts` (3958 satır) üretildi.
+  - `src/types/index.ts`: şemadan tip takma adları (`MeOut`, `ProfileOut`, `PublicUserOut`, `RegisterIn`, `LoginIn`, `TokenOut`, `ResetRequestIn/VerifyIn/ConfirmIn`, `ChangePasswordIn`, `MeUpdateIn`, `EmailChangeIn`, `DeleteAccountIn`…) + elle yazılan genel `Page<T>`/`CursorPage<T>` (backend `core/pagination.py`'deki `Page[T]`/`CursorPage[T]` Pydantic modelleriyle alan alan doğrulandı — `items/page/page_size/total/has_next` ve `items/next_cursor`).
+  - `src/api/client.ts`: `ApiError` sınıfı (`status/code/message/errors[]`) + `api<T>(path, {method,body,query,signal})` — sorgu parametrelerini `URLSearchParams` ile otomatik kodlar, boş string/`undefined` değerleri atlar (**BUG-11 kapandı**); `FormData` gövdesini olduğu gibi, diğer gövdeleri JSON olarak gönderir; `useAuthStore().token` varsa `Authorization: Bearer` ekler; 204'te `undefined` döner; başarısız yanıtı `ApiError`'a çevirir; 401'de `handleUnauthorized()` — çıkış yapar, `router.currentRoute`'un `fullPath`'ini `redirect` sorgu parametresiyle `/giris`'e yönlendirir, "Oturumun sona erdi" toast'unu 1 sn'lik pencerede tekilleştirir (art arda gelen 401'ler tek toast — **BUG-06 frontend tarafı kapandı**).
+  - **Döngüsel import notu:** `client.ts` → `stores/auth.ts` → `api/auth.ts`/`api/users.ts` → `client.ts` gerçek bir döngü oluşturuyor; tüm taraflar döngüsel bağlamı yalnızca fonksiyon gövdelerinde (çağrı anında) kullanıyor, hiçbiri modül değerlendirme anında (top-level) kullanmıyor — ES modüllerinin "canlı bağlama" kuralı sayesinde güvenli. Başlangıçta dinamik `import()` ile bu döngüden kaçınmayı denedim; `npm run build` "ineffective dynamic import" uyarısı verdi (bu modüller zaten başka yollardan statik olarak ana pakete giriyor, dinamik import hiçbir kod bölme kazancı sağlamıyordu) — statik import'a geri dönüldü, uyarı kayboldu, derleme temiz.
+  - `src/api/auth.ts` + `src/api/users.ts`: §5.1/§5.2'nin tam uç kapsamı için ham istek fonksiyonları; composable'lar (`useLogin/useRegister/useRequestPasswordReset/useVerifyPasswordReset/useConfirmPasswordReset/useChangePassword/useLogoutAllDevices`, `useMe/useUpdateMe/useSuggestions`) yalnız yakın vadede (F2.3 kendisi + F2.4 onboarding) tüketicisi olanlar için yazıldı; `getProfile/followUser/unfollowUser/searchUsers` gibi Faz 3'e kadar tüketicisi olmayanlar ham fonksiyon olarak bırakıldı (erken/spekülatif soyutlama yok — mimari tercihe uygun).
+  - `stores/auth.ts` (Pinia setup-store): `token` (`localStorage['kfdu_token']` ile senkron), `me`, `isAuthenticated` (token varlığına göre), `login/register/logout/fetchMe/setMe`. `stores/ui.ts`: `mobileMenuOpen` + toggle/close.
+  - `main.ts`: `VueQueryPlugin` eklendi — `staleTime:60_000`, `refetchOnWindowFocus:false`, `retry`: yalnız `ApiError.status>=500`'de ve yalnız 1 kez.
+  - `router/index.ts`: §3.6.7'nin tam rota tablosu (`/giris,/kayit,/sifremi-unuttum,/hosgeldin,/,/kesfet,/film/:id,/kitap/:id,/dizi/:id,/inceleme/:id,/u/:username,/liste/:id,/ayarlar,/bildirimler,/kisi/:id,/yazar/:id,/ozet/:year?,/oneriler,/asistan/:conversationId?,/_ui(DEV),/:pathMatch(.*)*`) — henüz sayfası yapılmamış her rota geçici `ComingSoonPage` kullanıyor (F2.4/F3.x/F4.x/F5.x/F6.x'te gerçek sayfalarla değişecek). `RouteMeta` TS modül genişletmesiyle `requiresAuth?/guestOnly?/title?` eklendi. Global `beforeEach` guard: token var+`me` yok→önce `fetchMe()` dener (başarısızsa çıkış+`/giris`'e yönlendir); **`/`+girişsiz→`/kesfet`** kuralı `requiresAuth` kontrolünden ÖNCE ayrı bir özel durum olarak ele alındı (aksi halde `/`'nin `requiresAuth` bayrağıyla çakışıp misafiri her zaman `/giris`'e yönlendirirdi, spesifikasyon `/kesfet` istiyor — bu yüzden `/` rotasının meta'sında `requiresAuth` YOK, yalnızca bu özel kural devrede); `requiresAuth`+girişsiz→`/giris?redirect=<hedef>` (geri dönüş, LoginPage F2.4'te bu parametreyi okuyup kullanacak); `guestOnly`+girişli→`/`. `scrollBehavior` (kayıtlı konum > hash > en üst). `afterEach`→`document.title = "{başlık} · KFDU"`. Basit bir `routeLoading` ref'i (`composables/useRouteProgress.ts`) ile `RouteProgress` bileşeni rotalar arası geçici bir yükleniyor çubuğu gösteriyor.
+  - Düzen bileşenleri (`components/layout/`): `AppShell` (üst menü + `<RouterView>` + altbilgi: TMDB/Open Library atıfları + mobil alt menü), `AppHeader` (logo, Akış/Keşfet linkleri, arama ikonu→şimdilik `/kesfet`'e yönlendiriyor — tam arama kutusu/kısayolu F3.2'nin DiscoverPage'iyle birlikte gelecek, dışa tıklayınca kapanan kullanıcı menüsü: Profilim/Ayarlar/Tema seçimi/Çıkış, misafirde Giriş/Kayıt butonları), `AppBottomNav` (<768px, yalnız şu an gerçekten işlevsel olan Akış/Keşfet/kendi Profili — Öneriler ve Bildirimler ilgili fazda (F5.5/F4.2) eklenecek; henüz yapılmamış sayfalara mobil linkler vermemek bilinçli bir tercih), `RouteProgress` (opacity geçişli ince üst çubuk).
+  - `App.vue` artık `<AppShell/>` render ediyor; create-vue'nün varsayılan "You did it!" yer tutucusu kaldırıldı. `App.spec.ts` buna göre yeniden yazıldı: gerçek `Pinia`+bellek içi test `router`'ıyla mount edilip `<header>` varlığı ve "KFDU" metni doğrulanıyor (önceki "You did it!" metnini arayan test artık anlamsızdı).
+  - `src/api/client.spec.ts` (yeni, 6 test): sorgu kodlama (boş/undefined atlanıyor), token varsa `Authorization` başlığı, `detail/code/errors` alanlarıyla `ApiError`'a çevirme, gövdesiz hatada genel mesaj, 204→`undefined`, 401'de tek çıkış+tek toast+doğru yönlendirme (mock `fetch`+mock `@/stores/auth`+mock `@/router`+mock `vue-sonner`, `vi.hoisted` ile mock referans sırası sorunu çözüldü).
+- **Değişen dosyalar:** `frontend/package.json` (`gen:api` URL düzeltmesi), `frontend/src/api/{schema.d.ts,client.ts,client.spec.ts,auth.ts,users.ts}` (yeni), `frontend/src/types/index.ts` (yeni), `frontend/src/stores/{auth,ui}.ts` (yeni), `frontend/src/router/index.ts`, `frontend/src/composables/useRouteProgress.ts` (yeni), `frontend/src/components/layout/{AppShell,AppHeader,AppBottomNav,RouteProgress}.vue` (yeni), `frontend/src/pages/ComingSoonPage.vue` (yeni), `frontend/src/App.vue`, `frontend/src/main.ts`, `frontend/src/__tests__/App.spec.ts`.
+- **Doğrulama:** `npm run lint` (oxlint+eslint) → temiz ✓ · `npm run type-check` (`vue-tsc --build`) → temiz ✓ · `npm run test:unit -- run` → **16 passed** (6 yeni client.ts testi + güncellenmiş App.spec.ts) ✓ · `npm run build` → başarılı, döngüsel import uyarısı yok (JS 180.60 KB, gzip 64.98 KB) ✓ · gerçek backend (`GET /api/v1/health` → 200) + gerçek Vite dev sunucusu ayakta iken: `curl http://localhost:5173/` → 200, doğru `<title>KFDU</title>` ve mount noktası ✓; `main.ts`/`App.vue`/`router/index.ts`/`client.ts`/`stores/auth.ts`/`AppShell.vue` modülleri Vite üzerinden tek tek istendi, hepsi 200 (sunucu tarafı dönüşüm hatası yok) ✓. **Not:** Bu oturumda tarayıcı aracı yok — guard yönlendirmelerinin (`/`→`/kesfet`, korumalı rota→`/giris?redirect=`) ve `AppHeader` kullanıcı menüsünün gerçek tarayıcıda görsel/etkileşimli doğrulaması yapılamadı; yalnızca kod incelemesi + HTTP/modül seviyesi + birim testleriyle doğrulandı. Dev sunucusu doğrulama sonrası durduruldu (port 5173 boş, artık process yok).
+- **Kapanan maddeler:** BUG-06 (tam), BUG-11, DEBT-01
+- **Commit:** `e104538`
+- **Notlar / sorunlar:** `router/beforeEach` guard'ının kendisi için (guard mantığının izole testi) otomatik test yazılmadı — plan bu adım için yalnızca `client.ts` testlerini açıkça istiyordu (§9/F2.3 madde 8), guard'ın "korumalı rotada girişe yönlenir" davranışı F2.4'te gerçek LoginPage ile uçtan uca (redirect parametresini okuyup kullanma dahil) doğrulanacak.
+- **Sonraki adım:** F2.4 — Kimlik sayfaları ve onboarding
 
 ### [2026-09-26] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅
 
