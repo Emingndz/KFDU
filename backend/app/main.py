@@ -19,6 +19,7 @@ from app.core.rate_limit import limiter
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.library.router import router as library_router
+from app.modules.lists.router import router as lists_router
 from app.modules.social.handlers import register_handlers
 from app.modules.social.router import router as social_router
 from app.modules.users.router import router as users_router
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(catalog_router, prefix=settings.API_PREFIX)
     app.include_router(library_router, prefix=settings.API_PREFIX)
     app.include_router(social_router, prefix=settings.API_PREFIX)
+    app.include_router(lists_router, prefix=settings.API_PREFIX)
 
     @app.get(f"{settings.API_PREFIX}/health", tags=["system"], summary="Sağlık kontrolü")
     def health() -> dict:
