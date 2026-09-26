@@ -25,14 +25,14 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(payload: LoginIn) {
     const result = await loginRequest(payload)
     setToken(result.access_token)
-    await fetchMe()
+    setMe(result.user)
     return result
   }
 
   async function register(payload: RegisterIn) {
     const result = await registerRequest(payload)
     setToken(result.access_token)
-    await fetchMe()
+    setMe(result.user)
     return result
   }
 

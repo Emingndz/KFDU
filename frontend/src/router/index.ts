@@ -26,29 +26,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/giris',
     name: 'login',
-    component: ComingSoonPage,
-    props: { title: 'Giriş yap' },
+    component: () => import('@/pages/LoginPage.vue'),
     meta: { guestOnly: true, title: 'Giriş yap' },
   },
   {
     path: '/kayit',
     name: 'register',
-    component: ComingSoonPage,
-    props: { title: 'Kayıt ol' },
+    component: () => import('@/pages/RegisterPage.vue'),
     meta: { guestOnly: true, title: 'Kayıt ol' },
   },
   {
     path: '/sifremi-unuttum',
     name: 'forgot-password',
-    component: ComingSoonPage,
-    props: { title: 'Şifremi unuttum' },
+    component: () => import('@/pages/ForgotPasswordPage.vue'),
     meta: { guestOnly: true, title: 'Şifremi unuttum' },
   },
   {
     path: '/hosgeldin',
     name: 'onboarding',
-    component: ComingSoonPage,
-    props: { title: 'Hoş geldin' },
+    component: () => import('@/pages/OnboardingPage.vue'),
     meta: { requiresAuth: true, title: 'Hoş geldin' },
   },
   {

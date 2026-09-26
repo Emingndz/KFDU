@@ -18,6 +18,8 @@ const props = withDefaults(
 
 const model = defineModel<string>({ default: '' })
 
+defineOptions({ inheritAttrs: false })
+
 const id = useId()
 const showPassword = ref(false)
 const isPassword = computed(() => props.type === 'password')
@@ -31,6 +33,7 @@ const resolvedType = computed(() => (isPassword.value && showPassword.value ? 't
       <input
         :id="id"
         v-model="model"
+        v-bind="$attrs"
         :type="resolvedType"
         :placeholder="placeholder"
         :maxlength="maxlength"

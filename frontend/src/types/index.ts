@@ -18,3 +18,5 @@ export type ChangePasswordIn = components['schemas']['ChangePasswordIn']
 
 export type Page<T> = { items: T[]; page: number; page_size: number; total: number | null; has_next: boolean }
 export type CursorPage<T> = { items: T[]; next_cursor: string | null }
+
+export type GenreOut = components['schemas']['GenreOut']
