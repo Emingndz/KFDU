@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.9 — Özel listeler** |
+| Sıradaki adım | **F1.10 — Profil özeti, platform vitrinleri ve demo verisi** |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `9286a24` (feat(F1.8): sosyal modülü) |
+| Son commit | `51373cc` (feat(F1.9): özel listeler) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -45,7 +45,8 @@
 - **F1.6 tamamlandı — kitaplar artık çalışıyor:** `catalog` modülü uçtan uca: TMDB (film/dizi — yönetmen, oyuncu, süre, tür, fragman, TR platformları), Open Library (varsayılan kitap sağlayıcısı, anahtarsız), Google Books (opsiyonel). `get_or_create_content` 7 gün tazelikle DB'ye upsert ediyor; sağlayıcı çağrıları §6.5 sürelerine göre `ttl_cache`. Gerçek sunucuda Open Library ile `catalog/search`, `catalog/book/{id}`, `catalog/book/{id}/similar`, `catalog/genres` canlı doğrulandı (kapaklı, yazarlı, özetli gerçek sonuçlar döndü). **Önemli hata bulundu ve düzeltildi (D-17):** SQLite'ın `DateTime(timezone=True)`'ı okurken tzinfo düşürmesi — `UTCDateTime` TypeDecorator ile çözüldü, bunu doğrulayan bir test eklendi (`test_detail_upserts_and_second_call_skips_http`). TMDB fixture'ları U2 beklendiği için elle yazıldı (D-18 — düşük öncelikli takip maddesi). 17 yeni test (toplam 41) yeşil.
 - **F1.7 tamamlandı:** `library` modülü: kısmi güncelleme (`model_fields_set`), `is_empty` olunca satır siliniyor, `in_progress`/`completed` → `started_at`/`finished_at` otomatik (boşsa), `library.log_changed`/`log_removed`/`status_changed` olayları commit'ten önce yayınlanıyor (henüz dinleyen yok — F1.8'de `social/handlers.py` dinleyecek). `get_state` (platform ortalama/dağılım + takip edilenler), `lookup` (tek sorgu, ≤60 anahtar), incelemeler (409/403/422). **Not (F1.8 için önemli):** `delete_review`'da `db.delete(review)` sonrası `db.flush()` çağrısı gerekti — `SessionLocal` `autoflush=False` ile kurulu, bu yüzden silme işlemi sonraki `SELECT`'e otomatik yansımıyor. F1.8'de benzer sil-sonra-kontrol-et deseni varsa aynı şeye dikkat et. 10 yeni test (toplam 51) yeşil.
 - **F1.8 tamamlandı:** `social/handlers.py` tüm §3.5.2 olaylarını dinliyor (`lists.*` olayları F1.9'da gerçek bir emitter bulacak — şimdiden hazır). `get_feed`/`list_user_activities` toplu sorgularla (aktör/içerik/liste/beğeni/yorum/puan+inceleme hepsi IN/GROUP BY ile) N+1'siz; 15 kartlık akış testte ölçülüp ≤12 sorgu sınırının içinde kaldığı doğrulandı. `card_type` okuma anında (inceleme varsa `review`). Beğeni/bildirim tekilleştirme kuralları ayrı ayrı test edildi (kendine bildirim yok, aynı aktivite için ikinci kez yok; takip bildirimi yalnız okunmamışsa tekrar açılmaz). Gerçek sunucuda kayıt→puanla→akışta görünme→bildirim sayacı uçtan uca doğrulandı. 9 yeni test (toplam 60) yeşil. **Not:** İnceleme okuma uçları (`list_content_reviews`/`list_user_reviews`) bilinçli olarak feed kadar agresif batch-optimize edilmedi (basit platform ölçeği için yeterli) — ileride performans sorunu çıkarsa aynı toplu-sorgu deseni oraya da taşınabilir.
-- Kalan: F1.9 (özel listeler), F1.10 (istatistik+demo veri, içinde 🛑 opsiyonel eski veri aktarımı sorusu var), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Hiçbir 🛑/🏁/👤 engeli yok, direkt devam edilebilir.
+- **F1.9 tamamlandı:** `lists` modülü — CRUD, öğe ekle/çıkar/not güncelle (idempotent ekleme: zaten varsa 200), yeniden sıralama (kimlik kümesi tam eşleşmezse 400), `my_lists` (`contains` bayrağı), başkasının listelerinde yalnız public görünür. F1.8'de yazılan `lists.*` olay dinleyicileri artık gerçek bir yayıncı buluyor — public listeye ekleme/oluşturma aktivite üretiyor, gizliye çevirince aktiviteler siliniyor (test edildi). 6 yeni test (toplam 66) yeşil.
+- Kalan: F1.10 (profil özeti+platform vitrinleri+demo verisi, içinde 🛑 opsiyonel eski veri aktarımı sorusu var — U6), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Hiçbir engelleyici 🛑/🏁 yok F1.10'un demo veri kısmına kadar; F1.10'un "eski veri aktarımı" alt maddesi opsiyonel ve kullanıcı onayı gerektiriyor.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -56,7 +57,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 8/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 9/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -109,7 +110,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.6 — Katalog: TMDB + Open Library (+ Google Books) — **kitaplar düzelir** — ✅ (2026-09-26)
 - [x] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅ (2026-09-26)
 - [x] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅ (2026-09-26)
-- [ ] F1.9 — Özel listeler
+- [x] F1.9 — Özel listeler — ✅ (2026-09-26)
 - [ ] F1.10 — Profil özeti, platform vitrinleri ve demo verisi (🛑 U6)
 - [ ] F1.11 — Faz 1 kapanışı 🏁
 
@@ -214,7 +215,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
-| BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | 🟡 yorum tarafı ✅ (403 doğru, sahip/aktivite sahibi kontrolü); liste tarafı F1.9 | `9286a24` |
+| BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | ✅ | `51373cc` |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | 🔴 | |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🔴 | |
@@ -332,6 +333,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.9 — Özel listeler — ✅
+
+- **Yapılanlar:** `lists/schemas.py` (`ListCreateIn/UpdateIn`, `ListItemIn/NoteIn`, `ReorderIn`, `ListOut/Detail`, `MyListOut`). `lists/service.py`: CRUD (sahiplik kontrolü, gizli liste başkasına 404), `add_item` (`get_or_create_content`; zaten varsa mevcut öğeyi 200 ile döner, yeniyse 201 — `position = max+1`), `update_item_note`, `remove_item`, `reorder_items` (verilen kimlik kümesi mevcut öğelerle birebir aynı olmalı), `my_lists` (`contains` bayrağı tek ek sorgu), `list_user_lists`. `lists.created/item_added/item_removed/visibility_changed` olayları yayınlanıyor — F1.8'de yazılan dinleyiciler ilk kez gerçek veriyle çalıştı. `lists/router.py` (§5.6): `/lists/mine` `/lists/{list_id}`'den önce tanımlı.
+- **Değişen dosyalar:** `backend/app/modules/lists/{schemas,service,router}.py` (yeni), `backend/app/main.py` (router kaydı), `backend/tests/test_lists.py` (yeni, 6 test).
+- **Doğrulama:** `pytest` → 66 passed (6 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · testte doğrulandı: public listeye ekleme/oluşturma → `Activity(verb=list_add/list_create)` oluşur; gizliye çevirince o listenin tüm aktiviteleri silinir.
+- **Kapanan maddeler:** BUG-19 (tam)
+- **Commit:** `51373cc`
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F1.10
 
 ### [2026-09-26] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅
 
