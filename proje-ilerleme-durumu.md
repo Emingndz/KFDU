@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-26** — 🏁 Faz 2 kapandı, Faz 3'e geçildi.
+> Son güncelleme: **2026-09-27** — F3.1 tamamlandı (içerik bileşenleri ve yardımcılar).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.1 — İçerik bileşenleri ve yardımcılar** |
+| Sıradaki adım | **F3.2 — Keşfet sayfası** |
 | Çalışma dalı | `v2` |
-| Son commit | `55a8ac1` (docs(F2.4): ilerleme durumunu güncelle) |
+| Son commit | `77c4b3d` (feat(F3.1): içerik bileşenleri ve yardımcılar) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -49,7 +49,8 @@
   - **Bilinçli kapsam sınırlamaları (erken soyutlama yok):** `api/catalog.ts` yalnız genres ile başladı (F3.1 genişletecek); onboarding'in takip butonu sayfaya özel, paylaşılan `FollowButton` değil (F3.6 yapacak).
   - **Kalıcı sınırlama:** Bu oturumda (Faz 2 boyunca) tarayıcı aracı hiç yoktu — tüm doğrulama kod incelemesi + HTTP/modül seviyesi + birim testleri + gerçek backend'e karşı curl ile yapıldı; görsel düzen, klavye gezinme, tema geçişi ve gerçek form deneyimi tarayıcıda elle denenmedi. `docs/ekran-goruntuleri/` bu yüzden oluşturulmadı (plan F2.5'te "mümkünse" diyor — mümkün olmadı). Kullanıcı isterse kendisi tarayıcıda deneyip geri bildirebilir.
 - **Faz 2 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel, `55a8ac1`) ve Faz 3'e geçmeyi onayladı.
-- **Sırada:** F3.1 — İçerik bileşenleri ve yardımcılar (`utils/{content,format}.ts`, `PosterCard`/`ContentGrid`/`ContentRow`/`StarRating`/`RatingDisplay`/`RatingHistogram`/`LibraryButtons`/`FavoriteButton`/`GenreChips`/`AddToListMenu`, `useContentActions`, `api/{catalog,library,lists}.ts` genişletmesi).
+- **F3.1 tamamlandı (2026-09-27):** `utils/{format,content}.ts` (relativeTime/formatDate/formatRuntime/formatPages/formatRating/formatCount; typeLabel/contentPath/contentKey/statusLabel/statusOptions — §4.2'nin durum-etiketi tablosuyla birebir, film=dizi etiketleri kitaptan farklı). `api/library.ts` + `api/lists.ts` (§5.4/§5.6'nın tam ham fonksiyon kapsamı + yalnız gerekli composable'lar: `useMyLists`/`useAddListItem`/`useRemoveListItem`/`useCreateList`). `composables/useContentActions.ts`: kütüphane durumu/puan/favori için tek noktadan yönetim — yerel `overlay` ref'iyle iyimser güncelleme (TanStack cache'i değil, çünkü henüz `content-state` sorgusunu dolduran bir tüketici sayfa yok — F3.3'te gerçek `useContentState` ile entegre edilecek), hata olursa geri alır + toast, misafiri `/giris?redirect=`'e yönlendirir, başarıda `content-state`/`library`/`user-summary`/`recs` sorgularını geçersiz kılar (§3.6.2 tablosuna göre). 10 bileşen (`components/content/`): `StarRating` (5 yıldız = 1-10, yarım yıldız yarım butonlarla, hover önizleme, aynı değere tıklayınca temizler, `role=slider`+tam klavye desteği), `RatingDisplay`, `RatingHistogram` (saf CSS 10 çubuk), `GenreChips` (saf sunum, etiket çözümlemesi çağırana bırakıldı), `PosterCard` (kırık poster görselinde `ImageOff` düşen görünüm — BaseAvatar'daki BUG-07 desenini içerik kartlarına taşıdı), `ContentGrid`/`ContentRow` (duyarlı ızgara/yatay şerit + iskelet/boş/hata durumları), `LibraryButtons`/`FavoriteButton` (saf sunum, durumu prop olarak alır — `useContentActions` ile kablolamak çağırana kalmış), `AddToListMenu` (`GET /lists/mine` + tıkla-ekle/çıkar + satır içi "yeni liste" formu, gerçek backend'e karşı curl ile doğrulandı: oluştur→ekle→`contains:true`→çıkar→`contains:false`→sil, hepsi 2xx). Hepsi `/_ui` vitrinine eklendi. 28 yeni test (`format`/`content`/`StarRating`).
+- **Sırada:** F3.2 — Keşfet sayfası (arama/filtre/vitrinler, `api/catalog.ts`'e search/discover/trending eklenecek).
 
 ---
 
@@ -60,12 +61,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 0/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 1/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **21/64** | | |
+| **Toplam** | | | **22/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -125,7 +126,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 ### Faz 3 — Çekirdek Özellikler
 
-- [ ] F3.1 — İçerik bileşenleri ve yardımcılar
+- [x] F3.1 — İçerik bileşenleri ve yardımcılar — ✅ (2026-09-27)
 - [ ] F3.2 — Keşfet sayfası
 - [ ] F3.3 — İçerik detay sayfası
 - [ ] F3.4 — İnceleme sayfası ve yorum dizisi
@@ -217,7 +218,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
 | BUG-18 | Dış API çağrılarında timeout yok | F1.2, F1.6 | ✅ (F1.2 altyapı + F1.6 tüm sağlayıcılar `request_json` kullanıyor) | `8c12de7` |
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | ✅ | `51373cc` |
-| BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | 🟡 backend ✅ (`LibraryStatus` tek ortak enum); arayüz etiketleri F3.1 | `919615a` |
+| BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | ✅ (backend `LibraryStatus` tek ortak enum; arayüz `utils/content.ts`'in `statusLabel`'ı §4.2 tablosuyla birebir — film=dizi etiketleri, kitap ayrı) | `919615a`, `77c4b3d` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | ✅ (v2: bileşenler F2.2, gerçek rota tablosu+guard F2.3; v1 dosyası `legacy/frontend-v1/`'de yalnız referans) | `e104538` |
 | DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🟡 altyapı ✅ (vue-sonner toast + ConfirmDialog hazır); eski `alert/confirm` kaldırma Faz 3 sayfalarında | `f3e2894` |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
@@ -335,6 +336,23 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-27] F3.1 — İçerik bileşenleri ve yardımcılar — ✅
+
+- **Yapılanlar:**
+  - `utils/format.ts`: `relativeTime` (Intl.RelativeTimeFormat('tr'); <45 sn "az önce", <60 dk dakika, <24 sa saat, <7 gün gün, ≤30 gün hafta, sonrası `formatDate` ile mutlak tarih), `formatDate`, `formatRuntime` (150→"2 sa 30 dk"), `formatPages`, `formatRating`, `formatCount` (1234→"1,2 B", milyon→"M", tr-TR virgüllü ondalık).
+  - `utils/content.ts`: `typeLabel`/`contentPath`/`contentKey`; `statusLabel`/`statusOptions` — planın §4.2 durum-etiketi tablosuyla birebir (film/dizi ortak: İzledim/İzliyorum/İzleyeceğim/Yarım bıraktım; kitap ayrı: Okudum/Okuyorum/Okuyacağım/Yarım bıraktım). `LibraryStatus` tipi için ayrı bir yerel tanım YAPILMADI, `types/index.ts`'teki şema kaynaklı olan yeniden kullanıldı (iki farklı dosyada aynı adla iki ayrı tip tanımı olmasın diye).
+  - `types/index.ts`: `ContentSummary`, `ContentDetail`, `LibraryStatus`, `EntryOut`, `EntryUpdateIn`, `ContentState`, `LookupEntryOut`, `Review*`, `List*` şema tipleri eklendi.
+  - `api/library.ts` (ham): `upsertEntryRequest`/`deleteEntryRequest`/`getContentStateRequest`/`lookupLibraryRequest`/`getUserLibraryRequest`/`create|update|deleteReviewRequest` (§5.4 tam kapsam). `api/lists.ts` (ham + composable): tüm CRUD + sıralama + `useMyLists`/`useAddListItem`/`useRemoveListItem`/`useCreateList` (yalnız `AddToListMenu`'nün gerçekten ihtiyaç duyduğu composable'lar; `getListDetailRequest` gibi F3.7'nin (ListPage) kullanacağı fonksiyonlar ham bırakıldı, composable'ı o zaman eklenecek).
+  - `composables/useContentActions.ts`: `status`/`rating`/`isFavorite` computed'ları + `setStatus`/`setRating`/`toggleFavorite` — hepsi "aynı değere tıklayınca temizler" mantığını (StarRating ve LibraryButtons'ın ikisi için de) tek yerden uyguluyor. İyimser güncelleme yerel bir `overlay` ref'iyle yapılıyor (TanStack sorgu önbelleğini doğrudan yamalamak yerine) — çünkü bu adımda `content-state` sorgusunu dolduran gerçek bir tüketici sayfa (ContentDetailPage, F3.3) henüz yok; F3.3'te gerçek `useContentState` composable'ı eklenince bu iyimser katman TanStack cache'iyle entegre edilmesi gerekip gerekmediği yeniden değerlendirilecek. Hata olursa `overlay` eski değerine geri alınır + toast; misafirse `/giris?redirect=`'e yönlendirir (§3.6.5). Başarıda `content-state`/`library`(ben)/`user-summary`(ben)/`recs` sorguları geçersiz kılınır (§3.6.2'nin "geçersiz kılma örnekleri" satırı).
+  - 10 bileşen (`components/content/`): **StarRating** (5 yıldız × 2 yarım = 1-10; her yarım ayrı görünmez buton; hover önizleme; `role="slider"` + `aria-valuemin/max/now/text` + ←/→/Home/End/Delete; salt okunur modda hiç buton/slider render etmez). **RatingDisplay** (★×5 + "x/10"). **RatingHistogram** (10 çubuk, saf CSS, `Math.max` ile ölçekleme). **GenreChips** (saf sunum — etiket listesini olduğu gibi çip yapar, tür anahtarı→etiket çözümlemesi bilerek bileşene sokulmadı, çağıran sayfa zaten elindeki veriyle çözüyor). **PosterCard** (sabit en-boy `aspect-[2/3]`, kırık/eksik posterde `ImageOff` ikonlu düşen görünüm — BaseAvatar'ın BUG-07 desenini içerik kartlarına taşıdı; genişlik `size` prop'undan, ContentGrid `!w-full` ile ezip grid hücresini dolduruyor). **ContentGrid**/**ContentRow** (duyarlı ızgara 2→6 sütun / yatay kaydırmalı şerit + ok butonları; ikisi de yükleniyor/boş/veri durumlarını ayrı ayrı ele alıyor). **LibraryButtons**/**FavoriteButton** (saf sunum — durumu prop olarak alır, `update:status`/`update:modelValue` yayar; `useContentActions`'a kablolamak sayfanın işi). **AddToListMenu** (`useMyLists` ile listelerini + `contains` bayrağını çeker, tıkla-ekle/çıkar, satır içi "+ Yeni liste" formu; misafirse girişe yönlendirir). Hepsi `/_ui` vitrinine eklendi (sahte 3 içerikle: film/dizi/kitap birer örnek, kasıtlı `poster_url:null` ile PosterCard'ın düşen görünümünü de gösteriyor).
+  - Bileşenler arasında **genişlik çakışması** fark edildi ve çözüldü: `PosterCard`'ın kendi `size`→genişlik varsayılanı `ContentRow`'da (yatay şerit, sabit genişlik gerekiyor) doğru ama `ContentGrid`'de (hücreyi doldurması gerekiyor) yanlıştı; Vue'nun class-birleştirme davranışından yararlanılarak `ContentGrid` `class="!w-full"` ile (Tailwind önemli-değiştirici) bunu eziyor.
+- **Değişen dosyalar:** `frontend/src/utils/{format,format.spec,content,content.spec}.ts` (yeni), `frontend/src/types/index.ts`, `frontend/src/api/{library,lists}.ts` (yeni), `frontend/src/composables/useContentActions.ts` (yeni), `frontend/src/components/content/{StarRating,StarRating.spec,RatingDisplay,RatingHistogram,GenreChips,PosterCard,ContentGrid,ContentRow,LibraryButtons,FavoriteButton,AddToListMenu}.{vue,ts}` (yeni, 11 dosya), `frontend/src/pages/UiShowcasePage.vue`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ (bir tur `EntryUpdateIn`'in `is_favorite: boolean|null` ile yerel `OptimisticState.is_favorite: boolean` tipi çakıştı, alan bazlı açık birleştirmeyle düzeltildi) · `npm run test:unit -- run` → **60 passed** (28 yeni: format 12, content 9, StarRating 7 — bkz. tam sayılar dosyalarda) ✓ · `npm run build` → başarılı, ana paket boyutu **değişmedi** (gzip 70.20 KB — yeni bileşenler yalnız DEV-only `/_ui`'den içe aktarılıyor, `import.meta.env.DEV` derleme zamanında `false`'a sabitlenip prod dalı elendiği için ana pakete girmiyor) ✓ · Vite dev sunucusu üzerinden 16 yeni/değişen modül tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (curl, yeni test kullanıcısı `f31test` ile):** `PUT /library/book/OL45804W` (status+rating)→200, `GET .../state`→`ContentState` şeması birebir eşleşti (`content_id`/`platform.{average,count,distribution}`/`me.entry.*`/`me.review_id`/`friends`), favori aç→200, `status:null` gönderip temizleme→200 (kaldırma mantığı doğrulandı); film uçları U2 (TMDB anahtarı) beklediği için `TMDB_NOT_CONFIGURED` 503 verdi (beklenen, kitapla devam edildi) ✓; liste akışı: oluştur→201, `GET /lists/mine?type&external_id`→`contains:false`, öğe ekle→201, tekrar sorgula→`contains:true` + `cover_urls` dolu, öğe sil→204, tekrar sorgula→`contains:false`, listeyi sil→204 ✓. Test kullanıcısı `DELETE /users/me` ile temizlendi. **Not:** Bir ara adımda Türkçe "ı" harfi içeren bir liste başlığı curl/bash kodlama sorunu yüzünden 400 döndürdü — gerçek tarayıcıda `fetch`+`JSON.stringify` UTF-8'i doğru kodladığı için bu yalnızca test betiğinin sorunuydu, ASCII başlıkla tekrarlanınca (ve ayrıca gerçek Türkçe karakterli kayıt/onboarding akışları F2.4'te zaten başarıyla test edildiği için) uygulama kodunda bir düzeltme gerekmedi.
+- **Kapanan maddeler:** BUG-20 (tam)
+- **Commit:** `77c4b3d`
+- **Notlar / sorunlar:** Tarayıcı aracı hâlâ yok — `/_ui`'deki yeni bölümün görsel/klavye/hover doğrulaması yalnızca kod incelemesi + yukarıdaki testlerle yapıldı. `LibraryButtons`/`FavoriteButton`/`AddToListMenu`'nün gerçek bir sayfaya (ContentDetailPage) kablolanması F3.3'e kalıyor; bu adımda yalnızca bileşenlerin kendisi ve `/_ui`'deki yerel/gerçek demo'ları doğrulandı.
+- **Sonraki adım:** F3.2 — Keşfet sayfası
 
 ### [2026-09-26] F2.5 — 🏁 Faz 2 kapanışı — ✅
 
