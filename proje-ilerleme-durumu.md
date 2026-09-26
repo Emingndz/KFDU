@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 0 uygulanıyor |
 | Aktif faz | Faz 0 — Güvenlik, temizlik ve hazırlık |
-| Sıradaki adım | **F0.4 — Geliştirme ortamı** |
+| Sıradaki adım | **🏁 Faz 0 kapanışı** (özet + kullanıcı onayı bekleniyor; F0.5 opsiyonel — 🛑 karar bekliyor; F0.4 Node güncellemesiyle tam kapanacak) |
 | Çalışma dalı | `v2` |
-| Son commit | `7610a0c` (fix(F0.3): sırları koddan çıkar) |
+| Son commit | `8628d89` (chore(F0.4): VS Code eklenti önerileri) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -35,7 +35,8 @@
 - **Analiz (2026-09-26):** Bulgular planın §2'sinde — SEC-01…09, BUG-01…20, DEBT-01…07; ödev eksikleri Ek A'da.
 - **Kitaplar neden bozuk:** Google Books anahtarsız çağrılıyor → HTTP 429 (anonim kota 0) → API `null` dönüyor. Çözüm: Open Library (F1.6).
 - **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır. **F0.3 ile kod tarafı kapandı ama eski Gmail şifresi ve eski TMDB anahtarı hâlâ geçerli/aktif** — U1 ve U2 kullanıcı tarafından yapılana kadar risk devam ediyor (bkz. 👤 Kullanıcı Eylemleri).
-- **Durum:** F0.1–F0.3 tamamlandı. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
+- **Durum:** F0.1–F0.3 tamamlandı, F0.4 kısmi. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). `backend/.venv` oluşturuldu ve doğrulandı; `.vscode/extensions.json` eklendi (`8628d89`). **Node.js hâlâ 22.12.0** (≥22.18 gerekli) — F0.4 bu yüzden tam kapanmadı, Faz 2'den önce güncellenmeli. Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
+- **Faz 0 kapanışı bekliyor:** F0.5 (opsiyonel, git geçmişinden sır temizleme — force push gerektirir) kullanıcı kararı bekliyor. `v2` dalını uzak depoya göndermek için de kullanıcı onayı gerekiyor (bkz. U12).
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
 ---
@@ -44,7 +45,7 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 3/5 | 2026-09-26 | – |
+| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 3/5 (+ F0.4 kısmi) | 2026-09-26 | – |
 | 1 | Backend temeli | ⬜ Başlamadı | 0/11 | – | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
@@ -84,7 +85,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F0.1 — Yedekleme ve çalışma dalı — ✅ (2026-09-26)
 - [x] F0.2 — `.gitignore` ve depo temizliği — ✅ (2026-09-26)
 - [x] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4) — ✅ kod tarafı (2026-09-26); 👤 anahtar iptali/yenileme hâlâ bekliyor
-- [ ] F0.4 — Geliştirme ortamı (👤 U3)
+- [~] F0.4 — Geliştirme ortamı (👤 U3) — 🟡 kısmi (2026-09-26): venv + ortam kaydı yapıldı, Node güncellemesi 👤 bekliyor
 - [ ] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme
 - [ ] 🏁 Faz 0 kapanışı
 
@@ -294,9 +295,11 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 |---|---|---|
 | İşletim sistemi | Windows 11 Pro | |
 | Python | 3.13.1 | ✓ |
-| Node.js | 22.12.0 | ⚠️ ≥ 22.18 gerekli (U3 / F0.4) |
+| Node.js | 22.12.0 | ⚠️ ≥ 22.18 gerekli, hâlâ güncellenmedi (U3 / F0.4) |
 | npm | 11.20.0 | |
+| Git | 2.47.1.windows.1 | ✓ |
 | Git uzak depo | GitHub (public) | |
+| Backend venv | `backend/.venv` | ✓ oluşturuldu (F0.4) |
 
 ---
 
@@ -314,6 +317,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F0.4 — Geliştirme ortamı — 🟡 kısmi
+
+- **Yapılanlar:** Araç sürümleri kaydedildi (aşağıda). `backend/.venv` sanal ortamı oluşturuldu ve aktivasyonu doğrulandı. Kökte `.vscode/extensions.json` (6 önerilen eklenti) eklendi.
+- **Değişen dosyalar:** `.vscode/extensions.json` (yeni); `backend/.venv/` (yeni, izlenmiyor).
+- **Doğrulama:** `node -v` → `v22.12.0` (yetersiz) · `npm -v` → `11.20.0` · `python --version` → `3.13.1` · `git --version` → `2.47.1.windows.1` · venv aktifken `python -c "import sys; print(sys.prefix)"` → `...\backend\.venv` ✓
+- **Kapanan maddeler:** —
+- **Commit:** `8628d89`
+- **Notlar / sorunlar:** ⛔ **Kabul kriteri tam sağlanmadı:** Node.js hâlâ `22.12.0`, gerekli `≥22.18`. Bu adım Node güncellemesi (👤 U3) tamamlanana kadar tam ✅ sayılmayacak. Faz 0'ın geri kalanını (F0.4 dışında) ve Faz 1'i engellemiyor; yalnızca Faz 2 (frontend) öncesi kesin şart.
+- **Sonraki adım:** 🏁 Faz 0 kapanışı
 
 ### [2026-09-26] F0.3 — Sırları koddan çıkarma — ✅ (kod tarafı)
 
