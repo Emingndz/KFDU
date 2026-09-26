@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-27** — F3.2 tamamlandı (Keşfet sayfası).
+> Son güncelleme: **2026-09-27** — F3.3 tamamlandı (İçerik detay sayfası).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.3 — İçerik detay sayfası** |
+| Sıradaki adım | **F3.4 — İnceleme sayfası ve yorum dizisi** |
 | Çalışma dalı | `v2` |
-| Son commit | `dcffa45` (feat(F3.2): Keşfet sayfası) |
+| Son commit | `1c23219` (feat(F3.3): İçerik detay sayfası) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -53,6 +53,13 @@
 - **F3.2 tamamlandı (2026-09-27):** `api/catalog.ts` genişletildi: `useSearch`/`useDiscover` (`useInfiniteQuery`, `initialPageParam`+`getNextPageParam` ile TanStack v5 sözleşimi), `useTrending`, `useCollection`. `api/stats.ts` (yeni): `usePlatformTopRated`/`usePlatformPopular` (`/platform/top-rated`+`/platform/popular`). `api/users.ts`: `useUserSearch` (infinite), `useFollowUser`/`useUnfollowUser` (ikinci kez ihtiyaç duyulunca eklendi — onboarding'in yerel takip mantığı ile aynı deseni tekrarlamak yerine composable'a çıkarıldı, ama görsel `FollowButton` bileşeni hâlâ F3.6'ya kalıyor). `api/library.ts`: `useLibraryLookup` (sayfadaki içerik anahtarları için toplu kişisel durum sorgusu, yalnız girişliyken etkin). `PosterCard`in `myState` prop'u genişletildi (yalnız favori değil, artık `status`/`rating` da destekliyor → ★ puan / ✓ tamamlandı / 🔖 planlandı rozetleri); `ContentGrid`'e `lookup` prop'u eklendi, her karta `contentKey`'iyle doğru kişisel durumu eşliyor. `FilterPanel` (yeni): tür/yıl aralığı/asgari puan (kaydırıcı)/sıralama/dil, "Uygula"/"Temizle", kaldırılabilir aktif filtre çipleri. `UserCard` (yeni, `components/users/`): avatar+ad+kullanıcı adı+bio+takip butonu. `DiscoverPage.vue` (`/kesfet`): büyük arama kutusu (350ms debounce, `@vueuse/core`'un `useDebounce`'ı), Film/Kitap/Kullanıcı sekmesi, tüm durum URL'de (`q/tur/tur_id/yil_min/yil_max/puan_min/sirala/dil` — planın literal Türkçe parametre adlarıyla birebir, `router.replace` ile geri/ileri ve link paylaşımı bozulmadan), üç mod: arama (metin varken `useSearch`), keşif (filtre varken ama metin yokken `useDiscover`), vitrin (ikisi de yokken 2 platform şeridi + film'de 3 ek şerit/kitapta 1 ek şerit + "Türlere Göz At" çip ızgarası — tıklayınca ilgili tür filtre olarak uygulanır). Sonsuz kaydırma gerçek IntersectionObserver ile (`@vueuse/core`'un `useIntersectionObserver`'ı), buton değil.
   - **Bilinçli basitleştirmeler:** (1) "Platformda En Yüksek Puanlılar"/"En Popülerler" şeritleri planın istediği gibi kendi İÇ sekmesine sahip değil, sayfanın ana Film/Kitap sekmesini takip ediyor (aynı seçimi iki kez ayrı ayrı sormamak için). (2) `FilterPanel` "masaüstünde satır içi / mobilde alt çekmece" yerine HER ekran boyutunda aynı satır-içi katlanır panel olarak render ediliyor — 360px'te kullanılabilir ama gerçek bir bottom-sheet değil. (3) Kullanıcı aramasında `PublicUserOut` `is_following` taşımadığı için (yalnız `ProfileOut`/`PublicUserWithFollowOut` taşıyor) önceden takip edilen biri başlangıçta "Takip et" gösterir; tıklanınca oturum için yerel işaretlenir (backend `follow` zaten idempotent, yanlış bir işlem olmuyor, yalnızca başlangıç görseli tam doğru değil). (4) Vitrin şeritleri (TMDB'ye bağlı olanlar) `TMDB_NOT_CONFIGURED` 503 aldığında `ErrorState` değil boş satır gösteriyor (U2 çözülene kadar zaten beklenen bir durum, ayrı bir hata banner'ı eklemek gerekmedi).
   - **Gerçek backend'e karşı uçtan uca (curl, kitap tarafı — TMDB U2'yi bekliyor):** `search?type=book&q=fox` ✓, `discover?type=book&genre=fiction&sort=rating` ✓, `platform/top-rated?type=book` ✓, `platform/popular?type=book` ✓, `trending?type=book` ✓, `users/search?q=demo` (geçerli token ile) ✓, `library/lookup` (toplu) ✓ — hepsi `ContentSummary`/`Page<T>`/`PublicUserOut`/`LookupEntryOut` şemalarıyla birebir eşleşti. **Gözlem (kod hatası değil):** `discover?type=book&min_rating=X` (tür filtresi OLMADAN, yalnız puan) Open Library'de bazen yavaş/zaman aşımına uğruyor — kök neden `openlibrary.py`'nin bu durumda çok geniş bir `ratings_average:[X TO 5]` sorgusuna düşmesi (F1.6'dan kalan, dış servisin kendi performansı, bu adımda dokunulmadı); `genre` ile birlikte kullanılınca hızlı çalışıyor.
+- **F3.3 tamamlandı (2026-09-27):** `api/catalog.ts`: `useContentDetail`, `useSimilarContent`. `api/library.ts`: `useContentState` (§3.6.2'nin `['content-state',type,id]` anahtarıyla — F3.1'de "gerçek tüketici olunca değerlendirilecek" notu bırakılmıştı, artık gerçek ilk tüketici bu), `useCreateReview`/`useUpdateReview`/`useDeleteReview`. `api/social.ts` (yeni): `useContentReviews` (infinite, "Daha fazla" butonuyla — otomatik kaydırma değil, plan bunu böyle istiyor), `useReviewDetail` (F3.4 de kullanacak), `useLikeActivity`/`useUnlikeActivity`. 7 yeni bileşen: `CastRow`, `WatchProviders` (yalnız düz metin rozetler — `Providers` şeması logo URL'si değil yalnız platform adı stringleri taşıyor, gerçek logo yok), `ReviewEditor` (kendi incelemem: yoksa yaz formu, varsa göster+Düzenle/Sil — Düzenle mevcut metni yükleyip aynı formu tekrar açıyor), `ReviewItem` (başkalarının incelemeleri; spoiler bulanıklığı, 200 karakter kesme, beğeni — kendi incelemem genel listede TEKRAR görünmesin diye `ReviewList` kendi incelemeyi filtreliyor), `ReviewList` (Yeni/Popüler + Daha fazla), `TrailerModal` (BaseModal + youtube-nocookie iframe). `ContentDetailPage.vue` (`/film/:id`, `/kitap/:id` — route-level `props` fonksiyonuyla `type` enjekte ediliyor, dizi F4.1'e kadar hâlâ ComingSoon): hero (backdrop/poster/başlık/meta satırı/yönetmen-yazar düz metin/harici puan rozeti), platform puanı+histogram, eylem çubuğu (`StarRating`+`LibraryButtons`+`FavoriteButton`+`AddToListMenu`+Paylaş+Fragman — `useContentActions`'ın `initial` parametresi artık gerçek `useContentState` verisiyle besleniyor), özet (devamını göster), oyuncular, izleme platformları (yalnız film/dizi), incelemeler, arkadaşların (`ContentState.friends`), benzer içerikler, 404/hata durumları, `document.title`.
+  - **StarRating↔useContentActions çakışması ve düzeltmesi:** `StarRating` aynı yıldıza tekrar tıklayınca zaten kendi içinde `null` yayıyordu (F3.1); `useContentActions.setRating`'in KENDİ toggle kontrolü de vardı — ikisi çakışınca "temizle" tıklaması sessizce yutuluyordu. Çözüm: `setRating` artık kendi eşitlik kontrolünü yapmıyor, StarRating'in kararını olduğu gibi uyguluyor (StarRating'in kendi toggle'ı tek otorite).
+  - **D-21 (backend düzeltmesi — dış servis 404'ü):** `core/http.py`'deki `request_json`, bir dış sağlayıcıdan (TMDB/Open Library) gelen 404'ü sarmalamadan olduğu gibi fırlatıyordu; FastAPI'nin genel yakalayıcısı bunu 500 "Beklenmeyen bir hata oluştu" olarak dönüyordu (canlı testte `catalog/book/OL999999999W` ile bulundu). Artık 404 özel olarak yakalanıp `not_found()` ile temiz `404 NOT_FOUND` olarak dönüyor — frontend'in "Bu içerik bulunamadı" sayfası artık gerçekten tetikleniyor.
+  - **D-22 (backend düzeltmesi — sahte "düzenlendi" etiketi):** `social/service.py`'de `is_edited=review.updated_at > review.created_at` kullanılıyordu; ama `TimestampMixin` her iki alanı da AYRI `datetime.now(UTC)` çağrılarıyla dolduruyor (bkz. `core/database.py`), bu yüzden her yeni inceleme oluşturulduğunda mikrosaniyelik farktan dolayı `is_edited` yanlışlıkla `true` çıkıyordu (canlı testte fark edildi). 1 saniyelik tolerans eşiğine çevrildi (`(updated_at - created_at).total_seconds() > 1`) — gerçek düzenlemeler (dakikalar/saatler sonra) doğru tespit ediliyor, oluşturma anındaki mikrosaniye farkı artık yanlış pozitif üretmiyor. Yeni regresyon testi eklendi (`test_review_is_edited_false_until_actually_updated`, DB üzerinden `created_at`'i geriye alarak gerçek zaman beklemeden test ediyor).
+  - **Bilinçli kapsam sınırlamaları:** REQ-2.1.4f/g/h (yorumlar) bu adıma dahil değil — ContentDetailPage'de yorum bölümü yok, `CommentThread` F3.4'ün işi (plan da böyle ayırıyor).
+  - **Gerçek backend'e karşı uçtan uca (curl, kitap tarafı, iki test kullanıcısıyla):** içerik detayı+benzer içerikler+boş inceleme listesi ✓; inceleme oluştur (uzun metin, kesme testi için) → `is_truncated:true`, `activity_id` dolu ✓; `content-state.me.review_id` doğru güncelleniyor ✓; başka kullanıcı beğeniyor → `likes_count` artıyor ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `is_edited:true` (gerçek zaman farkıyla) ✓; sil → 204, `review_id` tekrar `null` ✓. Test kullanıcıları temizlendi. Film tarafı hâlâ U2'yi bekliyor.
+- **Sırada:** F3.4 — İnceleme sayfası ve yorum dizisi (`CommentThread`, `LikeButton` — F3.3'te `useLikeActivity`/`useUnlikeActivity` zaten yazıldı, `ReviewPage` `/inceleme/:id`).
 - **Sırada:** F3.3 — İçerik detay sayfası (`ContentDetailPage`, `useContentState`'in gerçek ilk tüketicisi — `useContentActions`'ın iyimser katmanı burada TanStack cache'iyle entegrasyonu yeniden değerlendirilecek).
 
 ---
@@ -64,12 +71,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 2/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 3/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **23/64** | | |
+| **Toplam** | | | **24/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -131,7 +138,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 - [x] F3.1 — İçerik bileşenleri ve yardımcılar — ✅ (2026-09-27)
 - [x] F3.2 — Keşfet sayfası — ✅ (2026-09-27)
-- [ ] F3.3 — İçerik detay sayfası
+- [x] F3.3 — İçerik detay sayfası — ✅ (2026-09-27)
 - [ ] F3.4 — İnceleme sayfası ve yorum dizisi
 - [ ] F3.5 — Akış (feed) sayfası
 - [ ] F3.6 — Profil sayfası
@@ -203,7 +210,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-08 | Girdi doğrulama yok (puan aralığı, metin uzunluğu, parola kuralı) | F1.4, F1.7 | ✅ | `919615a` |
 | SEC-09 | CORS `*` + credentials | F1.2 | ✅ | `845b3e8` |
 | BUG-01 | Kitaplar çalışmıyor (Google Books 429 → `null`) | F1.6 | ✅ | `8c12de7` |
-| BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | 🟡 backend ✅; frontend gösterimi F3.3 | `8c12de7` |
+| BUG-02 | Film detayında yönetmen/oyuncu/süre/tür yok | F1.6, F3.3 | ✅ | `8c12de7`, `1c23219` |
 | BUG-03 | Aynı kullanıcı adıyla kayıt → 500; yanlış/İngilizce hata | F1.4 | ✅ | `cf0ff06` |
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
@@ -250,14 +257,14 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.2e | Puanlama kartı: büyük afiş + yıldız / x/10 | F3.5 | ⬜ | |
 | REQ-2.1.2f | İnceleme kartı: 150–200 karakter alıntı + "…daha fazlasını oku" | F3.4, F3.5 | ⬜ | |
 | REQ-2.1.2g | Sayfalama: ilk 10–15 + sonsuz kaydırma / daha fazla yükle | F1.8, F3.5 | ⬜ | |
-| REQ-2.1.3a | Arama → detay (kapak, başlık, yıl) | F1.6, F3.2 | 🟡 arama sonuçları kapak/başlık/yıl gösteriyor ve tıklanabilir; hedef detay sayfası henüz `ComingSoonPage` (F3.3'te kapanacak) | |
+| REQ-2.1.3a | Arama → detay (kapak, başlık, yıl) | F1.6, F3.2 | ✅ | `ContentDetailPage.vue` (`1c23219`) |
 | REQ-2.1.3b | Vitrin: En Yüksek Puanlılar, En Popülerler | F1.10, F3.2 | ✅ | `DiscoverPage.vue`, kitapla curl ile doğrulandı (`dcffa45`) |
 | REQ-2.1.3c | Filtre: tür, yıl, puan | F1.6, F3.2 | ✅ | `FilterPanel.vue` + `useDiscover`, curl ile doğrulandı (`dcffa45`) |
-| REQ-2.1.4a | Künye: kapak, özet, yıl, süre/sayfa, yönetmen/yazar, türler | F1.6, F3.3 | ⬜ | |
-| REQ-2.1.4b | Platform puanı: ortalama + oy sayısı | F1.7, F3.3 | ⬜ | |
-| REQ-2.1.4c | 1–10 puan bileşeni (güncellenebilir) | F1.7, F3.1, F3.3 | ⬜ | |
-| REQ-2.1.4d | İzledim/İzlenecek · Okudum/Okunacak butonları | F1.7, F3.1, F3.3 | ⬜ | |
-| REQ-2.1.4e | "Özel Listeye Ekle" menüsü | F1.9, F3.1, F3.7 | ⬜ | |
+| REQ-2.1.4a | Künye: kapak, özet, yıl, süre/sayfa, yönetmen/yazar, türler | F1.6, F3.3 | ✅ | `ContentDetailPage.vue` (`1c23219`) |
+| REQ-2.1.4b | Platform puanı: ortalama + oy sayısı | F1.7, F3.3 | ✅ | `ContentDetailPage.vue` + `RatingHistogram` (`1c23219`) |
+| REQ-2.1.4c | 1–10 puan bileşeni (güncellenebilir) | F1.7, F3.1, F3.3 | ✅ | `StarRating`+`useContentActions`, curl ile doğrulandı (`1c23219`) |
+| REQ-2.1.4d | İzledim/İzlenecek · Okudum/Okunacak butonları | F1.7, F3.1, F3.3 | ✅ | `LibraryButtons` (`1c23219`) |
+| REQ-2.1.4e | "Özel Listeye Ekle" menüsü | F1.9, F3.1, F3.7 | ✅ (plan hedefi F3.7 diyordu ama `AddToListMenu` F3.1'de yazılıp F3.3'te gerçek bir sayfaya bağlandı — işlevsel olarak tamam, F3.7/ListPage ayrıca kendi tarafından da kullanacak) | `1c23219` |
 | REQ-2.1.4f | Yorumlar listesi (ad, metin, tarih) | F1.8, F3.3 | ⬜ | |
 | REQ-2.1.4g | Yorum ekleme alanı + Gönder | F1.7, F3.3 | ⬜ | |
 | REQ-2.1.4h | Yalnız kendi yorumunu düzenle/sil | F1.7, F1.8, F3.3, F3.4 | ⬜ | |
@@ -285,6 +292,9 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-26 | D-17 | `core/database.py`'ye `UTCDateTime` TypeDecorator eklendi | ✅ Uygulayıcı kararı — canlı testte bulunan gerçek hata: SQLite, `DateTime(timezone=True)` olsa bile okurken tzinfo'yu düşürüyor; `datetime.now(UTC) - row.fetched_at` gibi Python-seviyesi çıkarma işlemleri `TypeError` fırlatıyordu. Bu, F1.7/F1.8'de de (rated_at, 60 dk aktivite penceresi vb.) tekrar edecek bir hataydı; kökten düzeltildi. PostgreSQL'de no-op (zaten tz-aware döner). Alembic'te yeni migration gerekmedi (`alembic check` temiz). |
 | 2026-09-26 | D-18 | TMDB fixture'ları (`tmdb_movie_detail_27205.json`, `tmdb_search_movie.json`, `tmdb_tv_detail_1396.json`) gerçek API'den yakalanmadı, TMDB'nin bilinen genel şemasına göre elle yazıldı | ⚠️ Geçici — U2 (TMDB anahtarı yenileme) tamamlanınca gerçek API'den yeniden yakalanması önerilir (düşük öncelik; testler zaten yeşil, yalnızca fixture'ların gerçekliği artar) |
 | 2026-09-26 | D-19 | F1.10 / U6: v1'deki eski veriler (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına aktarılmasın | ✅ Kullanıcı kararı — "Hayır, atla" seçildi; `scripts/migrate_legacy_db.py` yazılmadı. Eski veri `legacy-v1` etiketi + `backend/legacy_backup/sql_app_v1.db` içinde güvende, istenirse ileride ayrıca aktarılabilir. |
+| 2026-09-27 | D-20 | `BaseInput.vue`'ya `inheritAttrs:false` + `v-bind="$attrs"` (iç `<input>`'a) eklendi | ✅ Uygulayıcı kararı — F2.4'te Caps Lock algılama/alan-dokunma (`@blur`) ihtiyacıyla fark edildi: dışarıdan verilen olay dinleyicileri Vue'nun varsayılan attrs devralma davranışıyla dış `<div>`'e bağlanıp hiç tetiklenmiyordu. Geriye dönük uyumlu (önceki hiçbir kullanım ekstra attr geçirmiyordu). |
+| 2026-09-27 | D-21 | `core/http.py`'deki `request_json`, dış sağlayıcıdan (TMDB/Open Library) gelen 404'ü artık `not_found()` ile temiz 404'e çeviriyor (önceden sarmalanmadan fırlatılıp genel yakalayıcıda 500'e dönüşüyordu) | ✅ Uygulayıcı kararı — F3.3'te `ContentDetailPage`'in "Bu içerik bulunamadı" durumunu canlı test ederken bulundu (`catalog/book/OL999999999W` → 500 dönüyordu). Diğer 4xx kodları (400/401/403) eskisi gibi sarmalanmadan fırlatılmaya devam ediyor — yalnızca 404'e özel, dar kapsamlı bir düzeltme. |
+| 2026-09-27 | D-22 | `social/service.py`'deki `is_edited` hesaplaması `updated_at > created_at` yerine `(updated_at - created_at).total_seconds() > 1` oldu | ✅ Uygulayıcı kararı — F3.3'te canlı test sırasında bulundu: `TimestampMixin` her iki alanı da ayrı `datetime.now(UTC)` çağrısıyla dolduruyor, bu yüzden her yeni inceleme mikrosaniyelik farktan dolayı yanlışlıkla "düzenlendi" görünüyordu. `TimestampMixin`'in kendisi (12+ tabloyu etkiler) değil, yalnızca bu tek kullanım yeri değiştirildi — daha dar kapsamlı ve düşük riskli. Regresyon testi eklendi. |
 
 ---
 
@@ -339,6 +349,25 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-27] F3.3 — İçerik detay sayfası — ✅
+
+- **Yapılanlar:**
+  - `api/catalog.ts`: `useContentDetail(type,id)` (staleTime 1 saat, §3.6.2'ye uygun), `useSimilarContent`.
+  - `api/library.ts`: `useContentState(type,id)` (`['content-state',type,id]`, 30 sn — F3.1'in bıraktığı notu kapatan gerçek ilk tüketici), `useCreateReview`/`useUpdateReview`/`useDeleteReview` (başarıda `content-state`+`reviews` sorgularını geçersiz kılıyor).
+  - `api/social.ts` (yeni): `useContentReviews` (infinite, ama "Daha fazla" BUTONUYLA — plan bu bölüm için otomatik kaydırma değil bunu istiyor), `useReviewDetail` (F3.4 de kullanacak), `useLikeActivity`/`useUnlikeActivity`.
+  - 7 yeni bileşen (`components/content/`): `CastRow` (fotoğraflı yatay şerit, fotoğrafsızda baş harf düşen görünümü), `WatchProviders` (yalnız düz metin platform adı rozetleri — `Providers` şeması logo URL'si değil string listesi taşıyor, gerçek logo yok), `ReviewEditor` (kendi incelemem: yoksa yaz formu, varsa göster+Düzenle/Sil), `ReviewItem` (başkalarının incelemeleri — spoiler bulanıklığı, 200 karakter kesme+"…devamını oku", beğeni), `ReviewList` (Yeni/Popüler sıralama + Daha fazla; kendi incelemem tekrar görünmesin diye filtreleniyor), `TrailerModal` (BaseModal + youtube-nocookie iframe).
+  - `ContentDetailPage.vue` (`/film/:id`, `/kitap/:id` — route-level `props` fonksiyonuyla `type` enjekte ediliyor; `/dizi/:id` hâlâ `ComingSoonPage`, F4.1'i bekliyor): hero, platform puanı+histogram, eylem çubuğu (`StarRating`+`LibraryButtons`+`FavoriteButton`+`AddToListMenu`+Paylaş+Fragman, `useContentActions`'ın `initial`'ı artık gerçek `useContentState`'ten besleniyor), özet, oyuncular, izleme platformları (yalnız film/dizi), incelemeler, arkadaşların, benzer içerikler, 404/hata durumları, `document.title`.
+  - **Kusur düzeltmesi (StarRating↔useContentActions):** `StarRating` aynı yıldıza tekrar tıklayınca kendi içinde `null` yayıyordu (F3.1); `useContentActions.setRating`'in KENDİ toggle kontrolü buna karışınca "temizle" tıklaması sessizce yutuluyordu. `setRating` artık kendi eşitlik kontrolünü yapmıyor, StarRating'in kararını olduğu gibi uyguluyor.
+  - **D-21 (backend, dış servis 404'ü):** `request_json` bir dış sağlayıcıdan 404 aldığında sarmalamadan fırlatıyordu, genel yakalayıcı bunu 500 yapıyordu (`catalog/book/OL999999999W` ile canlı testte bulundu). Artık temiz `404 NOT_FOUND`.
+  - **D-22 (backend, sahte "düzenlendi" etiketi):** `is_edited=updated_at>created_at` her yeni incelemede `TimestampMixin`'in iki ayrı `datetime.now(UTC)` çağrısı yüzünden mikrosaniye farkından dolayı yanlışlıkla `true` çıkıyordu. 1 saniyelik toleransa çevrildi + regresyon testi eklendi (`test_review_is_edited_false_until_actually_updated`).
+  - **Bilinçli kapsam sınırlaması:** REQ-2.1.4f/g/h (yorumlar) bu adıma dahil değil — `CommentThread` F3.4'ün işi.
+- **Değişen dosyalar:** `backend/app/core/http.py`, `backend/app/modules/social/service.py`, `backend/tests/test_social.py` (D-21/D-22); `frontend/src/api/{catalog,library,social}.ts`, `frontend/src/composables/useContentActions.ts`, `frontend/src/components/content/{CastRow,WatchProviders,ReviewEditor,ReviewItem,ReviewList,TrailerModal}.vue` (yeni), `frontend/src/pages/ContentDetailPage.vue` (yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** Backend: `pytest` → **70 passed** (1 yeni) ✓ · `ruff check`+`format` → temiz ✓. Frontend: `npm run lint` → temiz ✓ · `npm run type-check` → temiz (birkaç `?? []` düzeltmesi sonrası — `ContentDetail`'in `genres_detail`/`cast`/`directors`/`authors`/`providers` alanları backend'de `default_factory=list` olduğu için TS tarafında opsiyonel çıkıyor) ✓ · `npm run test:unit -- run` → 60 passed ✓ · `npm run build` → başarılı, `ContentDetailPage` kendi lazy chunk'ında (32.56 KB, gzip 10.50 KB) ✓ · Vite dev sunucusunda 10 yeni modül + `/kitap/:id` rotası tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (curl, iki test kullanıcısıyla, kitap tarafı):** içerik detayı+benzer içerikler+boş inceleme listesi ✓; uzun inceleme oluştur → `is_truncated:true`+`activity_id` dolu ✓; `content-state.me.review_id` doğru ✓; başkası beğeniyor → `likes_count` artıyor ✓; başkası düzenlemeye çalışınca 403 ✓; sahibi düzenliyor → `is_edited:true` ✓; sil → 204, `review_id` tekrar `null` ✓. Test kullanıcıları temizlendi.
+- **Kapanan maddeler:** BUG-02 (tam), REQ-2.1.3a, REQ-2.1.4a/b/c/d/e
+- **Commit:** `1c23219`
+- **Notlar / sorunlar:** Tarayıcı aracı hâlâ yok — hero/eylem çubuğu/fragman modalının görsel doğrulaması yalnızca kod incelemesi + yukarıdaki testlerle yapıldı. Film tarafının canlı doğrulaması hâlâ U2'yi bekliyor.
+- **Sonraki adım:** F3.4 — İnceleme sayfası ve yorum dizisi
 
 ### [2026-09-27] F3.2 — Keşfet sayfası — ✅
 
