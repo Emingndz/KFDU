@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 0 uygulanıyor |
 | Aktif faz | Faz 0 — Güvenlik, temizlik ve hazırlık |
-| Sıradaki adım | **F0.2 — `.gitignore` ve depo temizliği** |
+| Sıradaki adım | **F0.3 — Sırları koddan çıkarma** |
 | Çalışma dalı | `v2` |
-| Son commit | `ef2ccda` (docs: v2 proje planı ve ilerleme takibi) |
+| Son commit | `c80451f` (chore(F0.2): .gitignore ve depo temizliği) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 hâlâ acil bekliyor (Gmail uygulama şifresi iptali) — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -44,7 +44,7 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 1/5 | 2026-09-26 | – |
+| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 2/5 | 2026-09-26 | – |
 | 1 | Backend temeli | ⬜ Başlamadı | 0/11 | – | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
@@ -82,7 +82,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 ### Faz 0 — Güvenlik, Temizlik ve Hazırlık
 
 - [x] F0.1 — Yedekleme ve çalışma dalı — ✅ (2026-09-26)
-- [ ] F0.2 — `.gitignore` ve depo temizliği
+- [x] F0.2 — `.gitignore` ve depo temizliği — ✅ (2026-09-26)
 - [ ] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4)
 - [ ] F0.4 — Geliştirme ortamı (👤 U3)
 - [ ] F0.5 — (Opsiyonel, 🛑 U5) Git geçmişinden sırları temizleme
@@ -179,7 +179,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | SEC-01 | Gmail uygulama şifresi ve adresi kodda (public depo) | 👤 U1 + F0.3 | 🔴 | |
 | SEC-02 | Sabit JWT `SECRET_KEY` (token sahteciliği mümkün) | F0.3, F1.2 | 🔴 | |
 | SEC-03 | TMDB anahtarı kodda | 👤 U2 + F0.3 | 🔴 | |
-| SEC-04 | Veritabanı ve `__pycache__` depoda, `.gitignore` yok | F0.2 (+ F0.5) | 🔴 | |
+| SEC-04 | Veritabanı ve `__pycache__` depoda, `.gitignore` yok | F0.2 (+ F0.5) | ✅ (güncel ağaç; geçmiş için F0.5 opsiyonel) | `c80451f` |
 | SEC-05 | Güvensiz şifre sıfırlama (süresiz, e-postaya bağsız, deneme sınırsız) | F1.4 | 🔴 | |
 | SEC-06 | Kullanıcı e-postaları API'de açık; kimliksiz kullanıcı araması | F1.5 | 🔴 | |
 | SEC-07 | Giriş/sıfırlamada hız sınırı yok | F1.4 | 🔴 | |
@@ -314,6 +314,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F0.2 — `.gitignore` ve depo temizliği — ✅
+
+- **Yapılanlar:** Kökte plandaki içerikle `.gitignore` oluşturuldu. 30 adet izlenen `.pyc` dosyası ve `backend/sql_app.db` `git rm --cached` ile takipten çıkarıldı (dosyalar diskte kaldı). Ödev şartname PDF'i `docs/odev/2025-2026-Yazlab-Proje2.pdf`'e taşındı (`git mv`).
+- **Değişen dosyalar:** `.gitignore` (yeni); 30 `.pyc` + `backend/sql_app.db` (takipten çıkarıldı); `2025-2026 Yazlab Proje2.pdf` → `docs/odev/2025-2026-Yazlab-Proje2.pdf` (taşındı).
+- **Doğrulama:** `git ls-files | grep -E '\.pyc$|\.db$'` → boş ✓ · `backend/app/core/config.py` hâlâ izleniyor ✓ · PDF `docs/odev/` altında ✓
+- **Kapanan maddeler:** SEC-04 (güncel ağaç için; geçmiş commit'ler için opsiyonel F0.5 gerekir)
+- **Commit:** `c80451f`
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F0.3
 
 ### [2026-09-26] F0.1 — Yedekleme ve çalışma dalı — ✅
 
