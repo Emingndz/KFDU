@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 2 uygulanıyor |
 | Aktif faz | Faz 2 — Frontend Temeli |
-| Sıradaki adım | **F2.1 — Vite + Vue 3 + TypeScript iskeleti** |
+| Sıradaki adım | **F2.2 — Tasarım sistemi ve temel UI bileşenleri** |
 | Çalışma dalı | `v2` |
-| Son commit | `4cc5fde` (docs(U3): Node.js 24.19.0'a güncellendi) |
+| Son commit | `123467f` (feat(F2.1): Vite + Vue 3 + TypeScript iskeleti) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -43,7 +43,9 @@
   - **D-19:** U6 — v1'in gerçek verisi (3 kullanıcı, 12 etkileşim, 7 liste) kullanıcı kararıyla yeni DB'ye aktarılmadı; yalnızca yedekte duruyor.
   - **TMDB canlı doğrulama eksik:** Film/dizi kodu yazıldı ve mock'lu testlerle doğrulandı ama gerçek TMDB çağrısı U2'yi bekliyor. U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler otomatik eklenir.
   - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
-- **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.). Şimdi F2.1 ile Faz 2 başlıyor.
+- **Faz 1 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel) ve Faz 2'ye geçmeyi onayladı. F2.1'in önkoşulu (Node ≥22.18) kontrol edildiğinde eksik çıktı (U3 yapılmamıştı); kullanıcı Node güncellemesini bizzat onayladı ve gerçekleştirdi (yukarı bkz.).
+- **F2.1 tamamlandı:** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı). Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Prettier — hepsi planın istediği sürümlerle eşleşiyor (create-vue'nün güncel şablonu). Tailwind 4 + `@tailwindcss/vite`, `openapi-typescript` (TS 6 peer uyuşmazlığı nedeniyle `--legacy-peer-deps` ile kuruldu — işlevsel sorun yok), TanStack Query, VueUse, lucide-vue-next, vue-sonner, fontsource Inter kuruldu. `vite.config.ts`'de `/api`+`/media` backend'e (8000) proxy'leniyor. `npm run dev/lint/type-check/build/test:unit` hepsi yeşil. **Not:** Bu oturumda tarayıcı aracı (claude-in-chrome / built-in browser) mevcut değildi — `npm run dev`'in gerçekten açıldığı yalnızca HTTP yanıtı ve loglarıyla doğrulandı, görsel/konsol kontrolü yapılamadı (F2.1'de gerçek bir UI yok — create-vue'nün varsayılan "You did it!" sayfası duruyor, F2.3'te değişecek).
+- **Sırada:** F2.2 — Tasarım sistemi ve temel UI bileşenleri (§3.7 stil kuralları + temel bileşenler).
 
 ---
 
@@ -53,7 +55,7 @@
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
-| 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
+| 2 | Frontend temeli | 🟨 Devam ediyor | 1/5 | 2026-09-26 | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
@@ -111,7 +113,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 ### Faz 2 — Frontend Temeli
 
-- [ ] F2.1 — Vite + Vue 3 + TypeScript iskeleti
+- [x] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅ (2026-09-26)
 - [ ] F2.2 — Tasarım sistemi ve temel UI bileşenleri
 - [ ] F2.3 — API katmanı, oturum, router ve uygulama iskeleti
 - [ ] F2.4 — Kimlik sayfaları ve onboarding
@@ -329,6 +331,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅
+
+- **Yapılanlar:** `git mv frontend legacy/frontend-v1` (v1'in tek dosyalık Vue 3 CDN arayüzü referans olarak korundu). Kökte `npm create vue@latest frontend -- --ts --router --pinia --vitest --eslint --prettier --bare` (bayraklar sorunsuz çalıştı). `npm install`; ek olarak `@tanstack/vue-query @vueuse/core lucide-vue-next vue-sonner @fontsource-variable/inter` ve dev bağımlılığı olarak `tailwindcss @tailwindcss/vite openapi-typescript` (`--legacy-peer-deps` ile — `openapi-typescript@7.13`'ün `typescript@^5` peer aralığı henüz TS 6'yı içermiyor, gerçek bir işlev sorunu yok, CLI çalışıyor). `vite.config.ts`: `tailwindcss()` eklentisi, `server.port=5173`, `/api`+`/media` proxy → `127.0.0.1:8000`. `package.json`'a `gen:api` betiği eklendi. `frontend/.env.example` (`VITE_API_URL=/api/v1`). `index.html`: `lang="tr"`, başlık "KFDU", `favicon.svg` (yeni basit SVG ikon, eski `favicon.ico` silindi), `theme-color`. create-vue'nün varsayılan `.prettierrc.json`'ı zaten plana uyuyordu (semi:false, singleQuote, printWidth:100) — değiştirilmedi. Kullanılmayan demo dosyası `stores/counter.ts` kaldırıldı (App.vue onu kullanmıyordu). Mevcut `src/__tests__/App.spec.ts` zaten "test bulunamadı" hatasını önlüyor, ayrı bir `smoke.spec.ts` eklenmedi (yinelenen olurdu).
+- **Değişen dosyalar:** `frontend/**` (yeni iskelet, 24 dosya), `legacy/frontend-v1/**` (taşındı).
+- **Doğrulama:** `npm run type-check` → temiz ✓ · `npm run lint` (oxlint+eslint) → temiz ✓ · `npm run test:unit -- --run` → 1 passed ✓ · `npm run build` → başarılı (87 KB JS, gzip 34 KB) ✓ · `npm run dev` → `http://localhost:5173` 858ms'de hazır, `curl` ile HTTP 200 ve `lang="tr"` doğrulandı ✓ (tarayıcı aracı bu oturumda yok, görsel kontrol yapılamadı — yukarı bağlam özetine not düşüldü).
+- **Kapanan maddeler:** —
+- **Commit:** `123467f`
+- **Notlar / sorunlar:** Tarayıcı aracı mevcut değildi (bkz. bağlam özeti). `lucide-vue-next` upstream'de `@lucide/vue` lehine "deprecated" işaretli ama plan açıkça `lucide-vue-next` istiyor ve sürüm (1.x) eşleşiyor — büyük bir uyumsuzluk olmadığı için değiştirilmedi.
+- **Sonraki adım:** F2.2
 
 ### [2026-09-26] U3 — Node.js güncellemesi (F0.4 tam kapanışı) — ✅
 
