@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 1 uygulanıyor |
 | Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.10 — Profil özeti, platform vitrinleri ve demo verisi** |
+| Sıradaki adım | **F1.11 — 🏁 Faz 1 kapanışı** (özet + push izni) |
 | Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `51373cc` (feat(F1.9): özel listeler) |
+| Son commit | `dcec8b7` (feat(F1.10): stats + seed) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -46,7 +46,8 @@
 - **F1.7 tamamlandı:** `library` modülü: kısmi güncelleme (`model_fields_set`), `is_empty` olunca satır siliniyor, `in_progress`/`completed` → `started_at`/`finished_at` otomatik (boşsa), `library.log_changed`/`log_removed`/`status_changed` olayları commit'ten önce yayınlanıyor (henüz dinleyen yok — F1.8'de `social/handlers.py` dinleyecek). `get_state` (platform ortalama/dağılım + takip edilenler), `lookup` (tek sorgu, ≤60 anahtar), incelemeler (409/403/422). **Not (F1.8 için önemli):** `delete_review`'da `db.delete(review)` sonrası `db.flush()` çağrısı gerekti — `SessionLocal` `autoflush=False` ile kurulu, bu yüzden silme işlemi sonraki `SELECT`'e otomatik yansımıyor. F1.8'de benzer sil-sonra-kontrol-et deseni varsa aynı şeye dikkat et. 10 yeni test (toplam 51) yeşil.
 - **F1.8 tamamlandı:** `social/handlers.py` tüm §3.5.2 olaylarını dinliyor (`lists.*` olayları F1.9'da gerçek bir emitter bulacak — şimdiden hazır). `get_feed`/`list_user_activities` toplu sorgularla (aktör/içerik/liste/beğeni/yorum/puan+inceleme hepsi IN/GROUP BY ile) N+1'siz; 15 kartlık akış testte ölçülüp ≤12 sorgu sınırının içinde kaldığı doğrulandı. `card_type` okuma anında (inceleme varsa `review`). Beğeni/bildirim tekilleştirme kuralları ayrı ayrı test edildi (kendine bildirim yok, aynı aktivite için ikinci kez yok; takip bildirimi yalnız okunmamışsa tekrar açılmaz). Gerçek sunucuda kayıt→puanla→akışta görünme→bildirim sayacı uçtan uca doğrulandı. 9 yeni test (toplam 60) yeşil. **Not:** İnceleme okuma uçları (`list_content_reviews`/`list_user_reviews`) bilinçli olarak feed kadar agresif batch-optimize edilmedi (basit platform ölçeği için yeterli) — ileride performans sorunu çıkarsa aynı toplu-sorgu deseni oraya da taşınabilir.
 - **F1.9 tamamlandı:** `lists` modülü — CRUD, öğe ekle/çıkar/not güncelle (idempotent ekleme: zaten varsa 200), yeniden sıralama (kimlik kümesi tam eşleşmezse 400), `my_lists` (`contains` bayrağı), başkasının listelerinde yalnız public görünür. F1.8'de yazılan `lists.*` olay dinleyicileri artık gerçek bir yayıncı buluyor — public listeye ekleme/oluşturma aktivite üretiyor, gizliye çevirince aktiviteler siliniyor (test edildi). 6 yeni test (toplam 66) yeşil.
-- Kalan: F1.10 (profil özeti+platform vitrinleri+demo verisi, içinde 🛑 opsiyonel eski veri aktarımı sorusu var — U6), F1.11 (🏁 Faz 1 kapanışı — özet+push izni). Hiçbir engelleyici 🛑/🏁 yok F1.10'un demo veri kısmına kadar; F1.10'un "eski veri aktarımı" alt maddesi opsiyonel ve kullanıcı onayı gerektiriyor.
+- **F1.10 tamamlandı:** `stats` modülü (profil özeti; en yüksek puanlılar — Bayes skoru, m=3, en az 1 oy; en popülerler — son 30 gün ağırlıklı toplam, <5 sonuçta tüm zamana genişler). `scripts/seed.py` gerçek ortamda `--reset` ile çalıştırıldı: 6 demo kullanıcı, 10/20 içerik (10 kitap ✅, 10 film TMDB anahtarı boş olduğu için atlandı — beklenen), 40 kütüphane girişi, 12 inceleme, 3 liste, 9 beğeni, 8 yorum; `GET /feed`, `/platform/top-rated?type=book`, `/platform/popular` gerçek sunucuda doğrulandı. U6 (eski v1 verisi aktarımı) kullanıcıya soruldu, **"hayır" dendi (D-19)** — `scripts/migrate_legacy_db.py` yazılmadı, eski veri yalnızca yedekte duruyor. 3 yeni test (toplam 69) yeşil.
+- **Faz 1 neredeyse bitti:** Yalnız F1.11 (🏁 Faz 1 kapanışı — özet sun, `v2` dalını push etmek için izin iste) kaldı. Bu bir durma noktası; kapanıştan sonra Faz 2'ye (frontend, Node güncellemesi — U3 — şart) geçilecek.
 - **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
@@ -57,7 +58,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 9/11 | 2026-09-26 | – |
+| 1 | Backend temeli | 🟨 Devam ediyor | 10/11 | 2026-09-26 | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -79,7 +80,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 | U3 | Node.js'i 24 LTS'e güncelle (en az 22.18): https://nodejs.org veya `winget install OpenJS.NodeJS.LTS` | F0.4 (Faz 2'den önce) | ⬜ |
 | U4 | `backend/.env` değerlerini doldur (TMDB; isteğe bağlı yeni SMTP uygulama şifresi; `CONTACT_EMAIL`) | F0.3 | ⬜ |
 | U5 | Karar: Git geçmişi temizlensin mi? (F0.5 — force push gerektirir) | Faz 0 | ✅ Hayır — atlandı (2026-09-26) |
-| U6 | Karar: v1 verileri (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına taşınsın mı? (F1.10) | Faz 1 | ⬜ |
+| U6 | Karar: v1 verileri (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına taşınsın mı? (F1.10) | Faz 1 | ✅ Hayır — atlandı (2026-09-26) |
 | U7 | NVIDIA API anahtarı al (https://build.nvidia.com → "Get API Key") ve `backend/.env` → `NVIDIA_API_KEY` | F6.1 | ⬜ |
 | U8 | Karar: LLM model seçimi (`check_llm.py` tablosuna göre) | F6.1 | ⬜ |
 | U9 | (Opsiyonel) Google Books API anahtarı | İstenirse | ⬜ |
@@ -111,7 +112,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.7 — Kütüphane: durum, puan, favori, inceleme yazma — ✅ (2026-09-26)
 - [x] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅ (2026-09-26)
 - [x] F1.9 — Özel listeler — ✅ (2026-09-26)
-- [ ] F1.10 — Profil özeti, platform vitrinleri ve demo verisi (🛑 U6)
+- [x] F1.10 — Profil özeti, platform vitrinleri ve demo verisi — ✅ (2026-09-26); U6 (eski veri aktarımı): kullanıcı "hayır, atla" dedi (D-19)
 - [ ] F1.11 — Faz 1 kapanışı 🏁
 
 ### Faz 2 — Frontend Temeli
@@ -279,6 +280,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-26 | D-16 | Ek C kanonik tür verisi plandaki gibi yalnız `catalog/genres.py`'de değil, `core/genres.py`'de tutulacak (ham tablo + `GENRE_KEYS`); `catalog/genres.py` (F1.6) bunun üzerine TMDB/OL yardımcılarını ekleyecek | ✅ Uygulayıcı kararı — §3.5.2 bağımlılık kuralı (`users` yalnız `core`'u içe aktarabilir, `catalog`'u içe aktaramaz) `favorite_genres` doğrulamasını `catalog`'a bağımlı kılmadan mümkün kılmak için gerekliydi. Veri tekrarı yok, tek kaynak `core/genres.py`. |
 | 2026-09-26 | D-17 | `core/database.py`'ye `UTCDateTime` TypeDecorator eklendi | ✅ Uygulayıcı kararı — canlı testte bulunan gerçek hata: SQLite, `DateTime(timezone=True)` olsa bile okurken tzinfo'yu düşürüyor; `datetime.now(UTC) - row.fetched_at` gibi Python-seviyesi çıkarma işlemleri `TypeError` fırlatıyordu. Bu, F1.7/F1.8'de de (rated_at, 60 dk aktivite penceresi vb.) tekrar edecek bir hataydı; kökten düzeltildi. PostgreSQL'de no-op (zaten tz-aware döner). Alembic'te yeni migration gerekmedi (`alembic check` temiz). |
 | 2026-09-26 | D-18 | TMDB fixture'ları (`tmdb_movie_detail_27205.json`, `tmdb_search_movie.json`, `tmdb_tv_detail_1396.json`) gerçek API'den yakalanmadı, TMDB'nin bilinen genel şemasına göre elle yazıldı | ⚠️ Geçici — U2 (TMDB anahtarı yenileme) tamamlanınca gerçek API'den yeniden yakalanması önerilir (düşük öncelik; testler zaten yeşil, yalnızca fixture'ların gerçekliği artar) |
+| 2026-09-26 | D-19 | F1.10 / U6: v1'deki eski veriler (3 kullanıcı, 12 etkileşim, 7 liste) yeni veritabanına aktarılmasın | ✅ Kullanıcı kararı — "Hayır, atla" seçildi; `scripts/migrate_legacy_db.py` yazılmadı. Eski veri `legacy-v1` etiketi + `backend/legacy_backup/sql_app_v1.db` içinde güvende, istenirse ileride ayrıca aktarılabilir. |
 
 ---
 
@@ -333,6 +335,17 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.10 — Profil özeti, platform vitrinleri ve demo verisi — ✅
+
+- **Yapılanlar:** `stats/service.py`: `get_profile_summary` (tamamlanan film/dizi/kitap, puan, inceleme, liste, favori sayıları), `get_top_rated` (Bayes: `skor = v/(v+m)·R + m/(v+m)·C`, `m=3`, en az 1 oy — DB'den GROUP BY ile toplanıp Python'da sıralanıyor), `get_popular` (son `days` günde kütüphane girişi + 2×inceleme + genel listeye ekleme toplamı; sonuç <5 ise tüm zamana genişler). `stats/router.py` (§5.7). `scripts/seed.py`: idempotent (demo1 varsa çıkar), `--reset` (yalnız `ENV=dev`, `kfdu.db` sil + `alembic upgrade head`), 6 demo kullanıcı + takipler, 10 film/10 kitap başlıkla aranır (bulunamayan/servis kullanılamayan `AppError` yakalanıp loglanır, atlanır), servis fonksiyonlarıyla (`upsert_entry`/`create_review`/`create_list`/`add_item`/`like_activity`/`add_comment`) ~40 giriş/~12 inceleme (biri spoiler, ikisi 200+ karakter)/3 liste (biri gizli)/birkaç beğeni-yorum.
+- **Değişen dosyalar:** `backend/app/modules/stats/{schemas,service,router}.py` (yeni), `backend/scripts/seed.py` (yeni), `backend/app/main.py` (router kaydı), `backend/tests/test_stats.py` (yeni, 3 test).
+- **Doğrulama:** `pytest` → 69 passed (3 yeni) ✓ · `ruff check .` + `ruff format --check .` → temiz ✓ · **`python -m scripts.seed --reset` gerçek ortamda çalıştırıldı:** "6 demo kullanıcı oluşturuldu", "10/20 içerik bulundu" (10 kitap ✅ Open Library, 10 film TMDB anahtarı boş olduğu için `TMDB_NOT_CONFIGURED` ile atlandı ve loglandı), "40 kütüphane girişi, 12 inceleme oluşturuldu", "3 liste oluşturuldu", "9 beğeni, 8 yorum eklendi" ✓ · gerçek sunucu: `GET /feed?scope=global` dolu (liste/puan/inceleme kartları görünüyor) ✓, `GET /platform/top-rated?type=book` sonuç döndürüyor ✓, `GET /platform/top-rated?type=movie` boş ama HTTP 200 (beklenen — film yok) ✓, `GET /platform/popular` ✓, `GET /users/demo1/summary` doğru sayaçlar ✓
+- **Kapanan maddeler:** REQ-2.1.3b (backend)
+- **Commit:** `dcec8b7`
+- **Kullanıcı kararı:** U6 — eski v1 verisinin (3 kullanıcı, 12 etkileşim, 7 liste) aktarımı **"hayır, atla"** ile reddedildi (D-19). `scripts/migrate_legacy_db.py` yazılmadı.
+- **Notlar / sorunlar:** Movie tarafı U2'ye (TMDB anahtar yenileme) bağlı kalmaya devam ediyor — kod tarafı tam hazır, U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler de otomatik eklenecek.
+- **Sonraki adım:** F1.11 (🏁 Faz 1 kapanışı)
 
 ### [2026-09-26] F1.9 — Özel listeler — ✅
 
