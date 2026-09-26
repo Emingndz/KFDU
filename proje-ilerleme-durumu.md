@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-27** — F3.1 tamamlandı (içerik bileşenleri ve yardımcılar).
+> Son güncelleme: **2026-09-27** — F3.2 tamamlandı (Keşfet sayfası).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.2 — Keşfet sayfası** |
+| Sıradaki adım | **F3.3 — İçerik detay sayfası** |
 | Çalışma dalı | `v2` |
-| Son commit | `77c4b3d` (feat(F3.1): içerik bileşenleri ve yardımcılar) |
+| Son commit | `dcffa45` (feat(F3.2): Keşfet sayfası) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -50,7 +50,10 @@
   - **Kalıcı sınırlama:** Bu oturumda (Faz 2 boyunca) tarayıcı aracı hiç yoktu — tüm doğrulama kod incelemesi + HTTP/modül seviyesi + birim testleri + gerçek backend'e karşı curl ile yapıldı; görsel düzen, klavye gezinme, tema geçişi ve gerçek form deneyimi tarayıcıda elle denenmedi. `docs/ekran-goruntuleri/` bu yüzden oluşturulmadı (plan F2.5'te "mümkünse" diyor — mümkün olmadı). Kullanıcı isterse kendisi tarayıcıda deneyip geri bildirebilir.
 - **Faz 2 kapanışı (2026-09-26):** Kullanıcı `v2`'yi push etmeyi (yapıldı, `origin/v2` güncel, `55a8ac1`) ve Faz 3'e geçmeyi onayladı.
 - **F3.1 tamamlandı (2026-09-27):** `utils/{format,content}.ts` (relativeTime/formatDate/formatRuntime/formatPages/formatRating/formatCount; typeLabel/contentPath/contentKey/statusLabel/statusOptions — §4.2'nin durum-etiketi tablosuyla birebir, film=dizi etiketleri kitaptan farklı). `api/library.ts` + `api/lists.ts` (§5.4/§5.6'nın tam ham fonksiyon kapsamı + yalnız gerekli composable'lar: `useMyLists`/`useAddListItem`/`useRemoveListItem`/`useCreateList`). `composables/useContentActions.ts`: kütüphane durumu/puan/favori için tek noktadan yönetim — yerel `overlay` ref'iyle iyimser güncelleme (TanStack cache'i değil, çünkü henüz `content-state` sorgusunu dolduran bir tüketici sayfa yok — F3.3'te gerçek `useContentState` ile entegre edilecek), hata olursa geri alır + toast, misafiri `/giris?redirect=`'e yönlendirir, başarıda `content-state`/`library`/`user-summary`/`recs` sorgularını geçersiz kılar (§3.6.2 tablosuna göre). 10 bileşen (`components/content/`): `StarRating` (5 yıldız = 1-10, yarım yıldız yarım butonlarla, hover önizleme, aynı değere tıklayınca temizler, `role=slider`+tam klavye desteği), `RatingDisplay`, `RatingHistogram` (saf CSS 10 çubuk), `GenreChips` (saf sunum, etiket çözümlemesi çağırana bırakıldı), `PosterCard` (kırık poster görselinde `ImageOff` düşen görünüm — BaseAvatar'daki BUG-07 desenini içerik kartlarına taşıdı), `ContentGrid`/`ContentRow` (duyarlı ızgara/yatay şerit + iskelet/boş/hata durumları), `LibraryButtons`/`FavoriteButton` (saf sunum, durumu prop olarak alır — `useContentActions` ile kablolamak çağırana kalmış), `AddToListMenu` (`GET /lists/mine` + tıkla-ekle/çıkar + satır içi "yeni liste" formu, gerçek backend'e karşı curl ile doğrulandı: oluştur→ekle→`contains:true`→çıkar→`contains:false`→sil, hepsi 2xx). Hepsi `/_ui` vitrinine eklendi. 28 yeni test (`format`/`content`/`StarRating`).
-- **Sırada:** F3.2 — Keşfet sayfası (arama/filtre/vitrinler, `api/catalog.ts`'e search/discover/trending eklenecek).
+- **F3.2 tamamlandı (2026-09-27):** `api/catalog.ts` genişletildi: `useSearch`/`useDiscover` (`useInfiniteQuery`, `initialPageParam`+`getNextPageParam` ile TanStack v5 sözleşimi), `useTrending`, `useCollection`. `api/stats.ts` (yeni): `usePlatformTopRated`/`usePlatformPopular` (`/platform/top-rated`+`/platform/popular`). `api/users.ts`: `useUserSearch` (infinite), `useFollowUser`/`useUnfollowUser` (ikinci kez ihtiyaç duyulunca eklendi — onboarding'in yerel takip mantığı ile aynı deseni tekrarlamak yerine composable'a çıkarıldı, ama görsel `FollowButton` bileşeni hâlâ F3.6'ya kalıyor). `api/library.ts`: `useLibraryLookup` (sayfadaki içerik anahtarları için toplu kişisel durum sorgusu, yalnız girişliyken etkin). `PosterCard`in `myState` prop'u genişletildi (yalnız favori değil, artık `status`/`rating` da destekliyor → ★ puan / ✓ tamamlandı / 🔖 planlandı rozetleri); `ContentGrid`'e `lookup` prop'u eklendi, her karta `contentKey`'iyle doğru kişisel durumu eşliyor. `FilterPanel` (yeni): tür/yıl aralığı/asgari puan (kaydırıcı)/sıralama/dil, "Uygula"/"Temizle", kaldırılabilir aktif filtre çipleri. `UserCard` (yeni, `components/users/`): avatar+ad+kullanıcı adı+bio+takip butonu. `DiscoverPage.vue` (`/kesfet`): büyük arama kutusu (350ms debounce, `@vueuse/core`'un `useDebounce`'ı), Film/Kitap/Kullanıcı sekmesi, tüm durum URL'de (`q/tur/tur_id/yil_min/yil_max/puan_min/sirala/dil` — planın literal Türkçe parametre adlarıyla birebir, `router.replace` ile geri/ileri ve link paylaşımı bozulmadan), üç mod: arama (metin varken `useSearch`), keşif (filtre varken ama metin yokken `useDiscover`), vitrin (ikisi de yokken 2 platform şeridi + film'de 3 ek şerit/kitapta 1 ek şerit + "Türlere Göz At" çip ızgarası — tıklayınca ilgili tür filtre olarak uygulanır). Sonsuz kaydırma gerçek IntersectionObserver ile (`@vueuse/core`'un `useIntersectionObserver`'ı), buton değil.
+  - **Bilinçli basitleştirmeler:** (1) "Platformda En Yüksek Puanlılar"/"En Popülerler" şeritleri planın istediği gibi kendi İÇ sekmesine sahip değil, sayfanın ana Film/Kitap sekmesini takip ediyor (aynı seçimi iki kez ayrı ayrı sormamak için). (2) `FilterPanel` "masaüstünde satır içi / mobilde alt çekmece" yerine HER ekran boyutunda aynı satır-içi katlanır panel olarak render ediliyor — 360px'te kullanılabilir ama gerçek bir bottom-sheet değil. (3) Kullanıcı aramasında `PublicUserOut` `is_following` taşımadığı için (yalnız `ProfileOut`/`PublicUserWithFollowOut` taşıyor) önceden takip edilen biri başlangıçta "Takip et" gösterir; tıklanınca oturum için yerel işaretlenir (backend `follow` zaten idempotent, yanlış bir işlem olmuyor, yalnızca başlangıç görseli tam doğru değil). (4) Vitrin şeritleri (TMDB'ye bağlı olanlar) `TMDB_NOT_CONFIGURED` 503 aldığında `ErrorState` değil boş satır gösteriyor (U2 çözülene kadar zaten beklenen bir durum, ayrı bir hata banner'ı eklemek gerekmedi).
+  - **Gerçek backend'e karşı uçtan uca (curl, kitap tarafı — TMDB U2'yi bekliyor):** `search?type=book&q=fox` ✓, `discover?type=book&genre=fiction&sort=rating` ✓, `platform/top-rated?type=book` ✓, `platform/popular?type=book` ✓, `trending?type=book` ✓, `users/search?q=demo` (geçerli token ile) ✓, `library/lookup` (toplu) ✓ — hepsi `ContentSummary`/`Page<T>`/`PublicUserOut`/`LookupEntryOut` şemalarıyla birebir eşleşti. **Gözlem (kod hatası değil):** `discover?type=book&min_rating=X` (tür filtresi OLMADAN, yalnız puan) Open Library'de bazen yavaş/zaman aşımına uğruyor — kök neden `openlibrary.py`'nin bu durumda çok geniş bir `ratings_average:[X TO 5]` sorgusuna düşmesi (F1.6'dan kalan, dış servisin kendi performansı, bu adımda dokunulmadı); `genre` ile birlikte kullanılınca hızlı çalışıyor.
+- **Sırada:** F3.3 — İçerik detay sayfası (`ContentDetailPage`, `useContentState`'in gerçek ilk tüketicisi — `useContentActions`'ın iyimser katmanı burada TanStack cache'iyle entegrasyonu yeniden değerlendirilecek).
 
 ---
 
@@ -61,12 +64,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 1/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 2/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **22/64** | | |
+| **Toplam** | | | **23/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -127,7 +130,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 ### Faz 3 — Çekirdek Özellikler
 
 - [x] F3.1 — İçerik bileşenleri ve yardımcılar — ✅ (2026-09-27)
-- [ ] F3.2 — Keşfet sayfası
+- [x] F3.2 — Keşfet sayfası — ✅ (2026-09-27)
 - [ ] F3.3 — İçerik detay sayfası
 - [ ] F3.4 — İnceleme sayfası ve yorum dizisi
 - [ ] F3.5 — Akış (feed) sayfası
@@ -206,13 +209,13 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
 | BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | ✅ (backend F1.4: 7 gün token, 401+WWW-Authenticate; frontend F2.3: `client.ts` 401'de çıkış+yönlendirme+tekil toast) | `cf0ff06` |
 | BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🟡 bileşen düzeyi ✅ (BaseAvatar kırık/yok görselde deterministik baş harf); tüm sayfalarda kullanım F3.9 | `f3e2894` |
-| BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | 🔴 | |
+| BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | ✅ (v2'de detay ayrı bir rota — `/film/:id` vb. — DiscoverPage'in kendi durumunu hiç etkilemiyor, bu hata sınıfı mimari olarak imkânsız) | `dcffa45` |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | ✅ (v2'de gerçek e-posta/log tabanlı 3 adımlı akış var, "(Demo: ...)" metni yok) | `031befa` |
 | BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | ✅ (`client.ts`'teki `api()` tüm sorgu parametrelerini `URLSearchParams` ile otomatik kodluyor) | `e104538` |
 | BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🟡 backend ✅ (`created_at`+`excerpt`+`card_type` API'de var); arayüz F3.5 | `9286a24` |
 | BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ backend (imleçli sayfalama + N+1 giderildi, testle doğrulandı) | `9286a24` |
-| BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | 🟡 backend ✅ (doğru sayfalama); arayüz F3.2 | `8c12de7` |
+| BUG-14 | Arama "daha fazla" çalışmıyor; kitap sayfa ofseti hatalı | F1.6, F3.2 | ✅ (backend doğru sayfalama; arayüz `useSearch`/`useDiscover` ile gerçek sonsuz kaydırma — `IntersectionObserver` sentinel'i, `has_next`'e göre otomatik `fetchNextPage`) | `8c12de7`, `dcffa45` |
 | BUG-15 | Kitap yıl filtresi sessizce filtresiz sonuç dönüyor | F1.6 | ✅ | `8c12de7` |
 | BUG-16 | `requirements.txt` eksik (temiz kurulum çöker) | F1.1 | ✅ | `61c08c2` |
 | BUG-17 | Migrasyon yok; artık tablolar; eşsizlik kısıtı yok | F1.3 | ✅ | `0f29f74` |
@@ -247,9 +250,9 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.2e | Puanlama kartı: büyük afiş + yıldız / x/10 | F3.5 | ⬜ | |
 | REQ-2.1.2f | İnceleme kartı: 150–200 karakter alıntı + "…daha fazlasını oku" | F3.4, F3.5 | ⬜ | |
 | REQ-2.1.2g | Sayfalama: ilk 10–15 + sonsuz kaydırma / daha fazla yükle | F1.8, F3.5 | ⬜ | |
-| REQ-2.1.3a | Arama → detay (kapak, başlık, yıl) | F1.6, F3.2 | ⬜ | |
-| REQ-2.1.3b | Vitrin: En Yüksek Puanlılar, En Popülerler | F1.10, F3.2 | ⬜ | |
-| REQ-2.1.3c | Filtre: tür, yıl, puan | F1.6, F3.2 | ⬜ | |
+| REQ-2.1.3a | Arama → detay (kapak, başlık, yıl) | F1.6, F3.2 | 🟡 arama sonuçları kapak/başlık/yıl gösteriyor ve tıklanabilir; hedef detay sayfası henüz `ComingSoonPage` (F3.3'te kapanacak) | |
+| REQ-2.1.3b | Vitrin: En Yüksek Puanlılar, En Popülerler | F1.10, F3.2 | ✅ | `DiscoverPage.vue`, kitapla curl ile doğrulandı (`dcffa45`) |
+| REQ-2.1.3c | Filtre: tür, yıl, puan | F1.6, F3.2 | ✅ | `FilterPanel.vue` + `useDiscover`, curl ile doğrulandı (`dcffa45`) |
 | REQ-2.1.4a | Künye: kapak, özet, yıl, süre/sayfa, yönetmen/yazar, türler | F1.6, F3.3 | ⬜ | |
 | REQ-2.1.4b | Platform puanı: ortalama + oy sayısı | F1.7, F3.3 | ⬜ | |
 | REQ-2.1.4c | 1–10 puan bileşeni (güncellenebilir) | F1.7, F3.1, F3.3 | ⬜ | |
@@ -336,6 +339,25 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-27] F3.2 — Keşfet sayfası — ✅
+
+- **Yapılanlar:**
+  - `api/catalog.ts` genişletildi: `useSearch(type,q)`/`useDiscover(type,filters)` (`useInfiniteQuery`, TanStack v5'in zorunlu `initialPageParam`+`getNextPageParam` sözleşimiyle; `Page.has_next`'e göre bir sonraki sayfa numarası), `useTrending(type)`, `useCollection(name)`. Ham `useGenres` artık `MaybeRefOrGetter` kabul edip reaktif (tür değişince tür listesi yeniden çekiliyor).
+  - `api/stats.ts` (yeni): `usePlatformTopRated`/`usePlatformPopular` (`/platform/top-rated`, `/platform/popular`).
+  - `api/users.ts`: `useUserSearch` (infinite, ≥2 karakterde etkin), `useFollowUser`/`useUnfollowUser` (takip/bırak — onboarding'in yerel mantığını aynen tekrarlamak yerine composable'a çıkarıldı; görsel paylaşılan `FollowButton` bileşeni hâlâ bilinçli olarak F3.6'ya bırakıldı).
+  - `api/library.ts`: `useLibraryLookup(keys)` — sayfadaki içerik anahtarları için toplu kişisel durum sorgusu, yalnız girişliyken etkin.
+  - `PosterCard`'ın `myState` prop'u genişletildi: yalnız `isFavorite` değil artık `status`/`rating` da alıyor → sağ üstte öncelik sırasıyla ★puan / ✓tamamlandı / 🔖planlandı + ♥favori rozetleri. `ContentGrid`'e `lookup` prop'u eklendi, her karta `contentKey`'iyle doğru satırı eşliyor.
+  - `FilterPanel.vue` (yeni): tür (`useGenres`), yıl aralığı (min/max), asgari puan (0-10 kaydırıcı), sıralama (Popülerlik/Puan/En yeni/En eski — backend'in `sort` literal'leriyle birebir: popular/rating/newest/oldest), dil (Türkçe/İngilizce); "Uygula" (taslağı commit eder) / "Temizle" (anında sıfırlar); aktif filtreler kaldırılabilir çipler.
+  - `UserCard.vue` (yeni, `components/users/`): avatar+ad+kullanıcı adı+bio+takip butonu.
+  - `DiscoverPage.vue` (`/kesfet`): büyük arama kutusu (`@vueuse/core`'un `useDebounce`'ı, 350 ms), Film/Kitap/Kullanıcı sekmesi (Dizi bilinçli olarak yok — plan F4.1'e erteliyor), tüm durum URL'de plandaki **birebir Türkçe parametre adlarıyla** (`q`, `tur`, `tur_id`, `yil_min`, `yil_max`, `puan_min`, `sirala`, `dil`) — `router.replace` ile, geri/ileri ve link paylaşımı bozulmuyor. Üç görünüm modu: **arama** (metin varken `useSearch`, filtreler bu modda uygulanmaz çünkü `/catalog/search` filtre parametresi kabul etmiyor), **keşif** (metin yok ama filtre varken `useDiscover`), **vitrin** (ikisi de yokken: "En Yüksek Puanlılar"+"En Popülerler" + Film sekmesinde 3 ek şerit (Trend/Vizyonda/Yakında) veya Kitap sekmesinde 1 ek şerit (Trend Kitaplar) + "Türlere Göz At" çip ızgarası — tıklanınca o tür filtre olarak uygulanıp keşif moduna geçiyor). Sonsuz kaydırma gerçek `IntersectionObserver` ile (`@vueuse/core`'un `useIntersectionObserver`'ı) — buton değil, plandaki "sonsuz kaydırma" ifadesine birebir.
+  - **Bilinçli basitleştirmeler:** (1) "En Yüksek Puanlılar"/"En Popülerler" şeritleri planın istediği kendi iç Film/Kitap sekmesine sahip değil, sayfanın ana sekmesini takip ediyor (aynı seçimi iki ayrı yerde sormamak için — kullanıcı deneyimini bozmuyor, yalnızca UI'da bir sekme daha az var). (2) `FilterPanel` "masaüstünde satır içi / mobilde alt çekmece" yerine her ekran boyutunda aynı satır içi katlanır panel — 360px'te işlevsel ama gerçek bir bottom-sheet bileşeni değil. (3) Kullanıcı aramasında `PublicUserOut` `is_following` alanı taşımıyor (yalnız `ProfileOut`/`PublicUserWithFollowOut` taşıyor); önceden takip edilen biri arama sonucunda başlangıçta "Takip et" gösteriyor, tıklanınca oturum için yerel işaretleniyor (backend `follow` idempotent olduğu için yanlış bir işlem olmuyor, yalnızca ilk görüntüleme tam doğru değil — gerçek çözüm bir backend uç noktası gerektirir, F3.2'nin frontend-only kapsamı dışında). (4) TMDB'ye bağlı vitrin şeritleri `TMDB_NOT_CONFIGURED` 503 aldığında ayrı bir hata banner'ı değil boş satır gösteriyor (U2 çözülene kadar zaten beklenen, dokunulmadı).
+- **Değişen dosyalar:** `frontend/src/api/{catalog,stats,users,library}.ts`, `frontend/src/components/content/{PosterCard,ContentGrid,FilterPanel}.vue` (FilterPanel yeni), `frontend/src/components/users/UserCard.vue` (yeni), `frontend/src/pages/DiscoverPage.vue` (yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz (2 tur: kullanılmayan `TYPE_TAB`/`showingShowcase` kaldırıldı) ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → 60 passed (bu adımda yeni birim testi eklenmedi — plan F3.2 için açıkça test istemiyor, sayfa büyük ölçüde canlı entegrasyona dayanıyor; doğrulama davranışsal/curl tabanlı) ✓ · `npm run build` → başarılı, `DiscoverPage` kendi lazy chunk'ında (19.29 KB, gzip 6.58 KB) ✓ · Vite dev sunucusunda 9 yeni/değişen modül + `/kesfet` rotası tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (curl, kitap tarafı):** `catalog/search?type=book&q=fox` ✓, `catalog/discover?type=book&genre=fiction&sort=rating` ✓, `platform/top-rated?type=book` ✓, `platform/popular?type=book` ✓, `catalog/trending?type=book` ✓, `users/search?q=demo` (geçerli token) ✓, `library/lookup` (toplu) ✓ — hepsi TypeScript tipleriyle birebir eşleşti. **Gözlem (kod hatası değil, dış servis):** `discover?type=book&min_rating=X` (tür filtresi olmadan) Open Library'de bazen zaman aşımına uğruyor — `openlibrary.py`'nin bu durumda çok geniş `ratings_average:[X TO 5]` sorgusuna düşmesinden (F1.6'dan kalan dış servis karakteristiği); `genre` ile birlikte hızlı çalışıyor, ayrıca doğrulandı.
+- **Kapanan maddeler:** BUG-08, BUG-14 (tam), REQ-2.1.3b, REQ-2.1.3c (REQ-2.1.3a kısmi — detay sayfası F3.3'ü bekliyor)
+- **Commit:** `dcffa45`
+- **Notlar / sorunlar:** Tarayıcı aracı hâlâ yok — arama kutusu/sekme geçişleri/filtre panelinin/sonsuz kaydırmanın gerçek görsel-etkileşimli doğrulaması yapılamadı, yalnızca kod incelemesi + HTTP/modül seviyesi + gerçek backend'e karşı curl ile doğrulandı. Film tarafının canlı doğrulaması hâlâ U2'yi (TMDB anahtarı) bekliyor.
+- **Sonraki adım:** F3.3 — İçerik detay sayfası
 
 ### [2026-09-27] F3.1 — İçerik bileşenleri ve yardımcılar — ✅
 
