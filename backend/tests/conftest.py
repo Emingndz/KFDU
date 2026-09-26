@@ -13,7 +13,9 @@ from sqlalchemy.pool import StaticPool
 from app import models_registry  # noqa: F401  (Base.metadata'ya tüm tabloları kaydeder)
 from app.core.cache import clear_all_caches
 from app.core.database import Base, get_db
+from app.core.security import create_access_token, hash_password
 from app.main import app
+from app.modules.users.models import User
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -51,3 +53,22 @@ def db():
         yield session
     finally:
         session.close()
+
+
+@pytest.fixture
+def user_factory(db):
+    def _create(
+        username: str = "testuser", email: str = "testuser@example.com", password: str = "Testpass1"
+    ) -> User:
+        user = User(username=username, email=email, password_hash=hash_password(password))
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
+    return _create
+
+
+def auth_headers(user: User) -> dict[str, str]:
+    token = create_access_token(user.id, user.token_version)
+    return {"Authorization": f"Bearer {token}"}

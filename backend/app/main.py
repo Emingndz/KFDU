@@ -16,6 +16,7 @@ from app.core.errors import register_exception_handlers
 from app.core.http import close_http_client
 from app.core.logging import setup_logging
 from app.core.rate_limit import limiter
+from app.modules.auth.router import router as auth_router
 
 
 @asynccontextmanager
@@ -55,6 +56,8 @@ def create_app() -> FastAPI:
     media_dir = Path(settings.MEDIA_DIR)
     media_dir.mkdir(parents=True, exist_ok=True)
     app.mount("/media", StaticFiles(directory=media_dir), name="media")
+
+    app.include_router(auth_router, prefix=settings.API_PREFIX)
 
     @app.get(f"{settings.API_PREFIX}/health", tags=["system"], summary="Sağlık kontrolü")
     def health() -> dict:
