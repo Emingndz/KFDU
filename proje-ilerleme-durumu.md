@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-26** — F2.3 tamamlandı (API katmanı, oturum, router, uygulama iskeleti).
+> Son güncelleme: **2026-09-26** — F2.4 tamamlandı (kimlik sayfaları ve onboarding).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 2 uygulanıyor |
 | Aktif faz | Faz 2 — Frontend Temeli |
-| Sıradaki adım | **F2.4 — Kimlik sayfaları ve onboarding** |
+| Sıradaki adım | **F2.5 — 🏁 Faz 2 kapanışı** |
 | Çalışma dalı | `v2` |
-| Son commit | `e104538` (feat(F2.3): API katmanı, oturum, router ve uygulama iskeleti) |
+| Son commit | `031befa` (feat(F2.4): kimlik sayfaları ve onboarding) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -47,7 +47,9 @@
 - **F2.1 tamamlandı:** `frontend/` sıfırdan `npm create vue@latest` ile kuruldu (v1 `legacy/frontend-v1/`'e taşındı). Vue 3.5/Router 5/Pinia 4/Vitest 4/ESLint 10/Prettier — hepsi planın istediği sürümlerle eşleşiyor (create-vue'nün güncel şablonu). Tailwind 4 + `@tailwindcss/vite`, `openapi-typescript` (TS 6 peer uyuşmazlığı nedeniyle `--legacy-peer-deps` ile kuruldu — işlevsel sorun yok), TanStack Query, VueUse, lucide-vue-next, vue-sonner, fontsource Inter kuruldu. `vite.config.ts`'de `/api`+`/media` backend'e (8000) proxy'leniyor. `npm run dev/lint/type-check/build/test:unit` hepsi yeşil. **Not:** Bu oturumda tarayıcı aracı (claude-in-chrome / built-in browser) mevcut değildi — `npm run dev`'in gerçekten açıldığı yalnızca HTTP yanıtı ve loglarıyla doğrulandı, görsel/konsol kontrolü yapılamadı (F2.1'de gerçek bir UI yok — create-vue'nün varsayılan "You did it!" sayfası duruyor, F2.3'te değişecek).
 - **F2.2 tamamlandı:** `src/styles/main.css` (§3.7 — Tailwind v4 `@theme` token'ları, açık/koyu CSS değişkenleri), `useTheme` (`useColorMode` sarmalayıcı, Sistem/Açık/Koyu), `useConfirm` (modül-seviyeli tekil durum + Promise tabanlı onay), 13 temel bileşen (`components/ui/`), `App.vue`'ya `Toaster`+`ConfirmDialog` eklendi, `/_ui` vitrin sayfası (yalnız DEV). 9 yeni test (BaseAvatar + useConfirm). **Not:** `Spinner` bileşeni ESLint'in "çok kelimeli bileşen adı" kuralına takıldığı için `BaseSpinner` olarak adlandırıldı (plan metninde "Spinner" geçiyordu). Bu oturumda tarayıcı aracı yok — `/_ui`'nin açık/koyu tema ve klavye gezinme kabul kriteri yalnızca kod/HTTP seviyesinde doğrulandı, gerçek görsel/klavye testi yapılamadı.
 - **F2.3 tamamlandı:** `openapi-typescript` betiğindeki hatalı URL (`/api/v1/openapi.json`, 404 veriyordu) `/openapi.json` olarak düzeltildi (FastAPI'nin varsayılan OpenAPI yolu, router prefix'inden bağımsız — kök seviyede) ve `src/api/schema.d.ts` (3958 satır) yeniden üretildi; `src/types/index.ts` bu şemadan tip takma adları (`MeOut`, `TokenOut`, `RegisterIn`… + elle yazılan genel `Page<T>`/`CursorPage<T>`, `backend/app/core/pagination.py`'deki gerçek şemayla birebir doğrulandı) türetiyor. `src/api/client.ts`: `ApiError` sınıfı + `api<T>()` fonksiyonu (§3.6.3 iskeletinden) — sorgu parametrelerini otomatik URL-encode eder ve boş/undefined değerleri atlar (BUG-11 kapandı), Pinia `useAuthStore`'dan token okuyup `Authorization: Bearer` ekler, 401'de `handleUnauthorized()` çağırır (çıkış yapar + `/giris?redirect=...`'e yönlendirir + tek toast — art arda gelen 401'ler 1 sn'lik pencerede tekilleştirilir, BUG-06 frontend tarafı kapandı). `client.ts`↔`stores/auth.ts`↔`api/auth.ts`/`api/users.ts` arasında döngüsel import var ama tüm döngüsel referanslar yalnızca fonksiyon gövdelerinde (çalışma zamanında) kullanılıyor, modül değerlendirme anında değil — bu yüzden güvenli (ES modül canlı bağlama kuralı); `npm run build` bunu doğruladı (uyarısız). `src/api/auth.ts` + `src/api/users.ts`: ham istek fonksiyonları (§5.1/§5.2 tam kapsamı) + yakın vadede ihtiyaç duyulan composable'lar (`useLogin`, `useRegister`, `useChangePassword` vb.; `useMe`, `useUpdateMe`, `useSuggestions`) — henüz tüketicisi olmayan `getProfile`/`followUser`/`searchUsers` gibi uçlar için yalnız ham fonksiyon var, composable'ları Faz 3 ilgili sayfalarında eklenecek (erken soyutlama yok). `stores/auth.ts` (`token`→`localStorage['kfdu_token']`, `me`, `isAuthenticated`, `login/register/logout/fetchMe`) + `stores/ui.ts` (mobil menü). `main.ts`: `VueQueryPlugin` eklendi (`staleTime:60000`, `refetchOnWindowFocus:false`, yalnız 5xx'te 1 kez retry). `router/index.ts`: §3.6.7'nin tam rota tablosu (henüz yapılmamış tüm sayfalar `ComingSoonPage` ile), `RouteMeta` genişletmesi (`requiresAuth`/`guestOnly`/`title`), global guard (token var+`me` yok→`fetchMe()`, başarısızsa çıkış; `/`+misafir→`/kesfet` — bu özel kural `requiresAuth`'tan ÖNCE kontrol edilir, aksi halde misafir `/`'de girişe değil `/kesfet`'e yönlenme kuralı hiç tetiklenmezdi; korumalı rota+girişsiz→`/giris?redirect=`; `guestOnly`+girişli→`/`), `scrollBehavior`, `afterEach`→`document.title`. Düzen: `AppShell`+`AppHeader` (logo, Akış/Keşfet, arama kısayolu→şimdilik `/kesfet`'e yönlendiren buton — tam arama F3.2'de, kullanıcı menüsü: Profilim/Ayarlar/Tema/Çıkış, misafirde Giriş/Kayıt) + `AppBottomNav` (<768px, yalnız şu an işlevsel olan Akış/Keşfet/Profil — Öneriler/Bildirimler ilgili fazda eklenecek, henüz yapılmamış sayfalara link vermemek için bilinçli tercih) + `RouteProgress` (basit opacity tabanlı yükleniyor çubuğu). `App.vue` artık `<AppShell/>` render ediyor, create-vue'nün "You did it!" yer tutucusu kaldırıldı; `App.spec.ts` buna göre güncellendi (gerçek Pinia+router ile mount edilen duman testi).
-- **Sırada:** F2.4 — Kimlik sayfaları ve onboarding (§3.6.4'teki form kuralları + Login/Register/ForgotPassword/Onboarding sayfaları).
+- **F2.4 tamamlandı:** `utils/validation.ts` — backend'in `users/validation.py`/`auth/schemas.py` kurallarıyla birebir eşleşen istemci doğrulaması (`validateUsername` — küçük harfe çevirip aynı regex `^[a-z][a-z0-9_.]{2,29}$` + ayrılmış ad listesi; `validatePasswordStrength` — ≥8 karakter + harf&rakam; `validatePasswordsMatch`; `validateEmail`; ayrıca yalnız istemci tarafı `passwordStrength()` göstergesi zayıf/orta/güçlü). 16 yeni test. `api/catalog.ts` (yeni, minimal — yalnız `getGenresRequest`/`useGenres`; F3.1 geri kalanını ekleyecek). `components/ui/OtpInput.vue` (6 kutulu kod girişi — otomatik ilerleme, backspace ile geri, yapıştırma desteği, `defineModel`). **BaseInput düzeltmesi:** `inheritAttrs:false` + `v-bind="$attrs"` iç `<input>`'a taşındı — önceden dışarıdan verilen `@keyup`/`@blur` gibi olay dinleyicileri yanlışlıkla dış `<div>`'e bağlanıyordu (asla tetiklenmiyordu); Caps Lock algılama ve `@blur` alan dokunma takibi ihtiyacıyla fark edilen gerçek bir kusurdu, düzeltme geriye dönük uyumlu (önceki hiçbir kullanım ekstra attr geçirmiyordu). `stores/auth.ts`: `login`/`register` artık gereksiz ekstra `fetchMe()` çağrısı yapmıyor, `TokenOut.user`'ı doğrudan kullanıyor (bir ağ turu tasarrufu). 4 sayfa: `LoginPage` (`login`+şifre, göster/gizle BaseInput'ta hazır, Caps Lock uyarısı, hata üstte, `redirect` sorgu parametresini okuyup girişten sonra oraya yönlendiriyor), `RegisterPage` (kullanıcı adı canlı ipucu+doğrulama, e-posta, şifre gücü göstergesi, şifre tekrarı, `EMAIL_TAKEN`/`USERNAME_TAKEN` 409'larını ilgili alanın altına yazıyor, başarıda `/hosgeldin`'e yönleniyor), `ForgotPasswordPage` (3 adım: e-posta→kod iste her durumda aynı nötr mesaj, `OtpInput` ile 6 haneli kod doğrula, yeni şifre+tekrar→onayla→toast+`/giris`; "kodu tekrar gönder" 60 sn geri sayımlı), `OnboardingPage` (1: film/dizi türleri ≥3 çip — `/catalog/genres?type=movie` ve `?type=tv` birleştirilip tekilleştiriliyor, 2: kitap türleri ≥2 çip + Atla, 3: `/users/suggestions` takip önerileri + yerinde takip et/bırak → `PATCH /users/me {favorite_genres}` → `/`). Login/Register mutasyonları TanStack `useMutation` yerine doğrudan `authStore.login/register` + yerel `submitting`/`formError` ref'leriyle yazıldı (mağaza yan etkisi gerektirmeyen şifre-sıfırlama adımları içinse zaten yazılmış olan `api/auth.ts` composable'ları — `useRequestPasswordReset` vb. — kullanıldı); TanStack Vue Query'nin `useMutation`/`useQuery` döndürdüğü her alanın (`isPending`, `data`, `error`...) gerçek bir `Ref` olduğu (`ToRefs<...>`) kütüphanenin kendi tip tanımlarından doğrulandı — hem script hem template'te `.value` gerekiyor. Router'da `/giris,/kayit,/sifremi-unuttum,/hosgeldin` artık `ComingSoonPage` değil gerçek sayfalara işaret ediyor.
+- **Gerçek backend'e karşı uçtan uca doğrulama (curl ile, tarayıcı yok):** kayıt→201+token ✓, aynı e-postayla tekrar kayıt→409 `EMAIL_TAKEN` ✓, doğru girişte 200 ✓, yanlış şifrede 401 `INVALID_CREDENTIALS` ✓, şifre sıfırlama isteği→202 nötr mesaj, kod `backend/uvicorn_err.log`'da bulundu (SMTP yokken beklenen dev davranışı) ✓, yanlış kodda 400 `INVALID_CODE` ✓, doğru kodda `{"valid":true}` ✓, yeni şifre onayı→200, yeni şifreyle giriş✓/eski şifreyle giriş artık 401 ✓ (token_version artışı doğru çalışıyor), `/catalog/genres?type=movie|tv|book` üçü de doğru `{key,label}[]` döndü ✓, girişli `/users/suggestions` demo kullanıcılarını döndü ✓, `PATCH /users/me {favorite_genres}` kalıcı olarak kaydetti ✓. Test kullanıcısı (`f24test`) doğrulama sonunda `DELETE /users/me` ile temizlendi.
+- **Sırada:** F2.5 — 🏁 Faz 2 kapanışı (doğrulama komutları + mümkünse ekran görüntüleri + kullanıcıya çalıştırma yönergesi ve push izni).
 
 ---
 
@@ -57,13 +59,13 @@
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
-| 2 | Frontend temeli | 🟨 Devam ediyor | 3/5 | 2026-09-26 | – |
+| 2 | Frontend temeli | 🟨 Devam ediyor | 4/5 | 2026-09-26 | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **19/64** | | |
+| **Toplam** | | | **20/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -118,7 +120,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F2.1 — Vite + Vue 3 + TypeScript iskeleti — ✅ (2026-09-26)
 - [x] F2.2 — Tasarım sistemi ve temel UI bileşenleri — ✅ (2026-09-26)
 - [x] F2.3 — API katmanı, oturum, router ve uygulama iskeleti — ✅ (2026-09-26)
-- [ ] F2.4 — Kimlik sayfaları ve onboarding
+- [x] F2.4 — Kimlik sayfaları ve onboarding — ✅ (2026-09-26)
 - [ ] F2.5 — Faz 2 kapanışı 🏁
 
 ### Faz 3 — Çekirdek Özellikler
@@ -205,7 +207,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🟡 bileşen düzeyi ✅ (BaseAvatar kırık/yok görselde deterministik baş harf); tüm sayfalarda kullanım F3.9 | `f3e2894` |
 | BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | 🔴 | |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | 🔴 | |
-| BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | 🔴 | |
+| BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | ✅ (v2'de gerçek e-posta/log tabanlı 3 adımlı akış var, "(Demo: ...)" metni yok) | `031befa` |
 | BUG-11 | Arama sorguları URL-encode edilmiyor | F2.3 | ✅ (`client.ts`'teki `api()` tüm sorgu parametrelerini `URLSearchParams` ile otomatik kodluyor) | `e104538` |
 | BUG-12 | Akışta göreli tarih/aksiyon metni/alıntı yok | F1.8, F3.5 | 🟡 backend ✅ (`created_at`+`excerpt`+`card_type` API'de var); arayüz F3.5 | `9286a24` |
 | BUG-13 | Akışta sayfalama yok, N+1 sorgular | F1.8, F3.5 | ✅ backend (imleçli sayfalama + N+1 giderildi, testle doğrulandı) | `9286a24` |
@@ -233,10 +235,10 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | ID | Gereksinim (kısa) | Hedef adım | Durum | Kanıt |
 |---|---|---|---|---|
 | REQ-1.2 | Dinamik, kullanıcı dostu, mobil uyumlu arayüz | Faz 2–3 | ⬜ | |
-| REQ-2.1.1a | Kayıt: kullanıcı adı, e-posta, şifre, şifre tekrarı | F1.4, F2.4 | ⬜ | |
-| REQ-2.1.1b | Giriş: e-posta + şifre | F1.4, F2.4 | ⬜ | |
-| REQ-2.1.1c | Net hata mesajları | F1.2, F1.4, F2.4 | ⬜ | |
-| REQ-2.1.1d | Şifremi unuttum (e-posta) | F1.4, F2.4 | ⬜ | |
+| REQ-2.1.1a | Kayıt: kullanıcı adı, e-posta, şifre, şifre tekrarı | F1.4, F2.4 | ✅ | `RegisterPage.vue` `031befa` |
+| REQ-2.1.1b | Giriş: e-posta + şifre | F1.4, F2.4 | ✅ (v2'de ayrıca kullanıcı adıyla da girilebiliyor) | `LoginPage.vue` `031befa` |
+| REQ-2.1.1c | Net hata mesajları | F1.2, F1.4, F2.4 | ✅ | `ApiError`+form/alan hataları, curl ile doğrulandı `031befa` |
+| REQ-2.1.1d | Şifremi unuttum (e-posta) | F1.4, F2.4 | ✅ | `ForgotPasswordPage.vue`, uçtan uca curl ile doğrulandı `031befa` |
 | REQ-2.1.2a | Takip edilenlerin aktiviteleri (yeniden eskiye) | F1.8, F3.5 | ⬜ | |
 | REQ-2.1.2b | Kart başlığı: avatar, ad (link), aksiyon metni, göreli tarih | F3.5 | ⬜ | |
 | REQ-2.1.2c | Türe göre gövde, afiş ön planda | F3.5 | ⬜ | |
@@ -333,6 +335,27 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F2.4 — Kimlik sayfaları ve onboarding — ✅
+
+- **Yapılanlar:**
+  - `utils/validation.ts`: `validateUsername` (backend `users/validation.py` ile birebir aynı `^[a-z][a-z0-9_.]{2,29}$` regex + aynı ayrılmış ad listesi, büyük harfleri backend gibi sessizce küçültüyor), `validateEmail`, `validatePasswordStrength` (backend `auth/schemas.py` ile birebir aynı kural: ≥8 karakter + en az bir harf + bir rakam), `validatePasswordsMatch`, ayrıca yalnız istemci tarafı `passwordStrength()` (zayıf/orta/güçlü göstergesi). 16 test (`validation.spec.ts`).
+  - `api/catalog.ts` (yeni, minimal): yalnız `getGenresRequest`/`useGenres` — F3.1'in geri kalan katalog fonksiyonlarını ekleyeceği dosyanın başlangıcı, şimdiden tüm katalog uçlarını yazmadım (erken/spekülatif kapsam genişletmesi olmasın diye).
+  - `components/ui/OtpInput.vue`: 6 kutulu doğrulama kodu girişi — tek hane girilince otomatik ileri, Backspace'te otomatik geri, yapıştırmada tüm kutulara dağıtma, `defineModel`.
+  - **Kusur düzeltmesi (BaseInput):** `@blur`/`@keyup`/`@keydown` gibi dışarıdan verilen dinleyiciler Vue'nun varsayılan `$attrs` devralma davranışıyla bileşenin dış `<div>`'ine bağlanıyordu, gerçek `<input>`'a değil — yani hiçbir zaman tetiklenmiyordu. `defineOptions({ inheritAttrs: false })` + `v-bind="$attrs"` iç `<input>`'a taşındı. LoginPage'in Caps Lock uyarısı ve alan-dokunma (blur) takibini gerçekten çalıştırmaya çalışırken fark edildi; geriye dönük uyumlu (var olan hiçbir kullanım ekstra attr geçirmiyordu, davranışları değişmedi).
+  - `stores/auth.ts` küçük iyileştirme: `login`/`register` artık `TokenOut.user`'ı doğrudan kullanıyor, ayrı bir `fetchMe()` round-trip'i yapmıyor (gereksiz ağ isteği kaldırıldı).
+  - **`LoginPage.vue`** (`/giris`): `login` (e-posta veya kullanıcı adı) + şifre (göster/gizle BaseInput'ta hazır), Caps Lock uyarısı, hata formun üstünde, `route.query.redirect`'i okuyup girişten sonra oraya yönlendiriyor (F2.3'te router guard'ın bıraktığı "geri dönüş" ucu artık kapandı).
+  - **`RegisterPage.vue`** (`/kayit`): kullanıcı adı (canlı ipucu + doğrulama), e-posta, şifre (canlı güç göstergesi), şifre tekrarı; `EMAIL_TAKEN`/`USERNAME_TAKEN` 409'ları genel banner yerine ilgili alanın altına yazılıyor (§3.6.4 "alan bazlı sunucu hataları"); başarıda otomatik giriş zaten `authStore.register`'ın içinde olduğu için ekstra adım gerekmiyor, doğrudan `/hosgeldin`'e yönleniyor.
+  - **`ForgotPasswordPage.vue`** (`/sifremi-unuttum`): 3 adım — (1) e-posta → her durumda aynı nötr mesaj ("Eğer bu e-posta kayıtlıysa…"), (2) `OtpInput` ile 6 haneli kod → doğrula, "kodu tekrar gönder" 60 sn geri sayımlı, (3) yeni şifre + tekrar → onayla → toast + `/giris`.
+  - **`OnboardingPage.vue`** (`/hosgeldin`): (1) film/dizi türleri ≥3 çip (`/catalog/genres?type=movie` + `?type=tv` birleştirilip anahtara göre tekilleştiriliyor — tek tür hem filme hem diziye ait olabiliyor), (2) kitap türleri ≥2 çip + "Atla", (3) `/users/suggestions` takip önerileri + yerinde takip et/bırak butonu → `PATCH /users/me {favorite_genres}` (seçilen tüm türlerin birleşimi) → `/`. Her adımda yükleniyor/hata/veri durumları (`BaseSkeleton`/`ErrorState`) ele alındı.
+  - Login/Register, mağaza yan etkisi (token/`me` güncelleme) gerektirdiği için TanStack `useMutation` yerine doğrudan `authStore.login/register` çağrısı + yerel `submitting`/`formError` ref'leriyle yazıldı; şifre sıfırlama adımlarının mağaza yan etkisi olmadığından F2.3'te zaten yazılmış `api/auth.ts` composable'ları (`useRequestPasswordReset` vb.) doğrudan kullanıldı. TanStack Vue Query paketinin kendi tip tanımlarından (`ToRefs<...>`) doğrulandı: `useMutation`/`useQuery`'nin döndürdüğü her alan (`isPending`, `data`, `error`…) gerçek bir `Ref`'tir — hem `<script setup>` hem `<template>` içinde `.value` gerekir (kütüphanenin kendi örnekleri de böyle).
+  - `router/index.ts`: `/giris`, `/kayit`, `/sifremi-unuttum`, `/hosgeldin` artık `ComingSoonPage` yerine gerçek sayfalara işaret ediyor.
+- **Değişen dosyalar:** `frontend/src/utils/{validation.ts,validation.spec.ts}` (yeni), `frontend/src/api/catalog.ts` (yeni), `frontend/src/components/ui/OtpInput.vue` (yeni), `frontend/src/components/ui/BaseInput.vue` (attrs düzeltmesi), `frontend/src/stores/auth.ts`, `frontend/src/types/index.ts` (`GenreOut` eklendi), `frontend/src/pages/{LoginPage,RegisterPage,ForgotPasswordPage,OnboardingPage}.vue` (yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → **32 passed** (16 yeni validation testi) ✓ · `npm run build` → başarılı, her yeni sayfa kendi lazy chunk'ında (LoginPage 2.27 KB, RegisterPage 3.54 KB, ForgotPasswordPage 5.84 KB, OnboardingPage 5.96 KB gzip öncesi; ana chunk gzip 70.20 KB) ✓ · Vite dev sunucusu üzerinden tüm yeni modüller (4 sayfa + OtpInput + catalog.ts + validation.ts) tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (curl):** kayıt→201+token, aynı e-postayla ikinci kayıt→409 `EMAIL_TAKEN`, doğru girişte 200, yanlış şifrede 401 `INVALID_CREDENTIALS`; şifre sıfırlama isteği→202 nötr mesaj, kod `backend/uvicorn_err.log`'da bulundu (SMTP yok, dev-modu logu — beklenen), yanlış kodda 400 `INVALID_CODE`, doğru kodda `{"valid":true}`, yeni şifre onayı→200, **yeni şifreyle giriş başarılı, eski şifreyle giriş artık 401** (`token_version` artışı doğru çalışıyor); `/catalog/genres?type=movie|tv|book` üçü de doğru `{key,label}[]`; girişli `/users/suggestions` demo kullanıcılarını döndürdü; `PATCH /users/me {favorite_genres}` kalıcı kaydetti. Test kullanıcısı (`f24test`) sonunda `DELETE /users/me` ile temizlendi — demo verisinde kalıntı yok. **Not:** Bu oturumda hâlâ tarayıcı aracı yok; sayfaların görsel düzeni, klavye gezinme ve gerçek form doldurma deneyimi yalnızca kod incelemesi + yukarıdaki HTTP/modül seviyesi doğrulamayla teyit edildi, tarayıcıda elle denenmedi.
+- **Kapanan maddeler:** REQ-2.1.1a, REQ-2.1.1b, REQ-2.1.1c, REQ-2.1.1d, BUG-10
+- **Commit:** `031befa`
+- **Notlar / sorunlar:** OnboardingPage'in 3. adımında (takip önerileri) paylaşılan bir `FollowButton` bileşeni kullanılmadı, sayfaya özel küçük bir takip et/bırak butonu yazıldı — F3.6 (ProfilePage) gerçek, paylaşılan `FollowButton`'ı ihtiyaç duyduğunda oluşturacak (erken soyutlama yok).
+- **Sonraki adım:** F2.5 — 🏁 Faz 2 kapanışı
 
 ### [2026-09-26] F2.3 — API katmanı, oturum, router ve uygulama iskeleti — ✅
 
