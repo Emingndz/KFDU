@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounce, useIntersectionObserver } from '@vueuse/core'
 import { Search, X } from 'lucide-vue-next'
-import { toast } from 'vue-sonner'
 import {
   type CatalogContentType,
   type DiscoverFilters,
@@ -14,9 +13,9 @@ import {
   useTrending,
 } from '@/api/catalog'
 import { usePlatformPopular, usePlatformTopRated } from '@/api/stats'
-import { useFollowUser, useUnfollowUser, useUserSearch } from '@/api/users'
+import { useUserSearch } from '@/api/users'
 import { useLibraryLookup } from '@/api/library'
-import { useAuthStore } from '@/stores/auth'
+import { useFollowToggle } from '@/composables/useFollowToggle'
 import { contentKey } from '@/utils/content'
 import ContentGrid from '@/components/content/ContentGrid.vue'
 import ContentRow from '@/components/content/ContentRow.vue'
@@ -32,7 +31,6 @@ const TAB_TYPE: Record<'film' | 'kitap', CatalogContentType> = { film: 'movie', 
 
 const route = useRoute()
 const router = useRouter()
-const auth = useAuthStore()
 
 function readQueryValue(key: string): string | undefined {
   const value = route.query[key]
@@ -125,37 +123,7 @@ function browseGenre(genreKey: string) {
   filters.value = { ...filters.value, genre: genreKey }
 }
 
-// Kullanıcı araması takip et/bırak
-// Not: PublicUserOut (arama sonucu) is_following bilgisi taşımıyor (yalnız ProfileOut/
-// PublicUserWithFollowOut taşıyor) — bu yüzden önceden takip edilen kullanıcılar başlangıçta
-// "Takip et" gösterir; tıklanınca bu oturum için yerel olarak işaretlenir (follow zaten idempotent).
-const followMutation = useFollowUser()
-const unfollowMutation = useUnfollowUser()
-const followPendingUsername = ref<string | null>(null)
-const followedThisSession = ref(new Set<string>())
-
-async function toggleFollow(username: string) {
-  if (!auth.isAuthenticated) {
-    toast.info('Bunun için giriş yapmalısın')
-    void router.push({ path: '/giris', query: { redirect: route.fullPath } })
-    return
-  }
-  const isFollowing = followedThisSession.value.has(username)
-  followPendingUsername.value = username
-  try {
-    if (isFollowing) {
-      await unfollowMutation.mutateAsync(username)
-      followedThisSession.value.delete(username)
-    } else {
-      await followMutation.mutateAsync(username)
-      followedThisSession.value.add(username)
-    }
-  } catch {
-    toast.error('Bir şeyler ters gitti, tekrar dene')
-  } finally {
-    followPendingUsername.value = null
-  }
-}
+const followToggle = useFollowToggle()
 
 const userItems = computed(() => userSearch.data.value?.pages.flatMap((p) => p.items) ?? [])
 
@@ -224,9 +192,9 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
           v-for="user in userItems"
           :key="user.username"
           :user="user"
-          :is-following="followedThisSession.has(user.username)"
-          :follow-pending="followPendingUsername === user.username"
-          @toggle-follow="toggleFollow(user.username)"
+          :is-following="followToggle.isFollowing(user.username)"
+          :follow-pending="followToggle.isPending(user.username)"
+          @toggle-follow="followToggle.toggle(user.username)"
         />
       </div>
     </template>

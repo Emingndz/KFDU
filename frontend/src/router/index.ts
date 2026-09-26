@@ -50,8 +50,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'feed',
-    component: ComingSoonPage,
-    props: { title: 'Akış' },
+    component: () => import('@/pages/FeedPage.vue'),
     meta: { title: 'Akış' },
   },
   {

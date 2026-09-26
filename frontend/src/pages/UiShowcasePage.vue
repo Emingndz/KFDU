@@ -30,7 +30,8 @@ import LibraryButtons from '@/components/content/LibraryButtons.vue'
 import FavoriteButton from '@/components/content/FavoriteButton.vue'
 import AddToListMenu from '@/components/content/AddToListMenu.vue'
 import LikeButton from '@/components/content/LikeButton.vue'
-import type { ContentSummary, LibraryStatus } from '@/types'
+import ActivityCard from '@/components/content/ActivityCard.vue'
+import type { ActivityOut, ContentSummary, LibraryStatus } from '@/types'
 
 const { mode, options: themeOptions } = useTheme()
 const { confirm } = useConfirm()
@@ -81,6 +82,85 @@ const demoContent: ContentSummary[] = [
     genres: ['drama', 'crime'],
     external_rating: 8.9,
     creators: [],
+  },
+]
+
+const demoActor = { id: 1, username: 'ada', display_name: 'Ada Lovelace', avatar_url: null, bio: null }
+const demoActivities: ActivityOut[] = [
+  {
+    id: 1,
+    card_type: 'rating',
+    actor: demoActor,
+    content: demoContent[0]!,
+    rating: 8,
+    review: null,
+    status: null,
+    list: null,
+    created_at: new Date().toISOString(),
+    likes_count: 3,
+    liked_by_me: false,
+    comments_count: 0,
+    comments_preview: [],
+  },
+  {
+    id: 2,
+    card_type: 'review',
+    actor: demoActor,
+    content: demoContent[1]!,
+    rating: 9,
+    review: { id: 1, excerpt: 'Bu kitap gerçekten çok etkileyiciydi, herkese tavsiye ederim…', is_truncated: true, has_spoiler: false },
+    status: null,
+    list: null,
+    created_at: new Date().toISOString(),
+    likes_count: 1,
+    liked_by_me: true,
+    comments_count: 2,
+    comments_preview: [],
+  },
+  {
+    id: 3,
+    card_type: 'status',
+    actor: demoActor,
+    content: demoContent[2]!,
+    rating: null,
+    review: null,
+    status: 'in_progress',
+    list: null,
+    created_at: new Date().toISOString(),
+    likes_count: 0,
+    liked_by_me: false,
+    comments_count: 0,
+    comments_preview: [],
+  },
+  {
+    id: 4,
+    card_type: 'list_add',
+    actor: demoActor,
+    content: demoContent[0]!,
+    rating: null,
+    review: null,
+    status: null,
+    list: { id: 1, title: 'Favori Bilim Kurgu', item_count: 5, cover_urls: [] },
+    created_at: new Date().toISOString(),
+    likes_count: 0,
+    liked_by_me: false,
+    comments_count: 0,
+    comments_preview: [],
+  },
+  {
+    id: 5,
+    card_type: 'list_create',
+    actor: demoActor,
+    content: null,
+    rating: null,
+    review: null,
+    status: null,
+    list: { id: 2, title: 'Yaz Tatili Listesi', item_count: 4, cover_urls: [] },
+    created_at: new Date().toISOString(),
+    likes_count: 0,
+    liked_by_me: false,
+    comments_count: 0,
+    comments_preview: [],
   },
 ]
 
@@ -265,6 +345,17 @@ function toggleLoadingDemo() {
         />
       </div>
       <p class="text-xs text-muted">Durum: {{ demoStatus ?? '—' }} · Favori: {{ demoFavorite }}</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-xl font-semibold">Akış kartları</h2>
+      <p class="text-xs text-muted">
+        Sahte verilerle gösteriliyor — beğeni/yorum tıklamaları gerçek olmayan bir aktivite kimliğine gittiği için hata
+        toast'u gösterebilir, bu beklenen bir durumdur.
+      </p>
+      <div class="flex flex-col gap-4">
+        <ActivityCard v-for="activity in demoActivities" :key="activity.id" :activity="activity" />
+      </div>
     </section>
   </div>
 </template>

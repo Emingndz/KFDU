@@ -1,8 +1,64 @@
 import { type MaybeRefOrGetter, toValue } from 'vue'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { type InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { toast } from 'vue-sonner'
 import { api } from './client'
 import type { CatalogContentType } from './catalog'
-import type { CommentOut, CursorPage, Page, ReviewDetail, ReviewOut } from '@/types'
+import type { ActivityOut, CommentOut, CursorPage, Page, ReviewDetail, ReviewOut } from '@/types'
+
+export type FeedScope = 'following' | 'global'
+
+export function getFeedRequest(scope: FeedScope, cursor?: string, limit = 15) {
+  return api<CursorPage<ActivityOut>>('/feed', { query: { scope, cursor, limit } })
+}
+
+export function useFeed(scope: MaybeRefOrGetter<FeedScope>) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['feed', toValue(scope)],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => getFeedRequest(toValue(scope), pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: CursorPage<ActivityOut>) => lastPage.next_cursor ?? undefined,
+    staleTime: 30_000,
+  }))
+}
+
+function patchFeedCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+  activityId: number,
+  patch: (activity: ActivityOut) => ActivityOut,
+) {
+  queryClient.setQueriesData<InfiniteData<CursorPage<ActivityOut>>>({ queryKey: ['feed'] }, (data) => {
+    if (!data) return data
+    return {
+      ...data,
+      pages: data.pages.map((page) => ({
+        ...page,
+        items: page.items.map((item) => (item.id === activityId ? patch(item) : item)),
+      })),
+    }
+  })
+}
+
+export function useLike() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ activityId, liked }: { activityId: number; liked: boolean }) =>
+      liked ? likeActivityRequest(activityId) : unlikeActivityRequest(activityId),
+    onMutate: async ({ activityId, liked }) => {
+      await queryClient.cancelQueries({ queryKey: ['feed'] })
+      const previous = queryClient.getQueriesData<InfiniteData<CursorPage<ActivityOut>>>({ queryKey: ['feed'] })
+      patchFeedCaches(queryClient, activityId, (activity) => ({
+        ...activity,
+        liked_by_me: liked,
+        likes_count: activity.likes_count + (liked ? 1 : -1),
+      }))
+      return { previous }
+    },
+    onError: (_error, _vars, context) => {
+      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data))
+      toast.error('Bir şeyler ters gitti')
+    },
+  })
+}
 
 export function listContentReviewsRequest(type: CatalogContentType, externalId: string, sort: 'new' | 'popular' = 'new', page = 1) {
   return api<Page<ReviewOut>>('/reviews', { query: { type, external_id: externalId, sort, page } })

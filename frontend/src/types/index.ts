@@ -48,3 +48,8 @@ export type ListOut = components['schemas']['ListOut']
 export type ListDetail = components['schemas']['ListDetail']
 export type ListItemOut = components['schemas']['ListItemOut']
 export type MyListOut = components['schemas']['MyListOut']
+
+export type ActivityOut = components['schemas']['ActivityOut']
+export type ReviewPreview = components['schemas']['ReviewPreview']
+export type ListPreview = components['schemas']['ListPreview']
+export type CommentPreview = components['schemas']['CommentPreview']

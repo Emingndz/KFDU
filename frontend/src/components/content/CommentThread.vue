@@ -11,6 +11,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseSpinner from '@/components/ui/BaseSpinner.vue'
 
 const props = withDefaults(defineProps<{ activityId: number; compact?: boolean }>(), { compact: false })
+const emit = defineEmits<{ expand: [] }>()
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -175,9 +176,17 @@ function displayName(comment: { author: { display_name: string | null; username:
       </ul>
 
       <p v-if="allComments.length === 0 && pendingComments.length === 0" class="text-sm text-muted">Henüz yorum yok.</p>
+      <button
+        v-if="compact && allComments.length > visibleComments.length"
+        type="button"
+        class="w-fit text-sm font-medium text-brand-600 hover:underline"
+        @click="emit('expand')"
+      >
+        Tüm yorumlar ({{ allComments.length }})
+      </button>
     </template>
 
-    <div v-if="!compact" class="flex flex-col gap-1.5">
+    <div class="flex flex-col gap-1.5">
       <textarea
         v-model="newBody"
         rows="2"
