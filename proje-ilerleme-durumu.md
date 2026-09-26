@@ -20,36 +20,31 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 1 uygulanıyor |
-| Aktif faz | Faz 1 — Backend Temeli |
-| Sıradaki adım | **F1.11 — 🏁 Faz 1 kapanışı** (özet + push izni) |
-| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası yeni commit'ler henüz pushlanmadı) |
-| Son commit | `dcec8b7` (feat(F1.10): stats + seed) |
+| Proje durumu | 🏁 **Faz 1 tamamlandı** — özet sunuldu, push izni bekleniyor |
+| Aktif faz | Faz 1 tamamlandı → Faz 2'ye geçiş bekliyor |
+| Sıradaki adım | Push onayı sonrası **F2.1 — Vite + Vue 3 + TypeScript iskeleti** (Önkoşul: Node ≥22.18 — **U3 hâlâ yapılmadı**) |
+| Çalışma dalı | `v2` (origin'e push edildi; F1.1 sonrası 22 commit henüz pushlanmadı) |
+| Son commit | `c5e3fa9` (docs(F1.11): README) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
 
 ### Bağlam özeti (yeni oturum açan uygulayıcı için)
 
-- **Proje:** KFDU — film/kitap sosyal kütüphane platformu. v1: FastAPI + SQLAlchemy + SQLite backend, tek dosya Vue 3 (CDN) frontend; Kocaeli Üniversitesi Yazlab-I Proje II ödevi.
-- **Analiz (2026-09-26):** Bulgular planın §2'sinde — SEC-01…09, BUG-01…20, DEBT-01…07; ödev eksikleri Ek A'da.
-- **Kitaplar neden bozuk:** Google Books anahtarsız çağrılıyor → HTTP 429 (anonim kota 0) → API `null` dönüyor. Çözüm: Open Library (F1.6).
-- **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır. **F0.3 ile kod tarafı kapandı ama eski Gmail şifresi ve eski TMDB anahtarı hâlâ geçerli/aktif** — U1 ve U2 kullanıcı tarafından yapılana kadar risk devam ediyor (bkz. 👤 Kullanıcı Eylemleri).
-- **Durum:** F0.1–F0.3 tamamlandı, F0.4 kısmi. `main`: plan dosyaları commit edildi (`ef2ccda`), `legacy-v1` etiketi orada. `v2` dalı aktif: `.gitignore` eklendi, `.pyc`/`sql_app.db` takipten çıkarıldı (`c80451f`), ödev PDF'i `docs/odev/`e taşındı, v1 `config.py`/`security.py`'deki sabit sırlar kaldırıldı ve `backend/.env` (izlenmiyor) + `backend/.env.example` oluşturuldu (`7610a0c`). v1 backend `.env` ile ayakta kalktığı ve `GET /api/v1/movies/popular`'ın HTTP 200 döndüğü doğrulandı (içerik `null` — TMDB anahtarı henüz boş, beklenen). `backend/.venv` oluşturuldu ve doğrulandı; `.vscode/extensions.json` eklendi (`8628d89`). **Node.js hâlâ 22.12.0** (≥22.18 gerekli) — F0.4 bu yüzden tam kapanmadı, Faz 2'den önce güncellenmeli. Henüz yeni (v2) backend/frontend kodu yok; bu hâlâ hafifçe yamalı v1 kodu.
-- **Faz 0 kapandı (2026-09-26):** Kullanıcı F0.5'i (git geçmişi temizliği) atlamayı, `v2` + `legacy-v1`'i hemen push etmeyi seçti (D-14, D-15). İkisi de yapıldı — `origin/v2` ve `origin` üzerinde `legacy-v1` etiketi mevcut. **F0.4 hâlâ asılı** (Node ≥22.18 gerekli, kullanıcı henüz güncellemedi) ama bu Faz 1'i (backend, Python) engellemiyor; yalnızca Faz 2 (frontend) öncesi şart.
-- **F1.1 tamamlandı:** Eski backend `legacy/backend-v1/`'e taşındı (yalnız referans, yeni koddan içe aktarılmayacak — bkz. F1.11 doğrulaması). `backend/` artık yeni modüler iskelet: `app/core/`, `app/modules/{auth,users,catalog(+providers),library,social,lists,stats}/` (hepsi boş `__init__.py`), `tests/`, `tests/fixtures/`, `scripts/`. `backend/.venv` içinde tüm bağımlılıklar kuruldu (`pip check` temiz), `pytest` (1 smoke testi) ve `ruff check/format` yeşil. Faz 1–2 boyunca eski arayüz (v1 frontend, hâlâ `frontend/` klasöründe olduğu varsayılıyor — F2.1'de kontrol edilecek) yeni API ile çalışmayacak; `legacy-v1` etiketinden eski sürüm çalıştırılabilir.
-- **F1.2 tamamlandı:** `app/core/` tam (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + `app/main.py` (`create_app()`, CORS allowlist, hata yakalayıcılar, slowapi, `/media`, `GET /api/v1/health`). `tests/conftest.py` bellek içi SQLite ile `get_db` override ediyor; 5 test yeşil, ruff temiz. Gerçek sunucuda `/api/v1/health`, `/docs` ve bilinmeyen rota 404 formatı doğrulandı.
-- **F1.3 tamamlandı:** §4.2'deki 12 tablo modüllerin `models.py`'sinde (auth/users/catalog/library/social/lists), tüm CHECK/UNIQUE kısıtları ve `ON DELETE CASCADE` FK'ler mevcut. `Base.type_annotation_map` sayesinde her `datetime` alanı otomatik `DateTime(timezone=True)`. Alembic kuruldu, ilk migration (`fa1eb17da6a0_v2_ilk_sema`) `backend/kfdu.db`'ye uygulandı, `alembic check` temiz. `backend/kfdu.db` gitignore'da (`*.db`), depoya girmiyor; her geliştirici kendi makinesinde `alembic upgrade head` ile oluşturur.
-- **F1.4 tamamlandı:** `auth` modülü uçtan uca çalışıyor: `/auth/register|login|token|password-reset/{request,verify,confirm}|change-password|logout-all`. `users/deps.py` (`CurrentUser`/`OptionalUser`), `users/validation.py` (kullanıcı adı kuralı — paylaşılan, F1.5 de kullanacak). **Dikkat (F1.5 için):** `users/schemas.py` zaten var ama yalnızca `PublicUserOut`+`MeOut` içeriyor — F1.5 bu dosyayı genişletecek, üzerine yazmayacak. Gerçek sunucuda OAuth2 `/auth/token` ile Swagger "Authorize" akışı ve korumalı uç (401+`WWW-Authenticate: Bearer` / 204 başarı) doğrulandı. `core/errors.py`'nin `AppError`'ına opsiyonel `headers` eklendi. 13 yeni test (toplam 22) yeşil.
-- **F1.5 tamamlandı:** `core/genres.py` eklendi (Ek C — 30 kanonik tür; `catalog/genres.py` F1.6'da bunun üzerine TMDB/OL yardımcı fonksiyonlarını ekledi, veriyi tekrar tanımlamadı). `users` modülü tamamlandı: profil (e-posta yok), profil güncelleme (kısmi), e-posta değişimi, avatar (kırp+webp), takip/bırakma (idempotent), takipçi/takip edilen listeleri (N+1'siz), arama (✓ kimlik ister), öneriler, hesap silme. 8 yeni test (toplam 30) yeşil.
-- **F1.6 tamamlandı — kitaplar artık çalışıyor:** `catalog` modülü uçtan uca: TMDB (film/dizi — yönetmen, oyuncu, süre, tür, fragman, TR platformları), Open Library (varsayılan kitap sağlayıcısı, anahtarsız), Google Books (opsiyonel). `get_or_create_content` 7 gün tazelikle DB'ye upsert ediyor; sağlayıcı çağrıları §6.5 sürelerine göre `ttl_cache`. Gerçek sunucuda Open Library ile `catalog/search`, `catalog/book/{id}`, `catalog/book/{id}/similar`, `catalog/genres` canlı doğrulandı (kapaklı, yazarlı, özetli gerçek sonuçlar döndü). **Önemli hata bulundu ve düzeltildi (D-17):** SQLite'ın `DateTime(timezone=True)`'ı okurken tzinfo düşürmesi — `UTCDateTime` TypeDecorator ile çözüldü, bunu doğrulayan bir test eklendi (`test_detail_upserts_and_second_call_skips_http`). TMDB fixture'ları U2 beklendiği için elle yazıldı (D-18 — düşük öncelikli takip maddesi). 17 yeni test (toplam 41) yeşil.
-- **F1.7 tamamlandı:** `library` modülü: kısmi güncelleme (`model_fields_set`), `is_empty` olunca satır siliniyor, `in_progress`/`completed` → `started_at`/`finished_at` otomatik (boşsa), `library.log_changed`/`log_removed`/`status_changed` olayları commit'ten önce yayınlanıyor (henüz dinleyen yok — F1.8'de `social/handlers.py` dinleyecek). `get_state` (platform ortalama/dağılım + takip edilenler), `lookup` (tek sorgu, ≤60 anahtar), incelemeler (409/403/422). **Not (F1.8 için önemli):** `delete_review`'da `db.delete(review)` sonrası `db.flush()` çağrısı gerekti — `SessionLocal` `autoflush=False` ile kurulu, bu yüzden silme işlemi sonraki `SELECT`'e otomatik yansımıyor. F1.8'de benzer sil-sonra-kontrol-et deseni varsa aynı şeye dikkat et. 10 yeni test (toplam 51) yeşil.
-- **F1.8 tamamlandı:** `social/handlers.py` tüm §3.5.2 olaylarını dinliyor (`lists.*` olayları F1.9'da gerçek bir emitter bulacak — şimdiden hazır). `get_feed`/`list_user_activities` toplu sorgularla (aktör/içerik/liste/beğeni/yorum/puan+inceleme hepsi IN/GROUP BY ile) N+1'siz; 15 kartlık akış testte ölçülüp ≤12 sorgu sınırının içinde kaldığı doğrulandı. `card_type` okuma anında (inceleme varsa `review`). Beğeni/bildirim tekilleştirme kuralları ayrı ayrı test edildi (kendine bildirim yok, aynı aktivite için ikinci kez yok; takip bildirimi yalnız okunmamışsa tekrar açılmaz). Gerçek sunucuda kayıt→puanla→akışta görünme→bildirim sayacı uçtan uca doğrulandı. 9 yeni test (toplam 60) yeşil. **Not:** İnceleme okuma uçları (`list_content_reviews`/`list_user_reviews`) bilinçli olarak feed kadar agresif batch-optimize edilmedi (basit platform ölçeği için yeterli) — ileride performans sorunu çıkarsa aynı toplu-sorgu deseni oraya da taşınabilir.
-- **F1.9 tamamlandı:** `lists` modülü — CRUD, öğe ekle/çıkar/not güncelle (idempotent ekleme: zaten varsa 200), yeniden sıralama (kimlik kümesi tam eşleşmezse 400), `my_lists` (`contains` bayrağı), başkasının listelerinde yalnız public görünür. F1.8'de yazılan `lists.*` olay dinleyicileri artık gerçek bir yayıncı buluyor — public listeye ekleme/oluşturma aktivite üretiyor, gizliye çevirince aktiviteler siliniyor (test edildi). 6 yeni test (toplam 66) yeşil.
-- **F1.10 tamamlandı:** `stats` modülü (profil özeti; en yüksek puanlılar — Bayes skoru, m=3, en az 1 oy; en popülerler — son 30 gün ağırlıklı toplam, <5 sonuçta tüm zamana genişler). `scripts/seed.py` gerçek ortamda `--reset` ile çalıştırıldı: 6 demo kullanıcı, 10/20 içerik (10 kitap ✅, 10 film TMDB anahtarı boş olduğu için atlandı — beklenen), 40 kütüphane girişi, 12 inceleme, 3 liste, 9 beğeni, 8 yorum; `GET /feed`, `/platform/top-rated?type=book`, `/platform/popular` gerçek sunucuda doğrulandı. U6 (eski v1 verisi aktarımı) kullanıcıya soruldu, **"hayır" dendi (D-19)** — `scripts/migrate_legacy_db.py` yazılmadı, eski veri yalnızca yedekte duruyor. 3 yeni test (toplam 69) yeşil.
-- **Faz 1 neredeyse bitti:** Yalnız F1.11 (🏁 Faz 1 kapanışı — özet sun, `v2` dalını push etmek için izin iste) kaldı. Bu bir durma noktası; kapanıştan sonra Faz 2'ye (frontend, Node güncellemesi — U3 — şart) geçilecek.
-- **Önemli:** F1.1'den sonraki commit'ler (`61c08c2`+) henüz `origin/v2`'ye pushlanmadı — F1.11'in 🏁 kapanışında toplu push için izin istenecek.
-- **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
+- **Proje:** KFDU — film/kitap/dizi sosyal kütüphane platformu. v1: FastAPI + SQLAlchemy + SQLite backend, tek dosya Vue 3 (CDN) frontend; Kocaeli Üniversitesi Yazlab-I Proje II ödevi. v1 analiz bulguları planın §2'sinde (SEC-01…09, BUG-01…20, DEBT-01…07); ödev eksikleri Ek A'da. `legacy-v1` git etiketi ve `backend/legacy_backup/sql_app_v1.db` v1'in tam yedeğidir.
+- **Faz 0 ✅ (güvenlik/temizlik/hazırlık):** Sırlar koddan temizlendi (`config.py`/`security.py`), `.gitignore` + `.env`/`.env.example`, `v2` dalı açıldı. F0.5 (git geçmişi temizliği) kullanıcı kararıyla atlandı (D-14); `v2`+`legacy-v1` push edildi (D-15).
+- **⚠️ Hâlâ açık güvenlik riski:** Kod tarafı kapandı ama **eski Gmail uygulama şifresi ve eski TMDB anahtarı hâlâ geçerli** — U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) kullanıcı tarafından yapılana kadar risk sürüyor. Her ikisi de hâlâ ⬜ (yapılmadı).
+- **⚠️ Node.js hâlâ 22.12.0** (≥22.18/tercihen 24 LTS gerekli) — U3 yapılmadı. Faz 2 (frontend) için kesin önkoşul, Faz 1'i (backend) etkilemedi.
+- **Faz 1 ✅ TAMAMLANDI (F1.1–F1.11, 2026-09-26):** Yeni modüler backend sıfırdan kuruldu — `app/core/` (config/database/errors/security/deps/events/http/cache/rate_limit/pagination/logging/email) + 8 modül: `auth`, `users`, `catalog` (TMDB/Open Library/Google Books sağlayıcıları), `library`, `social`, `lists`, `stats`. Eski backend yalnız referans olarak `legacy/backend-v1/`'de duruyor, yeni kod ona bağımlı değil (F1.11'de doğrulandı). **69 test yeşil, kapsam %80** (hedef ≥%70). `ruff check`+`format` temiz. `scripts/seed.py` ile demo veri (6 kullanıcı, 40 kütüphane girişi, 12 inceleme, 3 liste) gerçek ortamda yüklendi ve doğrulandı. **Kitaplar artık çalışıyor** (BUG-01 kapandı, Open Library ile). Tüm OpenAPI uçları Türkçe özetli, doğru etiketli, `tag-fonksiyon` biçiminde operationId'li.
+- **Bilinen sınırlamalar / takip maddeleri (Faz 1'den kalan):**
+  - **D-16:** Ek C kanonik tür verisi `core/genres.py`'de (planın önerdiği gibi yalnız `catalog/genres.py`'de değil) — `users` modülünün `catalog`'a bağımlı olmadan `favorite_genres` doğrulaması yapabilmesi için gerekliydi.
+  - **D-17 (önemli teknik düzeltme):** SQLite, `DateTime(timezone=True)` olsa bile okurken tzinfo düşürüyordu → `core/database.py`'de `UTCDateTime` TypeDecorator ile çözüldü (PostgreSQL'de no-op).
+  - **D-18:** TMDB fixture'ları (3 dosya) gerçek API'den değil, bilinen şemaya göre elle yazıldı — U2 sonrası gerçek API'den yeniden yakalanması önerilir (düşük öncelik).
+  - **D-19:** U6 — v1'in gerçek verisi (3 kullanıcı, 12 etkileşim, 7 liste) kullanıcı kararıyla yeni DB'ye aktarılmadı; yalnızca yedekte duruyor.
+  - **TMDB canlı doğrulama eksik:** Film/dizi kodu yazıldı ve mock'lu testlerle doğrulandı ama gerçek TMDB çağrısı U2'yi bekliyor. U2 tamamlanınca `python -m scripts.seed --reset` tekrar çalıştırılırsa filmler otomatik eklenir.
+  - Sosyal modülün inceleme-okuma uçları (`list_content_reviews`/`list_user_reviews`) feed kadar agresif N+1-optimize edilmedi (bilinçli sadelik tercihi, küçük ölçek için yeterli).
+- **Push bekliyor:** `v2` dalında `origin/v2`'nin 22 commit ilerisinde — F1.11 🏁 kapanışında kullanıcıya push izni soruluyor.
+- **Sırada:** Faz 2 — Frontend Temeli (F2.1 önkoşulu: Node ≥22.18, yani **U3 önce yapılmalı**).
 
 ---
 
@@ -58,7 +53,7 @@
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
 | 0 | Güvenlik, temizlik, hazırlık | 🟨 Faz 1 başladı, F0.4 asılı | 4/5 (F0.4 Node bekliyor) | 2026-09-26 | – |
-| 1 | Backend temeli | 🟨 Devam ediyor | 10/11 | 2026-09-26 | – |
+| 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
@@ -113,7 +108,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F1.8 — Sosyal: aktiviteler, akış, beğeni, yorum, bildirim — ✅ (2026-09-26)
 - [x] F1.9 — Özel listeler — ✅ (2026-09-26)
 - [x] F1.10 — Profil özeti, platform vitrinleri ve demo verisi — ✅ (2026-09-26); U6 (eski veri aktarımı): kullanıcı "hayır, atla" dedi (D-19)
-- [ ] F1.11 — Faz 1 kapanışı 🏁
+- [x] F1.11 — Faz 1 kapanışı 🏁 — ✅ (2026-09-26)
 
 ### Faz 2 — Frontend Temeli
 
@@ -298,7 +293,7 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 
 | Ölçüm | Hedef | Değer | Tarih |
 |---|---|---|---|
-| Backend test kapsamı (servisler) | ≥ %75 | – | – |
+| Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%80** | 2026-09-26 (F1.11) |
 | Lighthouse Performans (mobil: Keşfet / Detay / Akış) | ≥ 85 | – | – |
 | Lighthouse Erişilebilirlik (mobil) | ≥ 90 | – | – |
 | İlk yük JavaScript (gzip) | ≤ 200 KB | – | – |
@@ -335,6 +330,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F1.11 — 🏁 Faz 1 kapanışı — ✅
+
+- **Yapılanlar:** OpenAPI kontrolü: 67 uç, hepsinde Türkçe `summary`, doğru `tags`, `response_model`; `operationId`'ler `tag-fonksiyon` biçiminde, çakışma yok. `ruff check .`+`ruff format --check .` temiz. `pytest --cov=app --cov-report=term-missing` → **%80 genel kapsam** (hedef ≥%70). `git grep` ile yeni kodun `legacy/` içe aktarmadığı doğrulandı. Kök `README.md`'ye geçici "Backend'i çalıştırma" bölümü eklendi (kurulum adımları + demo giriş bilgisi).
+- **Değişen dosyalar:** `README.md`.
+- **Doğrulama:** 67 uç OpenAPI kontrolünden geçti ✓ · `pytest --cov` → 69 passed, %80 kapsam ✓ (düşük kapsamlı dosyalar: `google_books.py` %40 — opsiyonel/kullanılmıyor; `tmdb.py` %59 ve `social/service.py` %51 — sırasıyla U2 ve bilinçli sadelik nedeniyle, ayrıntı bağlam özetinde) · `git grep -nE "(from|import) legacy|legacy/backend-v1" -- backend/app` → boş ✓
+- **Kapanan maddeler:** —
+- **Commit:** `c5e3fa9`
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** Kullanıcıya Faz 1 özeti sunulacak, `v2` dalını push etmek için izin istenecek, sonra Faz 2 (frontend) — önkoşul U3 (Node güncellemesi).
 
 ### [2026-09-26] F1.10 — Profil özeti, platform vitrinleri ve demo verisi — ✅
 
