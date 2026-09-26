@@ -20,14 +20,14 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 📝 Plan hazır — kullanıcının **"başla"** komutu bekleniyor |
+| Proje durumu | 🟨 Faz 0 uygulanıyor |
 | Aktif faz | Faz 0 — Güvenlik, temizlik ve hazırlık |
-| Sıradaki adım | **F0.1 — Yedekleme ve çalışma dalı** |
-| Çalışma dalı | `main` (F0.1'de `v2` açılacak) |
-| Son commit | `3a39b28` (v1 — "Update") |
+| Sıradaki adım | **F0.2 — `.gitignore` ve depo temizliği** |
+| Çalışma dalı | `v2` |
+| Son commit | `ef2ccda` (docs: v2 proje planı ve ilerleme takibi) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
-| Açık engeller | 👤 Kullanıcı eylemleri bekleniyor (özellikle U1 — acil) |
+| Açık engeller | 👤 U1 hâlâ acil bekliyor (Gmail uygulama şifresi iptali) — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
 
 ### Bağlam özeti (yeni oturum açan uygulayıcı için)
 
@@ -35,7 +35,7 @@
 - **Analiz (2026-09-26):** Bulgular planın §2'sinde — SEC-01…09, BUG-01…20, DEBT-01…07; ödev eksikleri Ek A'da.
 - **Kitaplar neden bozuk:** Google Books anahtarsız çağrılıyor → HTTP 429 (anonim kota 0) → API `null` dönüyor. Çözüm: Open Library (F1.6).
 - **Güvenlik:** GitHub deposu public; kodda Gmail uygulama şifresi, sabit JWT anahtarı, TMDB anahtarı; depoda kullanıcı e-postalı veritabanı → Faz 0 önce yapılır.
-- **Durum:** Hiçbir kod değişikliği yapılmadı. Plan dosyaları henüz commit edilmedi (F0.1'in ilk maddesi).
+- **Durum:** F0.1 tamamlandı — plan dosyaları `main`e commit edildi (`ef2ccda`), `legacy-v1` etiketi o commit'te oluşturuldu, çalışma dalı `v2`'ye geçirildi, v1 veritabanı `backend/legacy_backup/sql_app_v1.db`'ye yedeklendi (izlenmiyor, F0.2'de gitignore'a eklenecek). Henüz kod (backend/frontend) değişikliği yok.
 - **Ortam:** Node 22.12 kurulu; Faz 2'den önce ≥ 22.18 gerekli (U3 / F0.4).
 
 ---
@@ -44,7 +44,7 @@
 
 | Faz | Başlık | Durum | İlerleme | Başlangıç | Bitiş |
 |---|---|---|---|---|---|
-| 0 | Güvenlik, temizlik, hazırlık | ⬜ Başlamadı | 0/5 | – | – |
+| 0 | Güvenlik, temizlik, hazırlık | 🟨 Devam ediyor | 1/5 | 2026-09-26 | – |
 | 1 | Backend temeli | ⬜ Başlamadı | 0/11 | – | – |
 | 2 | Frontend temeli | ⬜ Başlamadı | 0/5 | – | – |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ⬜ Başlamadı | 0/10 | – | – |
@@ -81,7 +81,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 ### Faz 0 — Güvenlik, Temizlik ve Hazırlık
 
-- [~] F0.1 — Yedekleme ve çalışma dalı (🟨 devam ediyor)
+- [x] F0.1 — Yedekleme ve çalışma dalı — ✅ (2026-09-26)
 - [ ] F0.2 — `.gitignore` ve depo temizliği
 - [ ] F0.3 — Sırları koddan çıkarma (👤 U1, U2, U4)
 - [ ] F0.4 — Geliştirme ortamı (👤 U3)
@@ -314,6 +314,16 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-26] F0.1 — Yedekleme ve çalışma dalı — ✅
+
+- **Yapılanlar:** Git durumu kontrol edildi (yalnızca iki plan dosyası izlenmiyordu, beklenen durumla eşleşti). Plan dosyaları `main` üzerinde commit edildi. `legacy-v1` etiketi o commit'e eklendi. `v2` çalışma dalı açıldı ve etkinleştirildi. v1 veritabanı `backend/legacy_backup/sql_app_v1.db` olarak yedeklendi.
+- **Değişen dosyalar:** `proje-plani.md`, `proje-ilerleme-durumu.md` (main'e commit); `backend/legacy_backup/sql_app_v1.db` (yeni, izlenmiyor — commit edilmedi).
+- **Doğrulama:** `git tag -l legacy-v1` → `legacy-v1` ✓ · `git branch --show-current` → `v2` ✓ · `test -f backend/legacy_backup/sql_app_v1.db` → mevcut ✓
+- **Kapanan maddeler:** —
+- **Commit:** `ef2ccda` (docs: v2 proje planı ve ilerleme takibi — plan dosyaları; ardından tag/branch/yedek işlemleri, dosya değişikliği yok)
+- **Notlar / sorunlar:** U1 (Gmail uygulama şifresi iptali) hâlâ kullanıcı tarafından yapılmadı — acil, hatırlatıldı. `backend/legacy_backup/` F0.2'de `.gitignore`'a eklenecek.
+- **Sonraki adım:** F0.2
 
 ### [2026-09-26] Hazırlık — Analiz ve plan — ✅
 
