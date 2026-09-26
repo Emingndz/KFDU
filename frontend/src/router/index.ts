@@ -57,8 +57,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/kesfet',
     name: 'discover',
-    component: ComingSoonPage,
-    props: { title: 'Keşfet' },
+    component: () => import('@/pages/DiscoverPage.vue'),
     meta: { title: 'Keşfet' },
   },
   {

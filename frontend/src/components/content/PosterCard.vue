@@ -2,14 +2,14 @@
 import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ImageOff } from 'lucide-vue-next'
-import type { ContentSummary } from '@/types'
+import type { ContentSummary, LibraryStatus } from '@/types'
 import { contentPath, typeLabel } from '@/utils/content'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 
 const props = withDefaults(
   defineProps<{
     content: ContentSummary
-    myState?: { isFavorite?: boolean } | null
+    myState?: { status?: LibraryStatus | null; rating?: number | null; isFavorite?: boolean } | null
     size?: 'sm' | 'md' | 'lg'
   }>(),
   { size: 'md' },
@@ -48,9 +48,12 @@ const badgeVariant: Record<string, 'movie' | 'tv' | 'book'> = { movie: 'movie', 
       <BaseBadge :variant="badgeVariant[content.type]" size="sm" class="absolute top-1.5 left-1.5">
         {{ typeLabel(content.type) }}
       </BaseBadge>
-      <BaseBadge v-if="myState?.isFavorite" variant="danger" size="sm" class="absolute top-1.5 right-1.5">
-        ♥
-      </BaseBadge>
+      <div class="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
+        <BaseBadge v-if="myState?.rating" variant="success" size="sm">★ {{ myState.rating }}</BaseBadge>
+        <BaseBadge v-else-if="myState?.status === 'completed'" variant="success" size="sm">✓</BaseBadge>
+        <BaseBadge v-else-if="myState?.status === 'planned'" variant="neutral" size="sm">🔖</BaseBadge>
+        <BaseBadge v-if="myState?.isFavorite" variant="danger" size="sm">♥</BaseBadge>
+      </div>
     </div>
     <div>
       <p class="line-clamp-2 text-sm font-medium text-fg">{{ content.title }}</p>

@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { type MaybeRefOrGetter, toValue } from 'vue'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { api } from './client'
 import type { DeleteAccountIn, EmailChangeIn, MeOut, MeUpdateIn, Page, ProfileOut, PublicUserOut } from '@/types'
 
@@ -52,4 +53,37 @@ export function useUpdateMe() {
 
 export function useSuggestions(limit = 10) {
   return useQuery({ queryKey: ['user-suggestions', limit], queryFn: () => getSuggestionsRequest(limit) })
+}
+
+export function useUserSearch(q: MaybeRefOrGetter<string>) {
+  return useInfiniteQuery(() => ({
+    queryKey: ['user-search', toValue(q)],
+    queryFn: ({ pageParam }: { pageParam: number }) => searchUsersRequest(toValue(q), pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: Page<PublicUserOut>) => (lastPage.has_next ? lastPage.page + 1 : undefined),
+    enabled: toValue(q).trim().length >= 2,
+    staleTime: 5 * 60_000,
+  }))
+}
+
+function invalidateFollowRelated(queryClient: ReturnType<typeof useQueryClient>, username: string) {
+  void queryClient.invalidateQueries({ queryKey: ['user', username] })
+  void queryClient.invalidateQueries({ queryKey: ['user-suggestions'] })
+  void queryClient.invalidateQueries({ queryKey: ['user-search'] })
+}
+
+export function useFollowUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: followUserRequest,
+    onSuccess: (_, username) => invalidateFollowRelated(queryClient, username),
+  })
+}
+
+export function useUnfollowUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: unfollowUserRequest,
+    onSuccess: (_, username) => invalidateFollowRelated(queryClient, username),
+  })
 }

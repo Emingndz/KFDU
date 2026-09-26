@@ -1,4 +1,7 @@
+import { type MaybeRefOrGetter, toValue } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
 import { api } from './client'
+import { useAuthStore } from '@/stores/auth'
 import type { CatalogContentType } from './catalog'
 import type {
   ContentState,
@@ -25,6 +28,16 @@ export function getContentStateRequest(type: CatalogContentType, externalId: str
 
 export function lookupLibraryRequest(keys: string[]) {
   return api<Record<string, LookupEntryOut>>('/library/lookup', { method: 'POST', body: { keys } })
+}
+
+export function useLibraryLookup(keys: MaybeRefOrGetter<string[]>) {
+  const auth = useAuthStore()
+  return useQuery(() => ({
+    queryKey: ['library-lookup', toValue(keys)],
+    queryFn: () => lookupLibraryRequest(toValue(keys)),
+    enabled: auth.isAuthenticated && toValue(keys).length > 0,
+    staleTime: 30_000,
+  }))
 }
 
 export function getUserLibraryRequest(

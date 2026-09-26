@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ContentSummary } from '@/types'
+import type { ContentSummary, LookupEntryOut } from '@/types'
+import { contentKey } from '@/utils/content'
 import PosterCard from './PosterCard.vue'
 import BaseSkeleton from '@/components/ui/BaseSkeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -7,6 +8,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 withDefaults(
   defineProps<{
     items: ContentSummary[]
+    lookup?: Record<string, LookupEntryOut>
     loading?: boolean
     skeletonCount?: number
     emptyTitle?: string
@@ -25,6 +27,12 @@ withDefaults(
   </div>
   <EmptyState v-else-if="items.length === 0" :title="emptyTitle" :message="emptyMessage" />
   <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-    <PosterCard v-for="item in items" :key="`${item.type}:${item.external_id}`" :content="item" class="!w-full" />
+    <PosterCard
+      v-for="item in items"
+      :key="`${item.type}:${item.external_id}`"
+      :content="item"
+      :my-state="lookup?.[contentKey(item.type, item.external_id)]"
+      class="!w-full"
+    />
   </div>
 </template>
