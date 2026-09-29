@@ -83,3 +83,44 @@ export function useCreateList() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
   })
 }
+
+export function useListDetail(listId: MaybeRefOrGetter<number>) {
+  return useQuery(() => ({
+    queryKey: ['lists', 'detail', toValue(listId)],
+    queryFn: () => getListDetailRequest(toValue(listId)),
+    staleTime: 30_000,
+  }))
+}
+
+export function useUpdateList() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ listId, payload }: { listId: number; payload: ListUpdateIn }) => updateListRequest(listId, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
+  })
+}
+
+export function useDeleteList() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteListRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
+  })
+}
+
+export function useUpdateListItemNote() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ listId, contentId, note }: { listId: number; contentId: number; note: string | null }) =>
+      updateListItemNoteRequest(listId, contentId, note),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
+  })
+}
+
+export function useReorderListItems() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ listId, contentIds }: { listId: number; contentIds: number[] }) => reorderListItemsRequest(listId, contentIds),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
+  })
+}

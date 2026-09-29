@@ -27,7 +27,7 @@ import ActivityCard from '@/components/content/ActivityCard.vue'
 import ContentGrid from '@/components/content/ContentGrid.vue'
 import ReviewItem from '@/components/content/ReviewItem.vue'
 import ListCard from '@/components/lists/ListCard.vue'
-import CreateListModal from '@/components/lists/CreateListModal.vue'
+import ListFormModal from '@/components/lists/ListFormModal.vue'
 
 const props = defineProps<{ username: string }>()
 
@@ -260,7 +260,7 @@ function showFollowing() {
     </template>
 
     <EditProfileModal v-model="editModalOpen" />
-    <CreateListModal v-model="newListModalOpen" />
+    <ListFormModal v-model="newListModalOpen" />
     <UserListModal v-model="followListModalOpen" :username="username" :mode="followListMode" />
   </div>
 </template>

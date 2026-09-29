@@ -97,8 +97,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/liste/:id',
     name: 'list',
-    component: ComingSoonPage,
-    props: { title: 'Liste' },
+    component: () => import('@/pages/ListPage.vue'),
+    props: (route) => ({ id: String(route.params.id) }),
     meta: { title: 'Liste' },
   },
   {
