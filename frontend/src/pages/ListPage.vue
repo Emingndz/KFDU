@@ -204,7 +204,7 @@ async function saveNote(contentId: number | null | undefined) {
           <div v-if="isOwner && editingNoteFor === item.content.id" class="flex flex-col gap-1">
             <textarea v-model="noteDraft" rows="2" maxlength="300" class="w-full rounded-lg border border-border bg-surface-1 p-1.5 text-xs text-fg" />
             <div class="flex gap-2">
-              <button type="button" class="text-xs font-medium text-brand-600 hover:underline" @click="saveNote(item.content.id)">Kaydet</button>
+              <button type="button" class="text-xs font-medium text-link hover:underline" @click="saveNote(item.content.id)">Kaydet</button>
               <button type="button" class="text-xs text-muted hover:text-fg" @click="editingNoteFor = null">Vazgeç</button>
             </div>
           </div>

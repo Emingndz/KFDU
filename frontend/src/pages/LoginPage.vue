@@ -72,10 +72,10 @@ async function onSubmit() {
     </form>
 
     <div class="flex flex-col items-center gap-2 text-sm">
-      <RouterLink to="/sifremi-unuttum" class="text-brand-600 hover:underline">Şifremi unuttum</RouterLink>
+      <RouterLink to="/sifremi-unuttum" class="text-link hover:underline">Şifremi unuttum</RouterLink>
       <p class="text-muted">
         Hesabın yok mu?
-        <RouterLink to="/kayit" class="font-medium text-brand-600 hover:underline">Kayıt ol</RouterLink>
+        <RouterLink to="/kayit" class="font-medium text-link hover:underline">Kayıt ol</RouterLink>
       </p>
     </div>
   </div>

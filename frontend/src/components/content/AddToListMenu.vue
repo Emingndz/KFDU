@@ -96,7 +96,7 @@ async function submitNewList() {
           @click="toggle(list.id, list.contains)"
         >
           <span class="truncate text-fg">{{ list.title }}</span>
-          <Check v-if="list.contains" class="size-4 shrink-0 text-brand-600" />
+          <Check v-if="list.contains" class="size-4 shrink-0 text-link" />
         </button>
       </template>
 
@@ -108,7 +108,7 @@ async function submitNewList() {
         <button
           v-else
           type="button"
-          class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-brand-600 hover:bg-surface-2"
+          class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-link hover:bg-surface-2"
           @click="creatingNew = true"
         >
           <Plus class="size-4" />

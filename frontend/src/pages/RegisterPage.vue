@@ -146,7 +146,7 @@ async function onSubmit() {
 
     <p class="text-center text-sm text-muted">
       Zaten hesabın var mı?
-      <RouterLink to="/giris" class="font-medium text-brand-600 hover:underline">Giriş yap</RouterLink>
+      <RouterLink to="/giris" class="font-medium text-link hover:underline">Giriş yap</RouterLink>
     </p>
   </div>
 </template>

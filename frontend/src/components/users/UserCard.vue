@@ -10,7 +10,7 @@ defineEmits<{ toggleFollow: [] }>()
 
 <template>
   <div class="flex items-center gap-3 rounded-card border border-border p-3">
-    <RouterLink :to="`/u/${user.username}`">
+    <RouterLink :to="`/u/${user.username}`" :aria-label="`${user.display_name || user.username} profili`">
       <BaseAvatar :name="user.display_name || user.username" :src="user.avatar_url" size="md" />
     </RouterLink>
     <div class="min-w-0 flex-1">

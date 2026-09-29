@@ -24,11 +24,11 @@ const props = withDefaults(
 const tag = computed(() => (props.to ? RouterLink : 'button'))
 
 const variantClass: Record<string, string> = {
-  primary: 'bg-brand-500 text-white hover:bg-brand-600 disabled:bg-brand-300',
+  primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-300',
   secondary: 'bg-surface-2 text-fg hover:bg-border',
   ghost: 'bg-transparent text-fg hover:bg-surface-2',
   danger: 'bg-danger text-white hover:opacity-90',
-  link: 'bg-transparent text-brand-600 hover:underline p-0! h-auto!',
+  link: 'bg-transparent text-link hover:underline p-0! h-auto!',
 }
 
 const sizeClass: Record<string, string> = {

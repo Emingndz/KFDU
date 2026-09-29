@@ -191,7 +191,7 @@ function toggleLoadingDemo() {
   <div class="mx-auto max-w-4xl space-y-10 p-8">
     <header class="flex items-center justify-between">
       <h1 class="text-3xl font-bold">KFDU — Bileşen Vitrini</h1>
-      <BaseSelect v-model="mode" :options="themeOptions.map((o) => ({ value: o.value, label: o.label }))" />
+      <BaseSelect v-model="mode" aria-label="Tema" :options="themeOptions.map((o) => ({ value: o.value, label: o.label }))" />
     </header>
 
     <section class="space-y-3">

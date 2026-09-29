@@ -31,6 +31,7 @@
   --border: #e3e5ee;
   --fg: #141620;
   --muted: #5d6275;
+  --link: #6a47ff;
 }
 .dark {
   --bg: #0e1016;
@@ -39,6 +40,9 @@
   --border: #2a2f3f;
   --fg: #eceef5;
   --muted: #9aa0b4;
+  /* brand-600 (#6a47ff) tek başına #0e1016 üzerinde 3.58:1 kontrast veriyor (WCAG AA'nın
+     4.5:1 eşiğinin altında, Lighthouse ile canlı tespit edildi) — karanlık modda brand-400 kullanılır. */
+  --link: #9479ff;
 }
 
 @theme inline {
@@ -48,6 +52,7 @@
   --color-border: var(--border);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
+  --color-link: var(--link);
 }
 
 body {

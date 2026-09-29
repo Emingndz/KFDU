@@ -8,7 +8,7 @@ withDefaults(
 )
 
 const variantClass: Record<string, string> = {
-  brand: 'bg-brand-500/15 text-brand-600',
+  brand: 'bg-brand-500/15 text-link',
   movie: 'bg-movie/15 text-movie',
   tv: 'bg-tv/15 text-tv',
   book: 'bg-book/15 text-book',

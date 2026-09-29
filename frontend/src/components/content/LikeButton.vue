@@ -24,7 +24,7 @@ watch(
     :class="modelValue ? 'text-like' : 'hover:text-fg'"
     :disabled="disabled"
     :aria-pressed="modelValue"
-    :aria-label="modelValue ? 'Beğeniyi geri al' : 'Beğen'"
+    :aria-label="`${modelValue ? 'Beğeniyi geri al' : 'Beğen'} · ${count}`"
     @click="emit('update:modelValue', !modelValue)"
   >
     <Heart class="size-5" :class="{ 'like-pulse': pulsing }" :fill="modelValue ? 'currentColor' : 'none'" />

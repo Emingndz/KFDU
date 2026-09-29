@@ -46,7 +46,7 @@ function select(status: LibraryStatus) {
           type="button"
           role="menuitem"
           class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-2"
-          :class="status === 'in_progress' ? 'font-medium text-brand-600' : 'text-fg'"
+          :class="status === 'in_progress' ? 'font-medium text-link' : 'text-fg'"
           @click="select('in_progress')"
         >
           {{ statusLabel('in_progress', type) }}
@@ -55,7 +55,7 @@ function select(status: LibraryStatus) {
           type="button"
           role="menuitem"
           class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-2"
-          :class="status === 'dropped' ? 'font-medium text-brand-600' : 'text-fg'"
+          :class="status === 'dropped' ? 'font-medium text-link' : 'text-fg'"
           @click="select('dropped')"
         >
           {{ statusLabel('dropped', type) }}

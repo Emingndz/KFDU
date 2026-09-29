@@ -80,8 +80,8 @@ function removeChip(key: keyof DiscoverFilters) {
         />
       </div>
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium text-fg">Asgari puan: {{ draft.min_rating ?? 0 }}</label>
-        <input v-model.number="draft.min_rating" type="range" min="0" max="10" step="1" class="h-10 accent-brand-500" />
+        <label for="min-rating-slider" class="text-sm font-medium text-fg">Asgari puan: {{ draft.min_rating ?? 0 }}</label>
+        <input id="min-rating-slider" v-model.number="draft.min_rating" type="range" min="0" max="10" step="1" class="h-10 accent-brand-500" />
       </div>
       <BaseSelect v-model="draft.sort" label="Sıralama" :options="SORT_OPTIONS" />
       <BaseSelect v-model="draft.language" label="Dil" placeholder="Tümü" :options="LANGUAGE_OPTIONS" />
@@ -97,7 +97,7 @@ function removeChip(key: keyof DiscoverFilters) {
         v-for="chip in activeChips"
         :key="chip.key"
         type="button"
-        class="flex items-center gap-1 rounded-full bg-brand-500/15 px-3 py-1 text-xs font-medium text-brand-600"
+        class="flex items-center gap-1 rounded-full bg-brand-500/15 px-3 py-1 text-xs font-medium text-link"
         @click="removeChip(chip.key)"
       >
         {{ chip.label }}

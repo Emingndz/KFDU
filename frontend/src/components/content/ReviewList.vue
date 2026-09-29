@@ -32,6 +32,7 @@ const items = computed(() => {
       <h2 class="text-lg font-semibold text-fg">İncelemeler</h2>
       <BaseSelect
         v-model="sort"
+        aria-label="İncelemeleri sırala"
         :options="[
           { value: 'new', label: 'Yeni' },
           { value: 'popular', label: 'Popüler' },

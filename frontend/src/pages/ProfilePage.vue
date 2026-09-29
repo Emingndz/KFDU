@@ -213,7 +213,7 @@ function showFollowing() {
             :key="filter.key"
             type="button"
             class="rounded-full border px-3 py-1.5 text-sm"
-            :class="librarySubTab === filter.key ? 'border-brand-500 bg-brand-500/15 text-brand-600' : 'border-border text-fg hover:bg-surface-2'"
+            :class="librarySubTab === filter.key ? 'border-brand-500 bg-brand-500/15 text-link' : 'border-border text-fg hover:bg-surface-2'"
             @click="librarySubTab = filter.key"
           >
             {{ filter.label }}
@@ -221,6 +221,7 @@ function showFollowing() {
         </div>
         <BaseSelect
           v-model="librarySort"
+          aria-label="Kütüphaneyi sırala"
           :options="[
             { value: 'recent', label: 'Son eklenen' },
             { value: 'rating', label: 'Puan' },

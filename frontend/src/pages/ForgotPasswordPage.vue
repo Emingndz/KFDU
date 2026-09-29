@@ -127,7 +127,7 @@ async function onConfirmSubmit() {
       <BaseButton type="submit" :loading="verifyReset.isPending.value" class="w-full">Doğrula</BaseButton>
       <button
         type="button"
-        class="text-sm text-brand-600 hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
+        class="text-sm text-link hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
         :disabled="resendIn > 0"
         @click="onResend"
       >
@@ -154,6 +154,6 @@ async function onConfirmSubmit() {
       <BaseButton type="submit" :loading="confirmReset.isPending.value" class="w-full">Şifreyi sıfırla</BaseButton>
     </form>
 
-    <RouterLink to="/giris" class="text-center text-sm text-brand-600 hover:underline">Girişe dön</RouterLink>
+    <RouterLink to="/giris" class="text-center text-sm text-link hover:underline">Girişe dön</RouterLink>
   </div>
 </template>

@@ -84,7 +84,7 @@ async function onRemoveAvatar() {
     <div class="flex items-center gap-3">
       <BaseAvatar :name="displayName || username" :src="avatarPreview ?? auth.me?.avatar_url" size="xl" />
       <div class="flex flex-col gap-2">
-        <label class="cursor-pointer text-sm font-medium text-brand-600 hover:underline">
+        <label class="cursor-pointer text-sm font-medium text-link hover:underline">
           Fotoğraf yükle
           <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
         </label>

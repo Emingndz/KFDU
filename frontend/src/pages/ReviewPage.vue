@@ -166,7 +166,7 @@ async function removeReview() {
 
     <div class="flex flex-col gap-3">
       <div class="flex items-center gap-3">
-        <RouterLink :to="`/u/${review.data.value.author.username}`">
+        <RouterLink :to="`/u/${review.data.value.author.username}`" :aria-label="`${authorName} profili`">
           <BaseAvatar :name="authorName ?? ''" :src="review.data.value.author.avatar_url" />
         </RouterLink>
         <div>

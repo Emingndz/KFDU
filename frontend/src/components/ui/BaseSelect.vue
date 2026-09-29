@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useId } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   label?: string
+  ariaLabel?: string
   error?: string
   options: { value: string; label: string }[]
   placeholder?: string
@@ -20,6 +21,7 @@ const id = useId()
       :id="id"
       v-model="model"
       :disabled="disabled"
+      :aria-label="!label ? (props.ariaLabel ?? placeholder) : undefined"
       :aria-invalid="Boolean(error)"
       class="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-60"
       :class="{ 'border-danger': error }"

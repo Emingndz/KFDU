@@ -27,7 +27,7 @@ function logout() {
   <header class="sticky top-0 z-40 h-16 border-b border-border bg-surface/80 backdrop-blur">
     <div class="mx-auto flex h-full max-w-6xl items-center justify-between gap-4 px-4">
       <RouterLink to="/" class="flex items-center gap-2 font-bold text-fg">
-        <span class="flex size-8 items-center justify-center rounded-lg bg-brand-500 text-sm text-white">K</span>
+        <span class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">K</span>
         KFDU
       </RouterLink>
 
@@ -96,7 +96,7 @@ function logout() {
                 type="button"
                 role="menuitem"
                 class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-2"
-                :class="mode === option.value ? 'font-medium text-brand-600' : 'text-fg'"
+                :class="mode === option.value ? 'font-medium text-link' : 'text-fg'"
                 @click="mode = option.value"
               >
                 {{ option.label }}

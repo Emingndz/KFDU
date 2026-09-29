@@ -209,7 +209,7 @@ async function submitDeleteAccount() {
           :key="option.value"
           type="button"
           class="rounded-full border px-3 py-1.5 text-sm transition motion-safe:duration-150"
-          :class="mode === option.value ? 'border-brand-500 bg-brand-500/15 text-brand-600' : 'border-border bg-surface text-fg hover:bg-surface-2'"
+          :class="mode === option.value ? 'border-brand-500 bg-brand-500/15 text-link' : 'border-border bg-surface text-fg hover:bg-surface-2'"
           :aria-pressed="mode === option.value"
           @click="mode = option.value"
         >

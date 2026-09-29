@@ -27,7 +27,7 @@ function scrollBy(direction: 1 | -1) {
   <section class="flex flex-col gap-3">
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-fg">{{ title }}</h2>
-      <RouterLink v-if="seeAllTo" :to="seeAllTo" class="text-sm text-brand-600 hover:underline">Tümü</RouterLink>
+      <RouterLink v-if="seeAllTo" :to="seeAllTo" class="text-sm text-link hover:underline">Tümü</RouterLink>
     </div>
 
     <div class="relative">

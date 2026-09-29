@@ -64,7 +64,7 @@ function toggleComments() {
 <template>
   <article class="flex flex-col gap-3 rounded-card border border-border p-4">
     <div class="flex items-center gap-2">
-      <RouterLink :to="`/u/${activity.actor.username}`">
+      <RouterLink :to="`/u/${activity.actor.username}`" :aria-label="`${authorName} profili`">
         <BaseAvatar :name="authorName" :src="activity.actor.avatar_url" size="sm" />
       </RouterLink>
       <p class="text-sm text-fg">
@@ -96,7 +96,7 @@ function toggleComments() {
         <div v-if="activity.review" class="relative">
           <p class="text-sm whitespace-pre-wrap text-fg" :class="{ 'blur-sm select-none': activity.review.has_spoiler && !revealSpoiler }">
             {{ activity.review.excerpt }}
-            <RouterLink v-if="activity.review.is_truncated" :to="`/inceleme/${activity.review.id}`" class="font-medium text-brand-600 hover:underline">
+            <RouterLink v-if="activity.review.is_truncated" :to="`/inceleme/${activity.review.id}`" class="font-medium text-link hover:underline">
               …devamını oku
             </RouterLink>
           </p>
@@ -127,7 +127,7 @@ function toggleComments() {
         <SafeImage :src="activity.content.poster_url" :alt="activity.content.title" class="aspect-[2/3] w-16 rounded-lg object-cover" />
       </RouterLink>
       <RouterLink :to="contentHref!" class="font-medium text-fg hover:underline">{{ activity.content.title }}</RouterLink>
-      <RouterLink v-if="activity.list" :to="`/liste/${activity.list.id}`" class="text-sm text-brand-600 hover:underline">
+      <RouterLink v-if="activity.list" :to="`/liste/${activity.list.id}`" class="text-sm text-link hover:underline">
         → {{ activity.list.title }}
       </RouterLink>
     </div>

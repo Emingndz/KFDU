@@ -196,7 +196,7 @@ function goToDiscover() {
       <button
         v-if="!overviewExpanded"
         type="button"
-        class="w-fit text-sm font-medium text-brand-600 hover:underline"
+        class="w-fit text-sm font-medium text-link hover:underline"
         @click="overviewExpanded = true"
       >
         Devamını göster

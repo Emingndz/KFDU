@@ -10,11 +10,11 @@ const auth = useAuthStore()
   <nav
     class="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-border bg-surface/95 backdrop-blur sm:hidden"
   >
-    <RouterLink to="/" class="flex flex-col items-center gap-0.5 text-xs text-muted" active-class="text-brand-600">
+    <RouterLink to="/" class="flex flex-col items-center gap-0.5 text-xs text-muted" active-class="text-link">
       <Rss class="size-5" />
       Akış
     </RouterLink>
-    <RouterLink to="/kesfet" class="flex flex-col items-center gap-0.5 text-xs text-muted" active-class="text-brand-600">
+    <RouterLink to="/kesfet" class="flex flex-col items-center gap-0.5 text-xs text-muted" active-class="text-link">
       <Compass class="size-5" />
       Keşfet
     </RouterLink>
@@ -22,7 +22,7 @@ const auth = useAuthStore()
       v-if="auth.me"
       :to="`/u/${auth.me.username}`"
       class="flex flex-col items-center gap-0.5 text-xs text-muted"
-      active-class="text-brand-600"
+      active-class="text-link"
     >
       <User class="size-5" />
       Profil

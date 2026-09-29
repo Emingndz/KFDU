@@ -52,7 +52,7 @@ const displayName = computed(() => props.review.author.display_name || props.rev
 <template>
   <article class="flex flex-col gap-2 rounded-card border border-border p-4">
     <div class="flex items-start gap-3">
-      <RouterLink :to="`/u/${review.author.username}`">
+      <RouterLink :to="`/u/${review.author.username}`" :aria-label="`${displayName} profili`">
         <BaseAvatar :name="displayName" :src="review.author.avatar_url" size="sm" />
       </RouterLink>
       <div class="min-w-0 flex-1">
@@ -72,7 +72,7 @@ const displayName = computed(() => props.review.author.display_name || props.rev
     <div class="relative">
       <p class="text-sm whitespace-pre-wrap text-fg" :class="{ 'blur-sm select-none': review.has_spoiler && !revealSpoiler }">
         {{ review.excerpt }}
-        <RouterLink v-if="review.is_truncated" :to="`/inceleme/${review.id}`" class="font-medium text-brand-600 hover:underline">
+        <RouterLink v-if="review.is_truncated" :to="`/inceleme/${review.id}`" class="font-medium text-link hover:underline">
           …devamını oku
         </RouterLink>
       </p>

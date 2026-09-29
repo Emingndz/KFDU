@@ -121,7 +121,7 @@ function displayName(comment: { author: { display_name: string | null; username:
 
       <ul class="flex flex-col gap-3">
         <li v-for="comment in visibleComments" :key="comment.id" class="flex gap-2">
-          <RouterLink :to="`/u/${comment.author.username}`">
+          <RouterLink :to="`/u/${comment.author.username}`" :aria-label="`${displayName(comment)} profili`">
             <BaseAvatar :name="displayName(comment)" :src="comment.author.avatar_url" size="sm" />
           </RouterLink>
           <div class="min-w-0 flex-1">
@@ -179,7 +179,7 @@ function displayName(comment: { author: { display_name: string | null; username:
       <button
         v-if="compact && allComments.length > visibleComments.length"
         type="button"
-        class="w-fit text-sm font-medium text-brand-600 hover:underline"
+        class="w-fit text-sm font-medium text-link hover:underline"
         @click="emit('expand')"
       >
         Tüm yorumlar ({{ allComments.length }})
