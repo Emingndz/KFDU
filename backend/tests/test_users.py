@@ -117,6 +117,26 @@ def test_avatar_upload_converts_to_webp(client, tmp_path, monkeypatch):
         assert saved.size == (256, 256)
 
 
+def test_avatar_upload_corrupt_image_returns_422(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "MEDIA_DIR", str(tmp_path))
+    a = _register(client, "avatarbozuk", "avatarbozuk@example.com")
+    headers = {"Authorization": f"Bearer {a['access_token']}"}
+
+    image = Image.new("RGB", (10, 10), color=(0, 255, 0))
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    data = bytearray(buffer.getvalue())
+    data[len(data) // 2] ^= 0xFF  # IDAT/CRC'yi boz — Pillow SyntaxError fırlatır
+
+    response = client.post(
+        "/api/v1/users/me/avatar",
+        headers=headers,
+        files={"file": ("avatar.png", bytes(data), "image/png")},
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == "INVALID_IMAGE"
+
+
 def test_delete_account_cascades_entries_and_reviews(client, db):
     a = _register(client, "silinecek", "silinecek@example.com")
     headers = {"Authorization": f"Bearer {a['access_token']}"}

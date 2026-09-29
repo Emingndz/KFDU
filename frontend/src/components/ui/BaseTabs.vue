@@ -15,7 +15,7 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div role="tablist" class="flex gap-1 border-b border-border" @keydown="onKeydown">
+  <div role="tablist" class="flex gap-1 overflow-x-auto border-b border-border" @keydown="onKeydown">
     <button
       v-for="tab in tabs"
       :key="tab.value"
@@ -23,7 +23,7 @@ function onKeydown(event: KeyboardEvent) {
       type="button"
       :aria-selected="model === tab.value"
       :tabindex="model === tab.value ? 0 : -1"
-      class="border-b-2 px-4 py-2 text-sm font-medium transition motion-safe:duration-150"
+      class="shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition motion-safe:duration-150"
       :class="
         model === tab.value
           ? 'border-brand-500 text-fg'

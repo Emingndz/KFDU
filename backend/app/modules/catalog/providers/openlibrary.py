@@ -87,7 +87,7 @@ def discover(
         "GET",
         f"{BASE_URL}/search.json",
         params={
-            "q": " ".join(query_parts) or "*",
+            "q": " ".join(query_parts),
             "page": page,
             "limit": limit,
             "fields": _SEARCH_FIELDS,

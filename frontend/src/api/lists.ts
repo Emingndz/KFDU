@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { type MaybeRefOrGetter, toValue } from 'vue'
 import { api } from './client'
+import { useAuthStore } from '@/stores/auth'
 import type { CatalogContentType } from './catalog'
 import type {
   ListCreateIn,
@@ -54,10 +55,12 @@ export function getUserListsRequest(username: string, page = 1) {
 }
 
 export function useMyLists(type: CatalogContentType, externalId: MaybeRefOrGetter<string>) {
-  return useQuery({
-    queryKey: ['lists', 'mine', type, externalId],
+  const auth = useAuthStore()
+  return useQuery(() => ({
+    queryKey: ['lists', 'mine', type, toValue(externalId)],
     queryFn: () => getMyListsRequest({ type, external_id: toValue(externalId) }),
-  })
+    enabled: auth.isAuthenticated,
+  }))
 }
 
 export function useAddListItem() {

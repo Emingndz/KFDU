@@ -2,7 +2,7 @@ import io
 import uuid
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 
 from app.core.config import settings
 from app.core.errors import AppError
@@ -21,7 +21,9 @@ def save_avatar(user_id: int, content_type: str, data: bytes) -> str:
     try:
         Image.open(io.BytesIO(data)).verify()
         image = Image.open(io.BytesIO(data)).convert("RGB")
-    except UnidentifiedImageError as exc:
+    except (OSError, SyntaxError, ValueError) as exc:
+        # Pillow, bozuk/yarım görsellerde formata göre farklı istisnalar fırlatır
+        # (UnidentifiedImageError zaten OSError'dan türer; SyntaxError örn. bozuk PNG CRC'sinde görüldü).
         raise AppError(422, "INVALID_IMAGE", "Görsel dosyası bozuk veya okunamıyor") from exc
 
     side = min(image.width, image.height)
