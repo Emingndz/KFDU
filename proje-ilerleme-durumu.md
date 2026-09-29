@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-29** — F3.7 tamamlandı (Listeler).
+> Son güncelleme: **2026-09-29** — F3.8 tamamlandı (Ayarlar sayfası).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.8 — Ayarlar sayfası** |
+| Sıradaki adım | **F3.9 — UX cilası** |
 | Çalışma dalı | `v2` |
-| Son commit | `813b5e9` (feat(F3.7): Listeler) |
+| Son commit | `08f3e8b` (feat(F3.8): Ayarlar sayfası) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -59,7 +59,14 @@
   - **Gerçek backend'e karşı uçtan uca (httpx betiği, iki test kullanıcısıyla, kitap tarafı):** liste oluştur → 2 öğe ekle (201, aynı öğeyi tekrar eklemek 200 idempotent) → detay (sahip/başka kullanıcı/anonim, hepsi herkese açıkken 200) → not güncelle → `PUT /order` ile sırayı ters çevir → detayda yeni sıra doğrulandı → başkası düzenlemeye/öğe silmeye çalışınca 403 → sahibi öğe kaldırır (`item_count` düşüyor) → sahibi başlığı değiştirir + gizliye çevirir → artık başkası/anonim 404, sahibi hâlâ 200 → `/users/{u}/lists` başkasına gizli listeyi göstermiyor ama sahibine gösteriyor → sahibi siler (204) → tekrar 404. 22/22 kontrol geçti, test kullanıcıları temizlendi.
   - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine liste bileşenleri eklenmedi (F3.6'da da aynı karar alınmıştı — gerçek bir liste ID'si gerektiriyor, sahte veriyle yalnızca iskelet görünürdü); bunun yerine `ProfilePage`'in Listeler sekmesi + gerçek backend doğrulaması kullanıldı.
   - **Süreklilik notu:** Önceki oturum kullanım limitine takılmıştı; bu oturum önce yarım kalan F3.6 ilerleme-durumu commit'ini tamamladı (`d0fc66f`), sonra F3.7'ye buradan devam etti.
-- **Sırada:** F3.8 — Ayarlar sayfası (`SettingsPage` `/ayarlar` — Profil/Hesap/Güvenlik/Görünüm/Tercihler/Tehlikeli bölge).
+- **F3.8 tamamlandı (2026-09-29):** `SettingsPage.vue` (`/ayarlar`): **Profil** (paylaşılan `ProfileForm`), **Hesap** (e-posta değiştir — mevcut şifreyle, `INVALID_PASSWORD`/`EMAIL_TAKEN` alan hatası olarak gösteriliyor), **Güvenlik** (şifre değiştir — başarıda `TokenOut`'tan gelen yeni token+kullanıcı `auth` store'a yazılıyor, eski token'lar `logout-all` deseniyle zaten geçersiz; "Tüm cihazlardan çıkış yap" — kendi oturumunu da düşürdüğü için `useConfirm` ile açıkça uyarıp başarıda yerel `logout()`+`/kesfet`), **Görünüm** (`useTheme`, zaten var olan header'daki tema seçiciyle aynı desen), **Tercihler** (favori türler — Onboarding'deki AYNI akış), **Tehlikeli bölge** (hesabı sil — şifre + tam "SİL" yazma onayı, ikisi de dolmadan buton `disabled`).
+  - **Gerçek hata düzeltmesi (kod incelemesinde bulundu, bu adımdan önce de vardı):** `EditProfileModal`'ın kaydet/avatar-kaldır işlemleri `useUpdateMe`/`useRemoveAvatar` çağırıyordu ama **`auth` store'daki `me`'yi hiç güncellemiyordu** — yalnız kullanılmayan bir TanStack `['user','me']` sorgusunu geçersiz kılıyordu (o sorgu hiçbir yerde tüketilmiyor). Sonuç: profil düzenlendikten sonra `AppHeader`/`AppBottomNav`'daki avatar/ad/kullanıcı adı bayatlıyordu — kullanıcı adı değiştirilirse alt gezinmedeki "Profilim" bağlantısı bile artık geçersiz eski kullanıcı adına gidiyordu (sayfa yenilenene kadar). F3.8'in Hesap/Güvenlik/Tercihler bölümleri AYNI sorunu daha da görünür hale getireceği için kökten düzeltildi: `EditProfileModal`'ın içeriği paylaşılan `ProfileForm.vue`'ya çıkarıldı (hem modalde hem Ayarlar'da kullanılıyor) ve artık her başarılı mutasyondan sonra `auth.setMe(...)` çağırıyor; `SettingsPage`'in e-posta/şifre/tercih mutasyonları da aynı deseni izliyor. `api/users.ts`/`api/lists.ts` gibi saf API katmanına DEĞİL, çağıran bileşene eklendi — `stores/auth.ts` zaten `api/users.ts`'den `fetchMeRequest` import ediyor, tersi yönde bir import döngüsel bağımlılık yaratırdı.
+  - **Yeniden kullanım:** `components/users/GenreChipPicker.vue` (yeni, saf sunum) — `OnboardingPage`'in İKİ AYRI yerde birebir kopyalanmış tür-çipi düğme bloğu artık bunu kullanıyor (davranış değişmedi), `SettingsPage`'in Tercihler bölümü de aynı bileşeni üçüncü/dördüncü kullanım yeri olarak paylaşıyor.
+  - `stores/auth.ts`: `setToken` dışa açıldı (yalnız store içinden çağrılabiliyordu) — şifre değiştirmenin döndürdüğü yeni token'ı yazmak için gerekliydi.
+  - `api/users.ts`: `useChangeEmail`, `useDeleteAccount` eklendi (`changeEmailRequest`/`deleteAccountRequest` zaten vardı, yalnız `use*` sarmalayıcıları eksikti). `api/auth.ts`'teki `useChangePassword`/`useLogoutAllDevices` ZATEN yazılmıştı (muhtemelen F1/F2'de ileriye dönük), bu adımda yalnız tüketildi.
+  - **Bilinçli plan sapması:** Plan "Hesap" bölümünde e-posta VE kullanıcı adı değişikliğini birlikte listeliyor, ama backend `PATCH /users/me` kullanıcı adını `display_name`/`bio` ile TEK bir uçta topluyor ve bu zaten `ProfileForm`'da (Profil bölümü) çalışıyor. Kullanıcı adını Hesap bölümünde İKİNCİ kez düzenlenebilir yapmak aynı sayfada iki ayrı "kullanıcı adı" alanı göstererek kafa karıştırırdı; bu yüzden Hesap bölümü yalnız e-postaya odaklandı, kullanıcı adı Profil'de kaldı.
+  - **Ödev kapsamı notu:** F3.8 Ek A'daki hiçbir REQ/BUG maddesini kapatmıyor — Ayarlar sayfası tamamen v2'nin kendi "ilk kullanılabilir sürüm" hedefinin bir parçası (proje-plani §3.8), ödevin zorunlu gereksinimi değil.
+- **Sırada:** F3.9 — UX cilası (`NotFoundPage`, genel hata sınırı, çevrimdışı şeridi, `/`+`g f`/`g k` klavye kısayolları, erişilebilirlik+responsive turu, `alert(`/`confirm(` taraması).
 
 ---
 
@@ -70,12 +77,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 7/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 8/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **28/64** | | |
+| **Toplam** | | | **29/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -142,7 +149,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.5 — Akış (feed) sayfası — ✅ (2026-09-27)
 - [x] F3.6 — Profil sayfası — ✅ (2026-09-27)
 - [x] F3.7 — Listeler — ✅ (2026-09-29)
-- [ ] F3.8 — Ayarlar sayfası
+- [x] F3.8 — Ayarlar sayfası — ✅ (2026-09-29)
 - [ ] F3.9 — UX cilası
 - [ ] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (`main`e ilk birleştirme)
 
@@ -348,6 +355,26 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-29] F3.8 — Ayarlar sayfası — ✅
+
+- **Yapılanlar:**
+  - **Gerçek hata düzeltmesi (F3.8'den önce de vardı, kod incelemesinde bulundu):** `EditProfileModal`'ın `useUpdateMe`/`useRemoveAvatar` çağrıları yalnız kullanılmayan bir TanStack `['user','me']` sorgusunu geçersiz kılıyordu, `auth` store'daki `me`'yi HİÇ güncellemiyordu. Sonuç: profil düzenlendikten sonra `AppHeader`/`AppBottomNav` bayat veri gösteriyordu; kullanıcı adı değişince alt gezinmenin "Profilim" bağlantısı bile eski/geçersiz kullanıcı adına gidiyordu (sayfa yenilenene kadar). F3.8'in Hesap/Güvenlik/Tercihler bölümleri aynı sorunu çoğaltacağı için kökten düzeltildi.
+  - `EditProfileModal.vue`'nin içeriği paylaşılan `components/users/ProfileForm.vue`'ya çıkarıldı (avatar+kullanıcı adı+ad+biyografi+Kaydet, `@saved` olayı yayar, artık her başarılı kayıttan/avatar kaldırmadan sonra `auth.setMe(...)` çağırıyor). `EditProfileModal` artık yalnız `<BaseModal><ProfileForm @saved="open=false" /></BaseModal>` — `BaseModal`'ın zaten var olan ✕/Escape/dış tıklama ile kapanma davranışı yeterli olduğu için ayrı bir "Vazgeç" footer butonu kaldırıldı (işlev kaybı yok, yalnız gereksiz tekrar).
+  - `components/users/GenreChipPicker.vue` (yeni, saf sunum — `genres`+`selected` props, `toggle` olayı): `OnboardingPage`'in İKİ AYRI yerde birebir kopyalanmış tür-çipi düğmesi artık bunu kullanıyor (davranış değişmedi, yalnız kod tekrarı gitti); `SettingsPage`'in Tercihler bölümü bileşeni üçüncü/dördüncü kullanım yeri olarak paylaşıyor.
+  - `stores/auth.ts`: `setToken` dışa açıldı (öncesinde yalnız store'un kendi `login`/`register`/`logout` fonksiyonlarından erişilebiliyordu) — şifre değiştirmenin döndürdüğü yeni token'ı yazmak için gerekliydi.
+  - `api/users.ts`: `useChangeEmail`, `useDeleteAccount` eklendi (ham `changeEmailRequest`/`deleteAccountRequest` zaten vardı, yalnız `use*` sarmalayıcıları eksikti). `api/auth.ts`'teki `useChangePassword`/`useLogoutAllDevices` bu oturumdan ÖNCE zaten yazılmıştı (muhtemelen backend'le birlikte ileriye dönük eklenmiş), bu adımda yalnız tüketildi — yeni bir şey yazmaya gerek kalmadı.
+  - `SettingsPage.vue` (yeni, `/ayarlar`): **Profil** (paylaşılan `ProfileForm`), **Hesap** (e-posta değiştir — mevcut şifreyle; `INVALID_PASSWORD`/`EMAIL_TAKEN` alan hatası olarak gösteriliyor, `EditProfileModal`'daki `USERNAME_TAKEN` deseniyle aynı), **Güvenlik** (şifre değiştir — istemci tarafı güç/eşleşme doğrulaması `utils/validation.ts`'teki RegisterPage ile aynı fonksiyonlarla, başarıda `TokenOut`'tan gelen yeni token+kullanıcı `auth.setToken`+`auth.setMe` ile yazılıyor; "Tüm cihazlardan çıkış yap" — bunun KENDİ oturumunu da düşürdüğü `useConfirm` ile açıkça belirtiliyor, başarıda yerel `logout()`+`/kesfet`), **Görünüm** (`useTheme` — `AppHeader`'ın menüsündeki tema seçiciyle birebir aynı görsel desen), **Tercihler** (favori türler — Onboarding'deki AYNI iki grup, `GenreChipPicker` paylaşılıyor), **Tehlikeli bölge** (hesabı sil — şifre + tam "SİL" yazma onayı, ikisi de sağlanmadan buton `disabled`, `INVALID_PASSWORD` alan hatası, başarıda `logout()`+`/kesfet`).
+  - **Bilinçli plan sapması:** Plan "Hesap" bölümünde e-posta VE kullanıcı adı değişikliğini birlikte listeliyordu, ama backend `PATCH /users/me` kullanıcı adını `display_name`/`bio` ile TEK bir uçta topluyor ve bu zaten `ProfileForm`'da (Profil bölümü) çalışıyor durumda. Kullanıcı adını Hesap bölümünde İKİNCİ kez düzenlenebilir yapmak aynı sayfada iki ayrı "kullanıcı adı" alanı göstererek kafa karıştırırdı; Hesap bölümü bu yüzden yalnız e-postaya odaklandı.
+  - **Ödev kapsamı notu:** F3.8 Ek A'daki hiçbir REQ/BUG maddesini kapatmıyor — Ayarlar sayfası tamamen v2'nin kendi "ilk kullanılabilir sürüm" hedefinin bir parçası (plan §3.8), ödevin zorunlu gereksinimi değil.
+- **Değişen dosyalar:** `frontend/src/stores/auth.ts`, `frontend/src/api/users.ts`, `frontend/src/components/users/{GenreChipPicker,ProfileForm}.vue` (yeni), `frontend/src/components/users/EditProfileModal.vue`, `frontend/src/pages/{OnboardingPage,SettingsPage}.vue` (SettingsPage yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → 64 passed ✓ · `npm run build` → başarılı, `SettingsPage` (7.83 KB, gzip 2.75 KB) + `ProfileForm`/`GenreChipPicker` kendi paylaşılan chunk'larında; `OnboardingPage` 5.22→4.53 KB'a, `ProfilePage` 15.97→13.84 KB'a küçüldü (paylaşılan bileşenlere çıkarmanın doğrudan kanıtı) ✓ · Vite dev sunucusunda `/ayarlar` rotası + değişen modüller tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (httpx betiği, iki test kullanıcısıyla):** e-posta değiştir yanlış şifreyle → 400 `INVALID_PASSWORD` ✓; başka kullanıcının e-postasına değiştirmeye çalışınca → 409 `EMAIL_TAKEN` ✓; doğru şifreyle başarı ✓; `favorite_genres` güncelleme + kalıcılık ✓; şifre değiştir yanlış mevcut şifreyle → 400 ✓; doğru şifreyle başarı → **eski token artık 401, yeni token çalışıyor** ✓; eski şifre artık işe yaramıyor, yenisi çalışıyor ✓; `logout-all` çağıran oturumun KENDİ token'ını da, ayrı bir "B cihazı" token'ını da geçersiz kılıyor (ikisi de 401) ✓, sonra tekrar giriş yapılabiliyor ✓; hesabı sil yanlış şifreyle → 400 ✓; doğru şifreyle → 204, profil artık 404 ✓. 19/19 kontrol geçti, iki test kullanıcısı da temizlendi.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine `SettingsPage`/`ProfileForm`/`GenreChipPicker` eklenmedi (gerçek `auth.me` durumuna bağlı, sahte veriyle yalnızca yarım bir görünüm olurdu) — doğrulama gerçek backend testiyle yapıldı.
+  - **Kalıcı sınırlama:** Tarayıcı aracı bu oturumda da yok.
+- **Kapanan maddeler:** Yok (ödev REQ/BUG'ı değil — bkz. "Ödev kapsamı notu")
+- **Commit:** `08f3e8b`
+- **Notlar / sorunlar:** F4.7'de "Verilerim" bölümünün bu sayfaya ekleneceğini plan zaten belirtiyor, o adıma bırakıldı.
+- **Sonraki adım:** F3.9 — UX cilası
 
 ### [2026-09-29] F3.7 — Listeler — ✅
 
