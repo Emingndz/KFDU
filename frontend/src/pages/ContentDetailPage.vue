@@ -146,6 +146,8 @@ function goToDiscover() {
           v-if="detail.data.value.poster_url"
           :src="detail.data.value.poster_url"
           :alt="detail.data.value.title"
+          loading="lazy"
+          decoding="async"
           class="aspect-[2/3] w-32 shrink-0 rounded-card object-cover shadow-lg sm:w-48"
         />
         <div class="flex flex-1 flex-col gap-2">

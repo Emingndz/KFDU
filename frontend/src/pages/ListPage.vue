@@ -145,7 +145,7 @@ async function saveNote(contentId: number | null | undefined) {
   <div v-else-if="list.data.value" class="flex flex-col gap-6 pb-24 py-6">
     <div class="overflow-hidden rounded-card">
       <div class="grid aspect-[3/1] grid-cols-4 gap-0.5 bg-gradient-to-br from-brand-500/30 to-brand-700/30">
-        <img v-for="(cover, i) in list.data.value.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" class="size-full object-cover" />
+        <img v-for="(cover, i) in list.data.value.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
       </div>
     </div>
 

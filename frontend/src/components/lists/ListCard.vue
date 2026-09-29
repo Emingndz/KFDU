@@ -8,7 +8,7 @@ defineProps<{ list: ListOut | MyListOut }>()
 <template>
   <RouterLink :to="`/liste/${list.id}`" class="flex flex-col gap-2 rounded-card border border-border p-3 hover:bg-surface-2">
     <div class="grid aspect-video grid-cols-2 gap-0.5 overflow-hidden rounded-lg bg-gradient-to-br from-brand-500/30 to-brand-700/30">
-      <img v-for="(cover, i) in list.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" class="size-full object-cover" />
+      <img v-for="(cover, i) in list.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
     </div>
     <div>
       <p class="font-medium text-fg">{{ list.title }}</p>

@@ -153,8 +153,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: ComingSoonPage,
-    props: { title: 'Sayfa bulunamadı' },
+    component: () => import('@/pages/NotFoundPage.vue'),
     meta: { title: 'Sayfa bulunamadı' },
   },
 ]

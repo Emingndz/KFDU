@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounce, useIntersectionObserver } from '@vueuse/core'
 import { Search, X } from 'lucide-vue-next'
@@ -16,6 +16,7 @@ import { usePlatformPopular, usePlatformTopRated } from '@/api/stats'
 import { useUserSearch } from '@/api/users'
 import { useLibraryLookup } from '@/api/library'
 import { useFollowToggle } from '@/composables/useFollowToggle'
+import { consumeSearchFocusRequest } from '@/composables/useSearchFocus'
 import { contentKey } from '@/utils/content'
 import ContentGrid from '@/components/content/ContentGrid.vue'
 import ContentRow from '@/components/content/ContentRow.vue'
@@ -69,6 +70,11 @@ watch([tab, debouncedQ, filters], () => {
   if (f.language) query.dil = f.language
   void router.replace({ query })
 }, { deep: true })
+
+const searchInputRef = ref<HTMLInputElement | null>(null)
+onMounted(() => {
+  if (consumeSearchFocusRequest()) searchInputRef.value?.focus()
+})
 
 function clearSearch() {
   searchText.value = ''
@@ -144,6 +150,8 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
       <div class="relative">
         <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
         <input
+          id="discover-search-input"
+          ref="searchInputRef"
           v-model="searchText"
           type="search"
           placeholder="Film, kitap veya kullanıcı ara…"

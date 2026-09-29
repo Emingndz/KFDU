@@ -156,6 +156,8 @@ async function removeReview() {
         v-if="review.data.value.content.poster_url"
         :src="review.data.value.content.poster_url"
         :alt="review.data.value.content.title"
+        loading="lazy"
+        decoding="async"
         class="aspect-[2/3] w-12 rounded object-cover"
       />
       <div>
