@@ -8,6 +8,7 @@ import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseSkeleton from '@/components/ui/BaseSkeleton.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
+import GenreChipPicker from '@/components/users/GenreChipPicker.vue'
 
 const router = useRouter()
 
@@ -87,23 +88,7 @@ async function finish() {
       <div v-else-if="step1Loading" class="flex flex-wrap gap-2">
         <BaseSkeleton v-for="i in 12" :key="i" class="h-8 w-20" rounded="full" />
       </div>
-      <div v-else class="flex flex-wrap gap-2">
-        <button
-          v-for="genre in movieTvGenres"
-          :key="genre.key"
-          type="button"
-          class="rounded-full border px-3 py-1.5 text-sm transition motion-safe:duration-150"
-          :class="
-            selectedGenres.has(genre.key)
-              ? 'border-brand-500 bg-brand-500/15 text-brand-600'
-              : 'border-border bg-surface text-fg hover:bg-surface-2'
-          "
-          :aria-pressed="selectedGenres.has(genre.key)"
-          @click="toggleGenre(genre.key)"
-        >
-          {{ genre.label }}
-        </button>
-      </div>
+      <GenreChipPicker v-else :genres="movieTvGenres" :selected="selectedGenres" @toggle="toggleGenre" />
       <BaseButton class="w-full" :disabled="!canAdvanceStep1" @click="step = 2">
         İleri {{ canAdvanceStep1 ? '' : `(${step1Count}/3)` }}
       </BaseButton>
@@ -115,23 +100,7 @@ async function finish() {
         <BaseSkeleton v-for="i in 10" :key="i" class="h-8 w-20" rounded="full" />
       </div>
       <ErrorState v-else-if="bookGenres.isError.value" message="Türler yüklenemedi." @retry="() => bookGenres.refetch()" />
-      <div v-else class="flex flex-wrap gap-2">
-        <button
-          v-for="genre in bookGenres.data.value ?? []"
-          :key="genre.key"
-          type="button"
-          class="rounded-full border px-3 py-1.5 text-sm transition motion-safe:duration-150"
-          :class="
-            selectedGenres.has(genre.key)
-              ? 'border-brand-500 bg-brand-500/15 text-brand-600'
-              : 'border-border bg-surface text-fg hover:bg-surface-2'
-          "
-          :aria-pressed="selectedGenres.has(genre.key)"
-          @click="toggleGenre(genre.key)"
-        >
-          {{ genre.label }}
-        </button>
-      </div>
+      <GenreChipPicker v-else :genres="bookGenres.data.value ?? []" :selected="selectedGenres" @toggle="toggleGenre" />
       <div class="flex gap-3">
         <BaseButton variant="ghost" class="flex-1" @click="step = 3">Atla</BaseButton>
         <BaseButton class="flex-1" :disabled="step2Count < 2" @click="step = 3">İleri</BaseButton>

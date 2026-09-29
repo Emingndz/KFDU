@@ -104,8 +104,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/ayarlar',
     name: 'settings',
-    component: ComingSoonPage,
-    props: { title: 'Ayarlar' },
+    component: () => import('@/pages/SettingsPage.vue'),
     meta: { requiresAuth: true, title: 'Ayarlar' },
   },
   {

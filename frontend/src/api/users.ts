@@ -122,6 +122,18 @@ export function useUpdateMe() {
   })
 }
 
+export function useChangeEmail() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: changeEmailRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'me'] }),
+  })
+}
+
+export function useDeleteAccount() {
+  return useMutation({ mutationFn: deleteAccountRequest })
+}
+
 export function useSuggestions(limit = 10) {
   return useQuery({ queryKey: ['user-suggestions', limit], queryFn: () => getSuggestionsRequest(limit) })
 }
