@@ -14,6 +14,7 @@ import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseSkeleton from '@/components/ui/BaseSkeleton.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
+import SafeImage from '@/components/ui/SafeImage.vue'
 import RatingDisplay from '@/components/content/RatingDisplay.vue'
 import LikeButton from '@/components/content/LikeButton.vue'
 import CommentThread from '@/components/content/CommentThread.vue'
@@ -152,12 +153,9 @@ async function removeReview() {
       :to="contentPath(review.data.value.content.type, review.data.value.content.external_id)"
       class="flex items-center gap-3 rounded-card border border-border p-3 hover:bg-surface-2"
     >
-      <img
-        v-if="review.data.value.content.poster_url"
+      <SafeImage
         :src="review.data.value.content.poster_url"
         :alt="review.data.value.content.title"
-        loading="lazy"
-        decoding="async"
         class="aspect-[2/3] w-12 rounded object-cover"
       />
       <div>

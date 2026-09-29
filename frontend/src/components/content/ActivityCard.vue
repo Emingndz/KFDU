@@ -10,6 +10,7 @@ import { contentPath, typeLabel } from '@/utils/content'
 import { relativeTime } from '@/utils/format'
 import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
+import SafeImage from '@/components/ui/SafeImage.vue'
 import RatingDisplay from '@/components/content/RatingDisplay.vue'
 import LikeButton from '@/components/content/LikeButton.vue'
 import CommentThread from '@/components/content/CommentThread.vue'
@@ -77,14 +78,7 @@ function toggleComments() {
 
     <!-- rating -->
     <RouterLink v-if="activity.card_type === 'rating' && activity.content" :to="contentHref!" class="flex gap-3">
-      <img
-        v-if="activity.content.poster_url"
-        :src="activity.content.poster_url"
-        :alt="activity.content.title"
-        loading="lazy"
-        decoding="async"
-        class="aspect-[2/3] w-20 shrink-0 rounded-lg object-cover"
-      />
+      <SafeImage :src="activity.content.poster_url" :alt="activity.content.title" class="aspect-[2/3] w-20 shrink-0 rounded-lg object-cover" />
       <div class="flex flex-col justify-center gap-1">
         <p class="font-medium text-fg">{{ activity.content.title }} ({{ activity.content.year }})</p>
         <RatingDisplay v-if="activity.rating" :rating="activity.rating" />
@@ -94,14 +88,7 @@ function toggleComments() {
     <!-- review -->
     <div v-else-if="activity.card_type === 'review' && activity.content" class="flex gap-3">
       <RouterLink :to="contentHref!" class="shrink-0">
-        <img
-          v-if="activity.content.poster_url"
-          :src="activity.content.poster_url"
-          :alt="activity.content.title"
-          loading="lazy"
-          decoding="async"
-          class="aspect-[2/3] w-20 rounded-lg object-cover"
-        />
+        <SafeImage :src="activity.content.poster_url" :alt="activity.content.title" class="aspect-[2/3] w-20 rounded-lg object-cover" />
       </RouterLink>
       <div class="flex min-w-0 flex-col gap-1">
         <RouterLink :to="contentHref!" class="font-medium text-fg hover:underline">{{ activity.content.title }}</RouterLink>
@@ -127,14 +114,7 @@ function toggleComments() {
 
     <!-- status -->
     <RouterLink v-else-if="activity.card_type === 'status' && activity.content" :to="contentHref!" class="flex items-center gap-3">
-      <img
-        v-if="activity.content.poster_url"
-        :src="activity.content.poster_url"
-        :alt="activity.content.title"
-        loading="lazy"
-        decoding="async"
-        class="aspect-[2/3] w-16 shrink-0 rounded-lg object-cover"
-      />
+      <SafeImage :src="activity.content.poster_url" :alt="activity.content.title" class="aspect-[2/3] w-16 shrink-0 rounded-lg object-cover" />
       <p class="font-medium text-fg">{{ activity.content.title }}</p>
       <BaseBadge v-if="activity.status" :variant="STATUS_VARIANT[activity.status] ?? 'neutral'" class="ml-auto">
         {{ typeLabel(activity.content.type) }}
@@ -144,14 +124,7 @@ function toggleComments() {
     <!-- list_add -->
     <div v-else-if="activity.card_type === 'list_add' && activity.content" class="flex items-center gap-3">
       <RouterLink :to="contentHref!" class="shrink-0">
-        <img
-          v-if="activity.content.poster_url"
-          :src="activity.content.poster_url"
-          :alt="activity.content.title"
-          loading="lazy"
-          decoding="async"
-          class="aspect-[2/3] w-16 rounded-lg object-cover"
-        />
+        <SafeImage :src="activity.content.poster_url" :alt="activity.content.title" class="aspect-[2/3] w-16 rounded-lg object-cover" />
       </RouterLink>
       <RouterLink :to="contentHref!" class="font-medium text-fg hover:underline">{{ activity.content.title }}</RouterLink>
       <RouterLink v-if="activity.list" :to="`/liste/${activity.list.id}`" class="text-sm text-brand-600 hover:underline">
@@ -162,7 +135,7 @@ function toggleComments() {
     <!-- list_create -->
     <RouterLink v-else-if="activity.card_type === 'list_create' && activity.list" :to="`/liste/${activity.list.id}`" class="flex items-center gap-3">
       <div class="grid size-16 shrink-0 grid-cols-2 gap-0.5 overflow-hidden rounded-lg bg-surface-2">
-        <img v-for="(cover, i) in activity.list.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" loading="lazy" decoding="async" class="size-full object-cover" />
+        <SafeImage v-for="(cover, i) in activity.list.cover_urls.slice(0, 4)" :key="i" :src="cover" alt="" class="size-full object-cover" />
       </div>
       <div>
         <p class="font-medium text-fg">{{ activity.list.title }}</p>

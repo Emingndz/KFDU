@@ -13,6 +13,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseSkeleton from '@/components/ui/BaseSkeleton.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import SafeImage from '@/components/ui/SafeImage.vue'
 import StarRating from '@/components/content/StarRating.vue'
 import RatingHistogram from '@/components/content/RatingHistogram.vue'
 import GenreChips from '@/components/content/GenreChips.vue'
@@ -142,12 +143,9 @@ function goToDiscover() {
       />
       <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-transparent" />
       <div class="relative flex flex-col gap-4 p-4 sm:flex-row sm:p-6">
-        <img
-          v-if="detail.data.value.poster_url"
+        <SafeImage
           :src="detail.data.value.poster_url"
           :alt="detail.data.value.title"
-          loading="lazy"
-          decoding="async"
           class="aspect-[2/3] w-32 shrink-0 rounded-card object-cover shadow-lg sm:w-48"
         />
         <div class="flex flex-1 flex-col gap-2">
