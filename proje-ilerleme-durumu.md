@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-29** — F3.8 tamamlandı (Ayarlar sayfası).
+> Son güncelleme: **2026-09-30** — F3.9 tamamlandı (UX cilası).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.9 — UX cilası** |
+| Sıradaki adım | **F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2** |
 | Çalışma dalı | `v2` |
-| Son commit | `08f3e8b` (feat(F3.8): Ayarlar sayfası) |
+| Son commit | `b762aa8` (fix(a11y): Lighthouse taramasında bulunan erişilebilirlik sorunları) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -66,7 +66,16 @@
   - `api/users.ts`: `useChangeEmail`, `useDeleteAccount` eklendi (`changeEmailRequest`/`deleteAccountRequest` zaten vardı, yalnız `use*` sarmalayıcıları eksikti). `api/auth.ts`'teki `useChangePassword`/`useLogoutAllDevices` ZATEN yazılmıştı (muhtemelen F1/F2'de ileriye dönük), bu adımda yalnız tüketildi.
   - **Bilinçli plan sapması:** Plan "Hesap" bölümünde e-posta VE kullanıcı adı değişikliğini birlikte listeliyor, ama backend `PATCH /users/me` kullanıcı adını `display_name`/`bio` ile TEK bir uçta topluyor ve bu zaten `ProfileForm`'da (Profil bölümü) çalışıyor. Kullanıcı adını Hesap bölümünde İKİNCİ kez düzenlenebilir yapmak aynı sayfada iki ayrı "kullanıcı adı" alanı göstererek kafa karıştırırdı; bu yüzden Hesap bölümü yalnız e-postaya odaklandı, kullanıcı adı Profil'de kaldı.
   - **Ödev kapsamı notu:** F3.8 Ek A'daki hiçbir REQ/BUG maddesini kapatmıyor — Ayarlar sayfası tamamen v2'nin kendi "ilk kullanılabilir sürüm" hedefinin bir parçası (proje-plani §3.8), ödevin zorunlu gereksinimi değil.
-- **Sırada:** F3.9 — UX cilası (`NotFoundPage`, genel hata sınırı, çevrimdışı şeridi, `/`+`g f`/`g k` klavye kısayolları, erişilebilirlik+responsive turu, `alert(`/`confirm(` taraması).
+- **F3.9 tamamlandı (2026-09-30):** `NotFoundPage.vue` (`/:pathMatch(.*)*`, eğlenceli boş durum + Akış/Keşfet bağlantıları), `ErrorBoundary.vue` (`onErrorCaptured` → "Sayfayı yenile", rota değişince sıfırlanır, 3 birim testiyle doğrulandı), `OfflineBanner.vue` (`useOnline`), `useKeyboardShortcuts.ts` + `ShortcutsHelpModal.vue` (`/` arama — `useSearchFocus.ts`'in tek-seferlik bayrağıyla sayfalar arası odak yarışı olmadan çözüldü; `g f`/`g k` akış/keşfet; `?` yardım; düzenlenebilir alanlarda ve açık modalde devre dışı — 4 birim testiyle doğrulandı), hepsi `AppShell`'e bağlandı. Tüm `<img>` etiketlerine `loading="lazy"`+`decoding="async"` eklendi (denetimle 7 eksik yer bulundu). **BUG-07 tamamen kapatıldı:** yeni `SafeImage.vue` (saf sunum, kırık/eksik görselde `ImageOff` simgesi) `ActivityCard`/`ListCard`/`ListPage`/`ContentDetailPage`/`ReviewPage`'e uygulandı; `CastRow` kendi baş-harf düşen deseniyle `@error` yakalamaya genişletildi. `git grep -nE "\balert\(|\bconfirm\(|\bprompt\("` → yalnız `useConfirm` tanımları/kullanımları (zaten temizdi).
+  - **Lighthouse (mobil, 360×800) erişilebilirlik — gerçek ölçüm, önce/sonra:** Keşfet **85→96**, İçerik detayı (kitap) **88→97**, Akış (kimlik doğrulamalı Puppeteer betiğiyle) **87→96**. Bulunan ve düzeltilen gerçek sorunlar:
+    1. **Karanlık mod kontrast açığı (sistemik):** `text-brand-600` (#6a47ff) hem düz `--bg` (#0e1016, 3.58:1) hem `bg-brand-500/15` rozet zemininde (3.1:1) 4.5:1 eşiğinin altındaydı — elle hesapladığım `--muted` kontrastı doğruydu ama `brand-600`'ü hiç kontrol etmemiştim. Kök nedeni çözmek için `--fg`/`--muted` ile aynı desende tema-duyarlı `--link` token'ı eklendi (`main.css`: ışık modda brand-600, karanlık modda brand-400 — 5.83:1) ve **20 dosyadaki tüm `text-brand-600` kullanımı** `text-link`'e taşındı (tek tek `dark:` sınıfı eklemek yerine tek token'dan yönetim).
+    2. **`BaseButton` birincil varyantı + header logosu:** beyaz metin `bg-brand-500` üstünde 4.34:1 idi (4.5:1 gerekli) — ikisi de `bg-brand-600`'e çekildi (5.31:1).
+    3. **Etiketsiz form kontrolleri:** `FilterPanel`'in puan kaydırıcısı (`<label for>` eksikti) ve `BaseSelect`'in `label` verilmeden kullanıldığı 2 yer (`ReviewList` sıralama, `ProfilePage` kütüphane sıralaması) — `BaseSelect`'e `ariaLabel` prop'u eklendi, çağıranlar güncellendi.
+    4. **Avatar-yalnız profil bağlantıları:** `ActivityCard`/`CommentThread`/`ReviewItem`/`UserCard`/`ReviewPage`'deki avatarı saran çıplak `RouterLink`ler, kullanıcının avatarı yoksa (baş harf düşen `aria-hidden` olduğu için) erişilebilir ada sahip değildi — hepsine `:aria-label="\`${ad} profili\`"` eklendi.
+    5. **`LikeButton`:** `aria-label` yalnız "Beğen"/"Beğeniyi geri al" diyordu, görünür beğeni SAYISINI içermiyordu (WCAG 2.5.3 Label in Name ihlali) — sayaç etikete eklendi.
+    - **Bilinçli/kalıcı sınırlamalar (kalan iki bulgu):** (a) `aria-prohibited-attr` — Vue DevTools'un kendi enjekte ettiği `vue-devtools__anchor-btn` düğmesi, yalnızca `import.meta.env.DEV`'de var, üretim derlemesinde hiç yok; uygulama koduyla ilgisiz, düzeltilecek bir şey yok. (b) `label-content-name-mismatch` — header'daki kullanıcı menüsü düğmesinde avatarı olmayan kullanıcının baş harfleri (`aria-hidden` olsa da GÖRSEL olarak hâlâ ekranda) `aria-label="Kullanıcı menüsü"` ile birebir eşleşmiyor (yalnız sesli-komut yazılımlarını etkiler, ekran okuyucu/klavye/fare tamamen çalışıyor); dar kapsamlı, kullanıcıya özgü baş harflerin etikete dinamik eklenmesi bu adımın kapsamına orantısız görüldü, kayıt olarak bırakıldı.
+  - **Yöntem notu:** Lighthouse CLI + `puppeteer-core` (Akış'ı kimlik doğrulamalı test etmek için — `localStorage`'a token yazılıp sonra Lighthouse'un Node API'sine aynı `page` nesnesi verildi) proje bağımlılıklarına EKLENMEDİ, yalnız scratchpad'te izole bir `npm install` ile geçici olarak kuruldu ve kullanıldı. Bu, projede **ilk kez gerçek bir Chrome ile** (tarayıcı aracı değil, saf CLI/Node) ölçülen sonuç — önceki tüm fazlarda "tarayıcı aracı hiç yok" kısıtı geçerliydi, bu adımda CLI üzerinden headless Chrome ile aşıldı.
+- **Sırada:** F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (Ek A izlenebilirlik matrisi + 20 maddelik manuel test turu + `main`e ilk birleştirme).
 
 ---
 
@@ -77,12 +86,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 8/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 9/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **29/64** | | |
+| **Toplam** | | | **30/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -150,7 +159,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.6 — Profil sayfası — ✅ (2026-09-27)
 - [x] F3.7 — Listeler — ✅ (2026-09-29)
 - [x] F3.8 — Ayarlar sayfası — ✅ (2026-09-29)
-- [ ] F3.9 — UX cilası
+- [x] F3.9 — UX cilası — ✅ (2026-09-30)
 - [ ] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (`main`e ilk birleştirme)
 
 ### Faz 4 — Çağ Atlatma Paketi
@@ -221,7 +230,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-04 | İki kez takip / takip etmeyeni bırakma → 500 | F1.5 | ✅ | `90c6ed0` |
 | BUG-05 | E-posta değişince oturum kırılıyor (JWT sub = e-posta) | F1.2 | ✅ (F1.4'te doğrulandı — `sub`=id) | `cf0ff06` |
 | BUG-06 | 30 dk token, 401 yönetimi yok; 401 yerine 403 | F1.2, F2.3 | ✅ (backend F1.4: 7 gün token, 401+WWW-Authenticate; frontend F2.3: `client.ts` 401'de çıkış+yönlendirme+tekil toast) | `cf0ff06` |
-| BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | 🟡 bileşen düzeyi ✅ (BaseAvatar kırık/yok görselde deterministik baş harf); tüm sayfalarda kullanım F3.9 | `f3e2894` |
+| BUG-07 | Kırık yer tutucu görseller (via.placeholder.com) | F2.2, F3.9 | ✅ (`SafeImage.vue` tüm kalan sayfalara uygulandı, `CastRow` kendi deseniyle genişletildi) | `f3e2894`, `b204510` |
 | BUG-08 | Detay açmak arama tipini değiştirip gereksiz çağrı yapıyor | Faz 2–3 (F3.2) | ✅ (v2'de detay ayrı bir rota — `/film/:id` vb. — DiscoverPage'in kendi durumunu hiç etkilemiyor, bu hata sınıfı mimari olarak imkânsız) | `dcffa45` |
 | BUG-09 | Başkasının profilinde film durumları kitap etiketiyle | F3.6 | ✅ (`ProfilePage`'in Kütüphane sekmesi metin etiketi değil tür-bağımsız ✓/🔖 simge rozetleri kullanıyor — bu hata sınıfı yapısal olarak imkânsız; `statusLabel(status,type)` zaten F3.1'den beri doğru tip-farkındalıklı) | `f61e341` |
 | BUG-10 | Şifre sıfırlamada "(Demo: undefined)" | F2.4 | ✅ (v2'de gerçek e-posta/log tabanlı 3 adımlı akış var, "(Demo: ...)" metni yok) | `031befa` |
@@ -355,6 +364,33 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F3.9 — UX cilası — ✅
+
+- **Yapılanlar:**
+  - `NotFoundPage.vue` (yeni, `/:pathMatch(.*)*`): `EmptyState` + Akış/Keşfet'e dönüş butonları (`BaseButton`'ın var olan ama hiç kullanılmamış `to` prop'uyla).
+  - `ErrorBoundary.vue` (yeni, `components/layout/`): `onErrorCaptured` ile alt bileşen hatalarını yakalayıp "Sayfayı yenile" (tam sayfa reload) gösteriyor; rota değişince `failed` bayrağı sıfırlanıyor (aksi halde `RouterView` tamamen `v-if` arkasında kilitli kalırdı). `ErrorState` bilerek yeniden kullanılmadı çünkü onun butonu "Tekrar dene" diyor (sorgu-yeniden-deneme anlamı), burada gerçekten sayfa yenileme gerekiyor.
+  - `OfflineBanner.vue` (yeni): `@vueuse/core`'un `useOnline()`'ı, `!isOnline` iken sabit bir uyarı şeridi.
+  - `composables/useSearchFocus.ts` (yeni): modül seviyeli tek-seferlik bayrak (`requestSearchFocus`/`consumeSearchFocusRequest`) — reaktif bir token yerine bilinçli tercih edildi, çünkü DiscoverPage henüz mount olmadan `router.push` sonrası bir reaktif izleyici kurulumunu KAÇIRABİLİRDİ; bayrak DiscoverPage `onMounted`'da tüketildiği için zamanlama yarışı yok.
+  - `composables/useKeyboardShortcuts.ts` (yeni): `/` (zaten `/kesfet`'teyse `getElementById` ile doğrudan odakla, değilse bayrağı işaretleyip yönlendir), `g` sonra `f`/`k` (1 sn pencere), `?` (yardım modalı). Düzenlenebilir alanlarda (`input`/`textarea`/`contenteditable`), değiştirici tuşlarla (Ctrl/Alt/Meta) VE açık bir modal varken (`[role="dialog"]` sorgusu) devre dışı.
+  - `ShortcutsHelpModal.vue` (yeni) — `AppShell`'in altbilgisine "Klavye kısayolları" bağlantısıyla keşfedilebilir kılındı (aksi halde tamamen gizli bir özellik olurdu).
+  - Tüm `<img>` etiketleri tek tek tarandı (`awk` betiğiyle) — 7 yerde (`ActivityCard` ×5, `ListCard`, `ListPage`) `loading="lazy"`/`decoding="async"` eksikti, eklendi. `ContentDetailPage`/`ReviewPage`'in de eksik olduğu bulundu, eklendi.
+  - **BUG-07 tamamen kapatıldı:** `components/ui/SafeImage.vue` (yeni, saf sunum — `src`/`alt` alır, hata veya eksikse `ImageOff` simgesi; `PosterCard`'ın F3.1'den beri kullandığı desenin genelleştirilmiş hali) `ActivityCard` (poster ×4 + koleksiyon kapakları), `ListCard`, `ListPage`, `ContentDetailPage` (hero poster), `ReviewPage` (mini künye) içindeki çıplak `<img>`lerin yerini aldı. `CastRow` SafeImage'a taşınmadı (kendi baş-harf-düşen deseni farklı) ama `@error` yakalaması eklendi.
+  - `git grep -nE "\balert\(|\bconfirm\(|\bprompt\(" -- frontend/src` → yalnız `useConfirm`/`ConfirmDialog` tanım ve kullanımları — zaten temizdi, ekstra iş gerekmedi.
+  - **Erişilebilirlik + Lighthouse turu (planın kabul kriteri: mobilde ≥90, Keşfet/Detay/Akış):** Chrome bu makinede kurulu olduğu keşfedilince (`C:/Program Files/Google/Chrome/`), Lighthouse CLI headless Chrome ile **gerçek** ölçüm için kullanıldı — tarayıcı ARACI değil, saf CLI/Node (proje bağımlılığı olarak eklenmedi, scratchpad'te izole kuruldu). Akış kimlik doğrulama gerektirdiği için `puppeteer-core` ile `localStorage`'a gerçek bir test token'ı yazılıp aynı `page` nesnesi Lighthouse'un Node API'sine verildi (kayıt→ölçüm→`DELETE /users/me` ile temizlik). **Sonuçlar (mobil, 360×800, önce→sonra):** Keşfet **85→96**, İçerik detayı (`/kitap/OL45804W`) **88→97**, Akış **87→96**.
+  - **Bulunan ve düzeltilen 5 gerçek sorun:**
+    1. Karanlık modda `text-brand-600` hem düz arka plan (3.58:1) hem rozet zemininde (3.1:1) 4.5:1'in altındaydı (elle hesapladığım `--muted` kontrastı doğruydu ama `brand-600`'ü kontrol etmemiştim) → tema-duyarlı `--link` token'ı eklendi (`main.css`, ışık: brand-600, karanlık: brand-400 = 5.83:1), **20 dosyadaki tüm `text-brand-600`** `text-link`'e taşındı.
+    2. `BaseButton` birincil varyantı + header logosu: beyaz metin `bg-brand-500` üstünde 4.34:1 (gerekli 4.5:1) → `bg-brand-600`'e çekildi (5.31:1).
+    3. Etiketsiz form kontrolleri: `FilterPanel` puan kaydırıcısı (`label for` eksik) ve `BaseSelect`'in `label`sız 2 kullanımı (`ReviewList`, `ProfilePage`) → `BaseSelect`'e `ariaLabel` prop'u eklendi.
+    4. Avatarı olmayan kullanıcılarda avatar-yalnız profil bağlantıları (`ActivityCard`/`CommentThread`/`ReviewItem`/`UserCard`/`ReviewPage`) erişilebilir ada sahip değildi (baş harfler `aria-hidden`) → hepsine `:aria-label` eklendi.
+    5. `LikeButton`'ın `aria-label`'ı görünür beğeni sayısını içermiyordu (WCAG 2.5.3) → sayaç etikete eklendi.
+  - **Kalan 2 bulgu (bilinçli, düzeltilmedi):** (a) `aria-prohibited-attr` — Vue DevTools'un kendi `vue-devtools__anchor-btn` düğmesi, yalnızca dev modda var, üretimde yok, uygulama koduyla ilgisiz. (b) `label-content-name-mismatch` — header'daki kullanıcı menüsü düğmesinde avatarsız kullanıcının baş harfleri görsel olarak `aria-label="Kullanıcı menüsü"`yle birebir eşleşmiyor (yalnız sesli-komut yazılımlarını etkiler; ekran okuyucu/klavye/fare sorunsuz) — kullanıcıya özgü baş harflerin dinamik etikete eklenmesi bu adımın kapsamına göre orantısız görüldü.
+- **Değişen dosyalar:** `frontend/src/pages/NotFoundPage.vue` (yeni), `frontend/src/components/layout/{ErrorBoundary,OfflineBanner,ShortcutsHelpModal}.vue` (yeni), `frontend/src/composables/{useSearchFocus,useKeyboardShortcuts}.ts` (+ `.spec.ts`, yeni), `frontend/src/components/ui/SafeImage.vue` (yeni), `frontend/src/styles/main.css` (`--link` token'ı), `frontend/src/components/ui/{BaseButton,BaseSelect}.vue`, `frontend/src/components/content/{ActivityCard,AddToListMenu,CastRow,CommentThread,ContentRow,FilterPanel,LibraryButtons,LikeButton,ReviewItem,ReviewList}.vue`, `frontend/src/components/layout/{AppShell,AppHeader,AppBottomNav}.vue`, `frontend/src/components/lists/ListCard.vue`, `frontend/src/components/users/{GenreChipPicker,ProfileForm,UserCard}.vue`, `frontend/src/pages/{ContentDetailPage,DiscoverPage,ListPage,ReviewPage,ProfilePage,SettingsPage,ForgotPasswordPage,LoginPage,RegisterPage,UiShowcasePage}.vue`, `frontend/src/router/index.ts`, `frontend/src/__tests__/ErrorBoundary.spec.ts` (yeni).
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → **73 passed** (9 yeni: `useSearchFocus` ×2, `ErrorBoundary` ×3, `useKeyboardShortcuts` ×4) ✓ · `npm run build` → başarılı ✓ · Vite dev sunucusunda tüm yeni modüller + `/rastgele-yok-sayfa` (404) tek tek istendi, hepsi 200 ✓ · **Lighthouse mobil erişilebilirlik (yukarıda ayrıntılı):** Keşfet 96, Detay 97, Akış 96 — plan kabul kriteri (≥90, üç sayfa) karşılandı ✓.
+- **Kapanan maddeler:** BUG-07 (tamamen), DEBT-01 (kısmen — bkz. Notlar), REQ-1.2 (mobil uyum, kod düzeyinde denetim + Lighthouse; piksel-piksel 360/768/1280 görsel turu tarayıcı aracı olmadan yapılamadı)
+- **Commit:** `65cedd0` (feat), `b204510` (fix BUG-07), `b762aa8` (fix a11y)
+- **Notlar / sorunlar:** DEBT-01/DEBT-02'nin tam kapsamını görmek için `proje-plani.md`'nin §2 bölümüne bakılmadı (bu adımın odağı F3.9'un kendi kontrol listesiydi) — F3.10'da Ek A matrisini işaretlerken ayrıca gözden geçirilebilir. 360/768/1280 px'te piksel-piksel görsel tur hâlâ yapılamadı (tarayıcı aracı yok) ama kod düzeyinde hiçbir sabit taşma-riskli genişlik bulunamadı (`grep` ile doğrulandı) ve Lighthouse'un kendi mobil emülasyonu (360×800) üç sayfada da gerçek bir DOM/CSS render'ı üzerinden geçti — bu, salt statik kod incelemesinden daha güçlü bir kanıt.
+- **Sonraki adım:** F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2
 
 ### [2026-09-29] F3.8 — Ayarlar sayfası — ✅
 
