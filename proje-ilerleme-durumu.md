@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-27** — F3.6 tamamlandı (Profil sayfası).
+> Son güncelleme: **2026-09-29** — F3.7 tamamlandı (Listeler).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -22,9 +22,9 @@
 |---|---|
 | Proje durumu | 🟨 Faz 3 uygulanıyor |
 | Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.7 — Listeler** |
+| Sıradaki adım | **F3.8 — Ayarlar sayfası** |
 | Çalışma dalı | `v2` |
-| Son commit | `f61e341` (feat(F3.6): Profil sayfası) |
+| Son commit | `813b5e9` (feat(F3.7): Listeler) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -54,7 +54,12 @@
   - **D-21/D-22 (backend düzeltmeleri, F3.3'te canlı testte bulundu):** (1) `core/http.py` dış servisten gelen 404'ü artık `not_found()` ile temiz 404'e çeviriyor (önceden sarmalanmadan 500 oluyordu). (2) `social/service.py`'deki `is_edited` hesaplaması `TimestampMixin`'in iki ayrı `datetime.now(UTC)` çağrısı yüzünden her yeni incelemede yanlışlıkla `true` çıkıyordu; 1 saniyelik toleransa çevrildi + regresyon testi eklendi.
   - **F3.4→F3.5 arası düzeltme:** `CommentThread`'in `compact` modu başlangıçta girdi kutusunu gizliyordu; F3.5'te planın "son 2 yorum + giriş + 'Tüm yorumlar'" ifadesiyle çeliştiği fark edilip girdi kutusu compact'te de gösterilecek şekilde düzeltildi, `expand` olayı eklendi.
   - **Bilinen sınırlamalar:** `WatchProviders` yalnız düz metin rozetler (gerçek logo yok, `Providers` şeması yalnız isim taşıyor). Kullanıcı aramasında/önerilerinde `is_following` başlangıçta bilinmiyor (yalnız `ProfileOut`/`PublicUserWithFollowOut` taşıyor); tıklanınca oturum için yerel işaretleniyor. TMDB'ye bağlı vitrin/detay/arama hâlâ U2'yi bekliyor, kitap tarafı gerçek backend'e karşı her adımda curl ile uçtan uca doğrulandı. `FilterPanel` gerçek bir bottom-sheet değil, her ekran boyutunda aynı satır içi panel. Tarayıcı aracı bu oturumda hiç yok — tüm doğrulama kod incelemesi + lint/type-check/test/build + gerçek backend'e karşı curl ile yapıldı.
-- **Sırada:** F3.7 — Listeler (`ListPage` `/liste/:id` — kolaj başlık, sıralama modu `PUT /lists/{id}/order`, gizli listeye erişimde 404).
+- **F3.7 tamamlandı (2026-09-29):** `api/lists.ts` genişletildi: `useListDetail` (`['lists','detail',id]`, 30 sn — diğer mutasyonların zaten kullandığı geniş `['lists']` invalidate'i bu anahtarı da otomatik yakalıyor, ayrıca özel bir invalidate gerekmedi), `useUpdateList`/`useDeleteList`/`useUpdateListItemNote`/`useReorderListItems`. `CreateListModal` → `ListFormModal` olarak yeniden adlandırıldı ve **hem oluşturma hem düzenleme** modunu tek bileşende topluyor (`list?` prop'u verilirse düzenleme — plan tek bir "ListFormModal" adı verdiği için birleştirildi; `ProfilePage`'in "Yeni Liste" akışı davranış değişmeden bu bileşene taşındı). `ListPage.vue` (`/liste/:id`, route-level `props` ile `id` enjekte ediliyor): 4'lü kapak kolajı başlık, sahip bağlantısı, Herkese Açık/Gizli rozeti, açıklama, Paylaş (clipboard); sahibiyse Düzenle (`ListFormModal`), Sil (`useConfirm`, onay → kendi profiline döner), **sıralama modu** (sunucu sırasını yerel bir taslağa kopyalayıp ↑/↓ ile değiştirme, "Sırayı kaydet" ancak o an `PUT /lists/{id}/order` çağırır, "Vazgeç" taslağı atar — sahte/iyimser güncelleme yok, sade invalidate+refetch yeterli görüldü); öğe ızgarasında her kart için not ekle/düzenle (satır içi textarea, tarayıcı `prompt()` kullanılmadı) ve kaldır. Gizli listede sahip olmayan/anonim erişim zaten backend'de (`get_list_detail`) 404 döndürüyordu — frontend `is404` (`ApiError.status===404`) deseni diğer sayfalarla birebir aynı şekilde uygulandı.
+  - **Kusur düzeltmesi (kendi kodumda, commit'ten önce yakalandı):** İlk taslakta `PosterCard` grid hücresine `ContentGrid`'in yaptığı gibi `!w-full` ile esnetilmemişti — `ContentGrid.vue` incelenince bu deseni (+`xl:grid-cols-6` kırılım noktasını) kopyalamadığım fark edildi, düzeltildi.
+  - **Gerçek backend'e karşı uçtan uca (httpx betiği, iki test kullanıcısıyla, kitap tarafı):** liste oluştur → 2 öğe ekle (201, aynı öğeyi tekrar eklemek 200 idempotent) → detay (sahip/başka kullanıcı/anonim, hepsi herkese açıkken 200) → not güncelle → `PUT /order` ile sırayı ters çevir → detayda yeni sıra doğrulandı → başkası düzenlemeye/öğe silmeye çalışınca 403 → sahibi öğe kaldırır (`item_count` düşüyor) → sahibi başlığı değiştirir + gizliye çevirir → artık başkası/anonim 404, sahibi hâlâ 200 → `/users/{u}/lists` başkasına gizli listeyi göstermiyor ama sahibine gösteriyor → sahibi siler (204) → tekrar 404. 22/22 kontrol geçti, test kullanıcıları temizlendi.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine liste bileşenleri eklenmedi (F3.6'da da aynı karar alınmıştı — gerçek bir liste ID'si gerektiriyor, sahte veriyle yalnızca iskelet görünürdü); bunun yerine `ProfilePage`'in Listeler sekmesi + gerçek backend doğrulaması kullanıldı.
+  - **Süreklilik notu:** Önceki oturum kullanım limitine takılmıştı; bu oturum önce yarım kalan F3.6 ilerleme-durumu commit'ini tamamladı (`d0fc66f`), sonra F3.7'ye buradan devam etti.
+- **Sırada:** F3.8 — Ayarlar sayfası (`SettingsPage` `/ayarlar` — Profil/Hesap/Güvenlik/Görünüm/Tercihler/Tehlikeli bölge).
 
 ---
 
@@ -65,12 +70,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 6/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 7/10 | 2026-09-26 | – |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **27/64** | | |
+| **Toplam** | | | **28/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -136,7 +141,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.4 — İnceleme sayfası ve yorum dizisi — ✅ (2026-09-27)
 - [x] F3.5 — Akış (feed) sayfası — ✅ (2026-09-27)
 - [x] F3.6 — Profil sayfası — ✅ (2026-09-27)
-- [ ] F3.7 — Listeler
+- [x] F3.7 — Listeler — ✅ (2026-09-29)
 - [ ] F3.8 — Ayarlar sayfası
 - [ ] F3.9 — UX cilası
 - [ ] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (`main`e ilk birleştirme)
@@ -263,10 +268,10 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.4g | Yorum ekleme alanı + Gönder | F1.7, F3.3 | ⬜ | |
 | REQ-2.1.4h | Yalnız kendi yorumunu düzenle/sil | F1.7, F1.8, F3.3, F3.4 | ✅ | `CommentThread.vue`, curl ile 403+yetki kuralı doğrulandı (`6979589`) |
 | REQ-2.1.5a | Profil: kullanıcı adı, avatar, biyografi | F1.5, F3.6 | ✅ | `ProfileHeader.vue` (`f61e341`) |
-| REQ-2.1.5b | Kendi profili: Profili Düzenle, Yeni Özel Liste | F3.6, F3.7 | ✅ | `EditProfileModal`+`CreateListModal` (`f61e341`) |
+| REQ-2.1.5b | Kendi profili: Profili Düzenle, Yeni Özel Liste | F3.6, F3.7 | ✅ | `EditProfileModal`+`ListFormModal` (`f61e341`, `813b5e9`) |
 | REQ-2.1.5c | Başkasının profili: Takip Et / Takipten Çık | F1.5, F3.6 | ✅ | `FollowButton.vue`, curl ile doğrulandı (`f61e341`) |
 | REQ-2.1.5d | Sekmeli kütüphane (4 sekme) | F1.7, F3.6 | ✅ (plan 4 diyor ama Ek C'nin kendi metni 7 alt filtre listeliyor — İzlediklerim/İzlenecekler/İzliyorum/Okuduklarım/Okunacaklar/Okuyorum/Yarım Bıraktıklarım — hepsi uygulandı) | `ProfilePage.vue` (`f61e341`) |
-| REQ-2.1.5e | Özel listeler | F1.9, F3.6, F3.7 | 🟡 Listeler sekmesi+liste oluşturma çalışıyor; `/liste/:id` hedef sayfası F3.7'yi bekliyor | |
+| REQ-2.1.5e | Özel listeler | F1.9, F3.6, F3.7 | ✅ | `ListPage.vue`, httpx betiğiyle uçtan uca doğrulandı (`813b5e9`) |
 | REQ-2.1.5f | Son aktiviteler (yorum + puan) | F1.8, F3.6 | ✅ | `ProfilePage.vue` Aktiviteler sekmesi, `ActivityCard` (`f61e341`) |
 | REQ-2.2.1a | Film verisi TMDb (başlık, özet, yıl, yönetmen, oyuncular, türler, kapak) | F1.6 | ✅ | `8c12de7` (respx testleri + fixture) |
 | REQ-2.2.1b | Kitap verisi Open Library / Google Books (başlık, yazar, açıklama, sayfa, kapak) | F1.6 | ✅ | `8c12de7` (gerçek sunucuda canlı doğrulandı) |
@@ -343,6 +348,24 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-29] F3.7 — Listeler — ✅
+
+- **Yapılanlar:**
+  - `api/lists.ts` genişletildi: `useListDetail(listId)` (`['lists','detail',id]`, 30 sn), `useUpdateList`, `useDeleteList`, `useUpdateListItemNote`, `useReorderListItems`. Hepsi başarıda geniş `['lists']` anahtarını geçersiz kılıyor (mevcut `useCreateList`/`useAddListItem`/`useRemoveListItem` zaten aynı deseni kullanıyordu) — bu, `['lists','detail',id]` alt-anahtarını da otomatik yakaladığı için ayrı bir invalidate yazmaya gerek bırakmadı.
+  - `CreateListModal.vue` → `ListFormModal.vue` (yeniden adlandırıldı, `components/lists/`): plan tek bir "ListFormModal" adı verdiği için oluşturma VE düzenleme tek bileşende birleştirildi (`list?: Pick<ListOut,'id'|'title'|'description'|'is_public'>` prop'u verilirse düzenleme modu — başlık "Listeyi düzenle"/buton "Kaydet" olur, modal kapanır ama yönlendirme yapmaz; verilmezse oluşturma modu — eskisi gibi `/liste/:id`'ye yönlendirir). `ProfilePage.vue`'nin "Yeni Liste" akışı davranış değişmeden bu bileşene taşındı (import + etiket adı güncellendi).
+  - `ListPage.vue` (yeni, `/liste/:id` — route-level `props` ile `id` enjekte ediliyor): 4'lü kapak kolajı (boşsa degrade), başlık, Herkese Açık/Gizli rozeti, sahip bağlantısı (`/u/:username`), öğe sayısı, açıklama; eylem çubuğu — Paylaş (clipboard), sahibiyse Düzenle (`ListFormModal`), Sil (`useConfirm`, danger, onay → kendi profiline döner), **sıralama modu** (sunucu sırasını `orderDraft` yerel taslağına kopyalar, her öğede ↑/↓ yalnız taslağı değiştirir, "Sırayı kaydet" ancak o an `PUT /lists/{id}/order`'ı tetikler, "Vazgeç" taslağı atar — bu adım [M] boyutlu olduğu için iyimser önbellek güncellemesi yerine bilinçli olarak sade invalidate+refetch tercih edildi). Öğe ızgarası `ContentGrid`'in `PosterCard` + `!w-full` + `xl:grid-cols-6` desenini birebir kullanıyor; her kartın altında sahibi için not ekle/düzenle (satır içi `<textarea>` + Kaydet/Vazgeç — tarayıcı `prompt()`/`alert()` kullanılmadı, F3.9'un kabul kriteriyle uyumlu) ve Kaldır bağlantıları.
+  - Gizli listeye sahip olmayan/anonim erişim zaten backend'de (`lists/service.py::get_list_detail`) 404 döndürüyordu (F1.9'dan beri); frontend tarafında yalnız diğer sayfalarla birebir aynı `is404` (`ApiError.status===404`) + `EmptyState` deseni uygulandı — yeni bir backend değişikliği gerekmedi.
+  - `router/index.ts`: `/liste/:id` artık `ComingSoonPage` değil, gerçek `ListPage.vue` (`props: (route) => ({ id: String(route.params.id) })`).
+  - **Kusur düzeltmesi (commit'ten önce, kod incelemesinde yakalandı):** İlk taslakta liste öğeleri ızgarasında `PosterCard` sabit genişliğiyle (`w-36`) render ediliyordu; `ContentGrid.vue` referans alınınca `!w-full` sınıfı + `xl:grid-cols-6` kırılım noktasının eksik olduğu görüldü, düzeltildi — böylece liste sayfasındaki ızgara `ContentGrid` kullanan diğer tüm sayfalarla (Keşfet, Profil/Kütüphane) görsel olarak tutarlı.
+- **Değişen dosyalar:** `frontend/src/api/lists.ts`, `frontend/src/components/lists/ListFormModal.vue` (yeni, `CreateListModal.vue`'nin yerine), `frontend/src/pages/ListPage.vue` (yeni), `frontend/src/pages/ProfilePage.vue`, `frontend/src/router/index.ts`.
+- **Doğrulama:** `npm run lint` → temiz ✓ · `npm run type-check` → temiz ✓ · `npm run test:unit -- run` → 64 passed (yeni saf mantık eklenmedi, mevcut testler bozulmadı) ✓ · `npm run build` → başarılı, `ListPage` (6.86 KB, gzip 2.78 KB) ve `ListFormModal` (2.19 KB, gzip 1.12 KB) kendi lazy chunk'larında ✓ · Vite dev sunucusunda `/liste/:id` rotası + değişen modüller tek tek istendi, hepsi 200 ✓ · **gerçek backend'e karşı uçtan uca (httpx betiği, iki test kullanıcısıyla, kitap tarafı — TMDB U2'yi bekliyor):** liste oluştur → 2 öğe ekle (201; aynı öğeyi tekrar eklemek 200 idempotent) → detay sahip/başka kullanıcı/anonim'de herkese açıkken hepsi 200 ✓; öğe notu güncelle ✓; `PUT /order` ile sıra ters çevrilip detayda doğrulandı ✓; başkası başlığı değiştirmeye/öğe silmeye çalışınca 403 ✓; sahibi öğe kaldırır → `item_count` düşüyor ✓; sahibi başlığı değiştirip gizliye çevirir → artık başkası/anonim 404, sahibi hâlâ 200 ✓; `/users/{u}/lists` gizli listeyi başkasına göstermiyor, sahibine gösteriyor ✓; sahibi siler → 204, tekrar istek 404 ✓. 22/22 kontrol geçti, iki test kullanıcısı da script sonunda silindi.
+  - **Bilinçli kapsam sınırlaması:** `/_ui` vitrinine liste bileşenleri eklenmedi (F3.6'da `CreateListModal` için de aynı karar alınmıştı — gerçek bir liste kimliği gerektiriyor); doğrulama `ProfilePage`'in Listeler sekmesi + yukarıdaki gerçek backend testiyle yapıldı.
+  - **Kalıcı sınırlama:** Tarayıcı aracı bu oturumda da yok — görsel doğrulama kod incelemesi + lint/type-check/test/build + gerçek backend'e karşı uçtan uca istekle yapıldı.
+- **Kapanan maddeler:** REQ-2.1.5e (özel listeler, artık tam)
+- **Commit:** `813b5e9`
+- **Notlar / sorunlar:** Önceki oturum kullanım limitine takıldığı için bu oturum önce yarım kalan F3.6 ilerleme-durumu commit'ini tamamladı (`d0fc66f`), sonra F3.7'ye devam etti — kod tarafı (`f61e341`) zaten önceki oturumda commit edilmişti, kayıp olmadı.
+- **Sonraki adım:** F3.8 — Ayarlar sayfası
 
 ### [2026-09-27] F3.6 — Profil sayfası — ✅
 
