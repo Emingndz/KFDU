@@ -76,8 +76,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dizi/:id',
     name: 'tv-detail',
-    component: ComingSoonPage,
-    props: { title: 'Dizi' },
+    component: () => import('@/pages/ContentDetailPage.vue'),
+    props: (route) => ({ type: 'tv', externalId: String(route.params.id) }),
     meta: { title: 'Dizi' },
   },
   {

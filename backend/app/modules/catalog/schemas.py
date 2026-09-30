@@ -34,6 +34,14 @@ class GenreOut(BaseModel):
     label: str
 
 
+class SeasonOut(BaseModel):
+    number: int
+    name: str
+    episode_count: int
+    air_year: int | None = None
+    poster_url: str | None = None
+
+
 class ContentSummary(BaseModel):
     id: int | None = None
     type: ContentType
@@ -54,6 +62,7 @@ class ContentDetail(ContentSummary):
     runtime_minutes: int | None = None
     page_count: int | None = None
     seasons: int | None = None
+    seasons_detail: list[SeasonOut] = Field(default_factory=list)
     original_language: str | None = None
     genres_detail: list[GenreOut] = Field(default_factory=list)
     directors: list[Person] = Field(default_factory=list)

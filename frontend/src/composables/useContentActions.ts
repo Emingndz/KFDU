@@ -11,6 +11,7 @@ interface OptimisticState {
   status: LibraryStatus | null
   rating: number | null
   is_favorite: boolean
+  progress: number | null
 }
 
 export function useContentActions(
@@ -27,6 +28,7 @@ export function useContentActions(
   const status = computed<LibraryStatus | null>(() => overlay.value?.status ?? toValue(initial)?.status ?? null)
   const rating = computed<number | null>(() => overlay.value?.rating ?? toValue(initial)?.rating ?? null)
   const isFavorite = computed<boolean>(() => overlay.value?.is_favorite ?? toValue(initial)?.is_favorite ?? false)
+  const progress = computed<number | null>(() => overlay.value?.progress ?? toValue(initial)?.progress ?? null)
 
   function requireAuth(): boolean {
     if (auth.isAuthenticated) return true
@@ -52,11 +54,17 @@ export function useContentActions(
 
   async function apply(payload: EntryUpdateIn) {
     if (!requireAuth()) return
-    const previous: OptimisticState = { status: status.value, rating: rating.value, is_favorite: isFavorite.value }
+    const previous: OptimisticState = {
+      status: status.value,
+      rating: rating.value,
+      is_favorite: isFavorite.value,
+      progress: progress.value,
+    }
     overlay.value = {
       status: payload.status !== undefined ? payload.status : previous.status,
       rating: payload.rating !== undefined ? payload.rating : previous.rating,
       is_favorite: payload.is_favorite ?? previous.is_favorite,
+      progress: payload.progress !== undefined ? payload.progress : previous.progress,
     }
     try {
       await mutation.mutateAsync(payload)
@@ -80,13 +88,19 @@ export function useContentActions(
     void apply({ is_favorite: !isFavorite.value })
   }
 
+  function setProgress(next: number | null) {
+    void apply({ progress: next })
+  }
+
   return {
     status,
     rating,
     isFavorite,
+    progress,
     setStatus,
     setRating,
     toggleFavorite,
+    setProgress,
     isPending: mutation.isPending,
   }
 }

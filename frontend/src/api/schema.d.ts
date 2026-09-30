@@ -1063,6 +1063,8 @@ export interface components {
             page_count?: number | null;
             /** Seasons */
             seasons?: number | null;
+            /** Seasons Detail */
+            seasons_detail?: components["schemas"]["SeasonOut"][];
             /** Original Language */
             original_language?: string | null;
             /** Genres Detail */
@@ -1792,6 +1794,19 @@ export interface components {
             body?: string | null;
             /** Has Spoiler */
             has_spoiler?: boolean | null;
+        };
+        /** SeasonOut */
+        SeasonOut: {
+            /** Number */
+            number: number;
+            /** Name */
+            name: string;
+            /** Episode Count */
+            episode_count: number;
+            /** Air Year */
+            air_year?: number | null;
+            /** Poster Url */
+            poster_url?: string | null;
         };
         /** TokenOut */
         TokenOut: {

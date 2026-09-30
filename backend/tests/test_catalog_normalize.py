@@ -27,9 +27,24 @@ def test_tmdb_tv_detail_uses_created_by_and_episode_runtime():
     detail = tmdb.to_detail(raw, "tv")
 
     assert detail.creators == ["Vince Gilligan"]
+    assert detail.directors[0].name == "Vince Gilligan"
+    assert detail.directors[0].role == "creator"
     assert detail.runtime_minutes == 47
     assert detail.seasons == 5
     assert set(detail.genres) == {"drama", "crime"}
+    assert len(detail.seasons_detail) == 2
+    assert detail.seasons_detail[0].number == 1
+    assert detail.seasons_detail[0].episode_count == 7
+    assert detail.seasons_detail[0].air_year == 2008
+    assert detail.seasons_detail[1].name == "Sezon 2"
+
+
+def test_tmdb_movie_detail_has_no_seasons():
+    raw = _load("tmdb_movie_detail_27205.json")
+    detail = tmdb.to_detail(raw, "movie")
+
+    assert detail.seasons is None
+    assert detail.seasons_detail == []
 
 
 def test_tmdb_search_results_use_genre_ids_without_credits():

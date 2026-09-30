@@ -62,6 +62,21 @@ def test_tmdb_without_key_returns_503(client):
     assert response.json()["code"] == "TMDB_NOT_CONFIGURED"
 
 
+def test_tmdb_tv_without_key_returns_503(client):
+    assert settings.TMDB_API_KEY == ""
+    response = client.get("/api/v1/catalog/tv/1396")
+    assert response.status_code == 503
+    assert response.json()["code"] == "TMDB_NOT_CONFIGURED"
+
+
+def test_tv_genres_work_without_tmdb_key(client):
+    response = client.get("/api/v1/catalog/genres", params={"type": "tv"})
+    assert response.status_code == 200
+    keys = {g["key"] for g in response.json()}
+    assert "action" in keys and "children" in keys
+    assert "horror" not in keys
+
+
 @respx.mock
 def test_year_filter_with_no_matches_returns_empty_page(client):
     respx.get("https://openlibrary.org/search.json").mock(

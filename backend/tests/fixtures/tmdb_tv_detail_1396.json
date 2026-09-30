@@ -15,7 +15,25 @@
     { "id": 18, "name": "Drama" },
     { "id": 80, "name": "Crime" }
   ],
-  "created_by": [{ "id": 66633, "name": "Vince Gilligan" }],
+  "created_by": [{ "id": 66633, "name": "Vince Gilligan", "profile_path": null }],
+  "seasons": [
+    {
+      "id": 3572,
+      "season_number": 1,
+      "name": "Sezon 1",
+      "episode_count": 7,
+      "air_date": "2008-01-20",
+      "poster_path": "/1BP4xYv9ZG4ZFYh8ND39cE79MvQ.jpg"
+    },
+    {
+      "id": 3573,
+      "season_number": 2,
+      "name": "Sezon 2",
+      "episode_count": 13,
+      "air_date": "2009-03-08",
+      "poster_path": "/3IcXPXHJTb6Yl9U9iK9WkVFtxsK.jpg"
+    }
+  ],
   "credits": {
     "crew": [],
     "cast": [

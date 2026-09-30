@@ -25,6 +25,7 @@ export type ContentSummary = components['schemas']['ContentSummary']
 export type ContentDetail = components['schemas']['ContentDetail']
 export type Person = components['schemas']['Person']
 export type Providers = components['schemas']['Providers']
+export type SeasonOut = components['schemas']['SeasonOut']
 
 export type LibraryStatus = components['schemas']['LibraryStatus']
 export type EntryOut = components['schemas']['EntryOut']

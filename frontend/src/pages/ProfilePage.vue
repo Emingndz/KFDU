@@ -66,13 +66,13 @@ const activityItems = computed(() => activities.data.value?.pages.flatMap((p) =>
 
 // Kütüphane
 const LIBRARY_FILTERS = [
-  { key: 'izlenen', label: 'İzlediklerim', type: 'movie' as CatalogContentType, status: 'completed' },
-  { key: 'izlenecek', label: 'İzlenecekler', type: 'movie' as CatalogContentType, status: 'planned' },
-  { key: 'izleniyor', label: 'İzliyorum', type: 'movie' as CatalogContentType, status: 'in_progress' },
-  { key: 'okunan', label: 'Okuduklarım', type: 'book' as CatalogContentType, status: 'completed' },
-  { key: 'okunacak', label: 'Okunacaklar', type: 'book' as CatalogContentType, status: 'planned' },
-  { key: 'okunuyor', label: 'Okuyorum', type: 'book' as CatalogContentType, status: 'in_progress' },
-  { key: 'yarim', label: 'Yarım Bıraktıklarım', type: undefined, status: 'dropped' },
+  { key: 'izlenen', label: 'İzlediklerim', types: ['movie', 'tv'] as CatalogContentType[], status: 'completed' },
+  { key: 'izlenecek', label: 'İzlenecekler', types: ['movie', 'tv'] as CatalogContentType[], status: 'planned' },
+  { key: 'izleniyor', label: 'İzliyorum', types: ['movie', 'tv'] as CatalogContentType[], status: 'in_progress' },
+  { key: 'okunan', label: 'Okuduklarım', types: ['book'] as CatalogContentType[], status: 'completed' },
+  { key: 'okunacak', label: 'Okunacaklar', types: ['book'] as CatalogContentType[], status: 'planned' },
+  { key: 'okunuyor', label: 'Okuyorum', types: ['book'] as CatalogContentType[], status: 'in_progress' },
+  { key: 'yarim', label: 'Yarım Bıraktıklarım', types: [] as CatalogContentType[], status: 'dropped' },
 ]
 const librarySubTab = ref(LIBRARY_FILTERS[0]!.key)
 const librarySort = ref<'recent' | 'rating' | 'title' | 'year'>('recent')
@@ -91,17 +91,44 @@ function entriesToGridProps(entries: EntryOut[]) {
   return { items: entries.map((e) => e.content), lookup }
 }
 
-const libraryQuery = useQuery(() => ({
-  queryKey: ['profile-library', props.username, activeLibraryFilter.value.key, librarySort.value],
+function sortEntries(entries: EntryOut[], sort: typeof librarySort.value): EntryOut[] {
+  const sorted = [...entries]
+  if (sort === 'rating') sorted.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
+  else if (sort === 'title') sorted.sort((a, b) => a.content.title.localeCompare(b.content.title, 'tr'))
+  else if (sort === 'year') sorted.sort((a, b) => (b.content.year ?? 0) - (a.content.year ?? 0))
+  else sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+  return sorted
+}
+
+const libraryQueryA = useQuery(() => ({
+  queryKey: ['profile-library', props.username, activeLibraryFilter.value.key, librarySort.value, 'a'],
   queryFn: () =>
     getUserLibraryRequest(props.username, {
-      type: activeLibraryFilter.value.type,
+      type: activeLibraryFilter.value.types[0],
       status: activeLibraryFilter.value.status,
       sort: librarySort.value,
       page_size: 60,
     }),
 }))
-const libraryGrid = computed(() => entriesToGridProps(libraryQuery.data.value?.items ?? []))
+const libraryQueryB = useQuery(() => ({
+  queryKey: ['profile-library', props.username, activeLibraryFilter.value.key, librarySort.value, 'b'],
+  queryFn: () =>
+    getUserLibraryRequest(props.username, {
+      type: activeLibraryFilter.value.types[1],
+      status: activeLibraryFilter.value.status,
+      sort: librarySort.value,
+      page_size: 60,
+    }),
+  enabled: activeLibraryFilter.value.types.length > 1,
+}))
+const libraryIsMulti = computed(() => activeLibraryFilter.value.types.length > 1)
+const libraryIsPending = computed(() => libraryQueryA.isPending.value || (libraryIsMulti.value && libraryQueryB.isPending.value))
+const libraryGrid = computed(() => {
+  const a = libraryQueryA.data.value?.items ?? []
+  const b = libraryQueryB.data.value?.items ?? []
+  const merged = libraryIsMulti.value ? sortEntries([...a, ...b], librarySort.value) : a
+  return entriesToGridProps(merged)
+})
 
 // Puanlar
 const ratingsQuery = useQuery(() => ({
@@ -230,7 +257,7 @@ function showFollowing() {
           ]"
         />
       </div>
-      <ContentGrid :items="libraryGrid.items" :lookup="libraryGrid.lookup" :loading="libraryQuery.isPending.value" empty-title="Bu sekmede içerik yok" />
+      <ContentGrid :items="libraryGrid.items" :lookup="libraryGrid.lookup" :loading="libraryIsPending" empty-title="Bu sekmede içerik yok" />
     </template>
 
     <template v-else-if="tab === 'puanlar'">

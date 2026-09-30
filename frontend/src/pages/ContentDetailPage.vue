@@ -21,6 +21,7 @@ import LibraryButtons from '@/components/content/LibraryButtons.vue'
 import FavoriteButton from '@/components/content/FavoriteButton.vue'
 import AddToListMenu from '@/components/content/AddToListMenu.vue'
 import CastRow from '@/components/content/CastRow.vue'
+import SeasonRow from '@/components/content/SeasonRow.vue'
 import WatchProviders from '@/components/content/WatchProviders.vue'
 import ReviewEditor from '@/components/content/ReviewEditor.vue'
 import ReviewList from '@/components/content/ReviewList.vue'
@@ -56,6 +57,7 @@ const actions = useContentActions(
           status: contentState.data.value.me.entry.status,
           rating: contentState.data.value.me.entry.rating,
           is_favorite: contentState.data.value.me.entry.is_favorite,
+          progress: contentState.data.value.me.entry.progress,
         }
       : undefined,
 )
@@ -89,6 +91,7 @@ const creatorLine = computed(() => {
 
 const genreLabels = computed(() => (detail.data.value?.genres_detail ?? []).map((g) => g.label))
 const castList = computed(() => detail.data.value?.cast ?? [])
+const seasonsList = computed(() => detail.data.value?.seasons_detail ?? [])
 const providersOrEmpty = computed(
   () => detail.data.value?.providers ?? { flatrate: [], rent: [], buy: [], link: null },
 )
@@ -111,6 +114,11 @@ async function share() {
 
 function goToDiscover() {
   void router.push('/kesfet')
+}
+
+function onProgressChange(event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  actions.setProgress(value === '' ? null : Number(value))
 }
 </script>
 
@@ -184,6 +192,17 @@ function goToDiscover() {
         <LibraryButtons :type="type" :status="actions.status.value" @update:status="actions.setStatus" />
         <FavoriteButton :model-value="actions.isFavorite.value" @update:model-value="actions.toggleFavorite" />
         <AddToListMenu v-if="detail.data.value.id" :type="type" :external-id="externalId" :content-id="detail.data.value.id" />
+        <div v-if="type === 'tv' && actions.status.value === 'in_progress'" class="flex items-center gap-2">
+          <label for="progress-input" class="text-sm text-muted">Kaçıncı bölümdesin?</label>
+          <input
+            id="progress-input"
+            type="number"
+            min="0"
+            :value="actions.progress.value ?? ''"
+            class="h-10 w-20 rounded-lg border border-border bg-surface px-3 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            @change="onProgressChange"
+          />
+        </div>
         <BaseButton variant="ghost" @click="share">Paylaş</BaseButton>
         <BaseButton v-if="detail.data.value.trailer_key" variant="ghost" @click="trailerOpen = true">Fragmanı izle</BaseButton>
       </div>
@@ -208,6 +227,11 @@ function goToDiscover() {
     <section v-if="castList.length > 0" class="flex flex-col gap-3">
       <h2 class="text-lg font-semibold text-fg">Oyuncular</h2>
       <CastRow :people="castList" />
+    </section>
+
+    <section v-if="type === 'tv' && seasonsList.length > 0" class="flex flex-col gap-3">
+      <h2 class="text-lg font-semibold text-fg">Sezonlar</h2>
+      <SeasonRow :seasons="seasonsList" />
     </section>
 
     <section v-if="type !== 'book'" class="flex flex-col gap-3">

@@ -13,7 +13,7 @@ from app.core.pagination import Page
 from app.modules.catalog import genres as genre_utils
 from app.modules.catalog.models import Content
 from app.modules.catalog.providers import google_books, openlibrary, tmdb
-from app.modules.catalog.schemas import ContentDetail, ContentSummary, GenreOut, Person, Providers
+from app.modules.catalog.schemas import ContentDetail, ContentSummary, GenreOut, Person, Providers, SeasonOut
 
 CONTENT_FRESHNESS = timedelta(days=7)
 _OL_ID_PATTERN = re.compile(r"^OL\d+W$")
@@ -148,6 +148,7 @@ def _detail_to_content_fields(detail: ContentDetail) -> dict:
             "providers": detail.providers.model_dump(),
             "isbn": detail.isbn,
             "external_url": detail.external_url,
+            "seasons_detail": [s.model_dump() for s in detail.seasons_detail],
         },
         "fetched_at": datetime.now(UTC),
     }
@@ -219,6 +220,7 @@ def _content_to_detail(content: Content) -> ContentDetail:
         runtime_minutes=content.runtime_minutes,
         page_count=content.page_count,
         seasons=content.seasons,
+        seasons_detail=[SeasonOut(**s) for s in extra.get("seasons_detail") or []],
         original_language=content.original_language,
         genres_detail=[GenreOut(key=k, label=genre_utils.label(k)) for k in (content.genres or [])],
         directors=directors,

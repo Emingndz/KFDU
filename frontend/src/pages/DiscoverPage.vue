@@ -26,9 +26,9 @@ import BaseSpinner from '@/components/ui/BaseSpinner.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 
-type DiscoverTab = 'film' | 'kitap' | 'kullanici'
+type DiscoverTab = 'film' | 'dizi' | 'kitap' | 'kullanici'
 
-const TAB_TYPE: Record<'film' | 'kitap', CatalogContentType> = { film: 'movie', kitap: 'book' }
+const TAB_TYPE: Record<'film' | 'dizi' | 'kitap', CatalogContentType> = { film: 'movie', dizi: 'tv', kitap: 'book' }
 
 const route = useRoute()
 const router = useRouter()
@@ -172,6 +172,7 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
         <button
           v-for="option in [
             { value: 'film', label: 'Film' },
+            { value: 'dizi', label: 'Dizi' },
             { value: 'kitap', label: 'Kitap' },
             { value: 'kullanici', label: 'Kullanıcı' },
           ]"
@@ -243,6 +244,9 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
         <ContentRow title="Haftanın Trend Filmleri" :items="trending.data.value ?? []" :loading="trending.isPending.value" />
         <ContentRow title="Vizyonda (Türkiye)" :items="nowPlaying.data.value ?? []" :loading="nowPlaying.isPending.value" />
         <ContentRow title="Yakında" :items="upcoming.data.value ?? []" :loading="upcoming.isPending.value" />
+      </template>
+      <template v-else-if="tab === 'dizi'">
+        <ContentRow title="Haftanın Trend Dizileri" :items="trending.data.value ?? []" :loading="trending.isPending.value" />
       </template>
       <template v-else>
         <ContentRow title="Trend Kitaplar" :items="trendingBooks.data.value ?? []" :loading="trendingBooks.isPending.value" />

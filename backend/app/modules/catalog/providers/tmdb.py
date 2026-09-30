@@ -9,6 +9,7 @@ from app.modules.catalog.schemas import (
     GenreOut,
     Person,
     Providers,
+    SeasonOut,
 )
 
 BASE_URL = "https://api.themoviedb.org/3"
@@ -95,6 +96,19 @@ def _pick_trailer(videos: list[dict]) -> str | None:
     return max(candidates, key=score).get("key")
 
 
+def _seasons_detail(raw_seasons: list[dict]) -> list[SeasonOut]:
+    return [
+        SeasonOut(
+            number=s["season_number"],
+            name=s.get("name") or f"Sezon {s['season_number']}",
+            episode_count=s.get("episode_count") or 0,
+            air_year=_year_from_date(s.get("air_date")),
+            poster_url=_image_url(s.get("poster_path"), "w342"),
+        )
+        for s in raw_seasons
+    ]
+
+
 def _pick_providers(region_data: dict) -> Providers:
     def names(items: list[dict]) -> list[str]:
         return [i["provider_name"] for i in items]
@@ -114,16 +128,28 @@ def to_detail(raw: dict, content_type: str) -> ContentDetail:
     crew = raw.get("credits", {}).get("crew", [])
     cast_raw = raw.get("credits", {}).get("cast", [])[:15]
 
-    directors = [
-        Person(
-            id=str(c["id"]),
-            name=c["name"],
-            role="director",
-            photo_url=_image_url(c.get("profile_path"), "w185"),
-        )
-        for c in crew
-        if c.get("job") == "Director"
-    ]
+    directors = (
+        [
+            Person(
+                id=str(c["id"]),
+                name=c["name"],
+                role="director",
+                photo_url=_image_url(c.get("profile_path"), "w185"),
+            )
+            for c in crew
+            if c.get("job") == "Director"
+        ]
+        if is_movie
+        else [
+            Person(
+                id=str(c["id"]),
+                name=c["name"],
+                role="creator",
+                photo_url=_image_url(c.get("profile_path"), "w185"),
+            )
+            for c in raw.get("created_by", [])
+        ]
+    )
     cast = [
         Person(
             id=str(c["id"]),
@@ -144,6 +170,7 @@ def to_detail(raw: dict, content_type: str) -> ContentDetail:
         runtime_minutes=runtime,
         page_count=None,
         seasons=None if is_movie else raw.get("number_of_seasons"),
+        seasons_detail=[] if is_movie else _seasons_detail(raw.get("seasons", [])),
         original_language=raw.get("original_language"),
         genres_detail=[GenreOut(key=k, label=genre_utils.label(k)) for k in summary.genres],
         directors=directors,
