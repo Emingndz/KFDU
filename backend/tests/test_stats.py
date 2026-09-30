@@ -214,3 +214,105 @@ def test_wrapped_includes_fun_title_most_liked_review_and_active_month(client, d
     assert body["most_liked_review"]["content"]["external_id"] == "OL9304W"
     assert body["first_completed"]["external_id"] == "OL9304W"
     assert body["last_completed"]["external_id"] == "OL9304W"
+
+
+@respx.mock
+def test_goals_default_to_zero_target_with_real_progress(client, db, user_factory):
+    _mock_book_detailed("OL9305W", "Hedef Kitabı", subject=["drama"], pages=150)
+    user = user_factory(username="hedefkullanici", email="hedefkullanici@example.com")
+    headers = auth_headers(user)
+    client.put("/api/v1/library/book/OL9305W", json={"status": "completed"}, headers=headers)
+
+    entry = db.query(LibraryEntry).filter_by(user_id=user.id).first()
+    entry.finished_at = date(2024, 1, 1)
+    db.commit()
+
+    response = client.get("/api/v1/users/me/goals", params={"year": 2024}, headers=headers)
+    assert response.status_code == 200
+    by_type = {g["media_type"]: g for g in response.json()}
+    assert by_type["book"] == {"media_type": "book", "target": 0, "current": 1}
+    assert by_type["movie"] == {"media_type": "movie", "target": 0, "current": 0}
+
+
+def _put_book_goal(client, headers, year: int, target: int):
+    return client.put(
+        "/api/v1/users/me/goals",
+        params={"year": year},
+        json=[{"media_type": "book", "target": target}],
+        headers=headers,
+    )
+
+
+def test_set_goals_upserts_instead_of_duplicating(client, user_factory):
+    user = user_factory(username="hedefgunceller", email="hedefgunceller@example.com")
+    headers = auth_headers(user)
+
+    first = _put_book_goal(client, headers, 2024, 12)
+    assert first.status_code == 200
+    second = _put_book_goal(client, headers, 2024, 24)
+    assert second.status_code == 200
+
+    body = second.json()
+    book_goal = next(g for g in body if g["media_type"] == "book")
+    assert book_goal["target"] == 24
+
+    check = client.get("/api/v1/users/me/goals", params={"year": 2024}, headers=headers)
+    book_goal_check = next(g for g in check.json() if g["media_type"] == "book")
+    assert book_goal_check["target"] == 24
+
+
+@respx.mock
+def test_badges_reflect_real_activity_and_goal_getter(client, db, user_factory):
+    _mock_book_detailed("OL9306W", "Rozet Kitabı", subject=["drama"], pages=150)
+    user = user_factory(username="rozetkullanici", email="rozetkullanici@example.com")
+    headers = auth_headers(user)
+
+    client.put("/api/v1/library/book/OL9306W", json={"status": "completed", "rating": 8}, headers=headers)
+    review_payload = {"type": "book", "external_id": "OL9306W", "body": "Güzel bir kitaptı."}
+    client.post("/api/v1/reviews", json=review_payload, headers=headers)
+
+    entry = db.query(LibraryEntry).filter_by(user_id=user.id).first()
+    entry.finished_at = date(2024, 1, 1)
+    db.commit()
+
+    # Henüz hedef yok -> goal_getter kazanılmamış olmalı
+    before = client.get(f"/api/v1/users/{user.username}/badges")
+    before_by_key = {b["key"]: b for b in before.json()}
+    assert before_by_key["first_step"]["earned"] is True
+    assert before_by_key["critic"]["progress"] == {"current": 1, "target": 10}
+    assert before_by_key["goal_getter"]["earned"] is False
+
+    # 2024 için 1 kitaplık düşük bir hedef koy -> zaten tamamlanmış olmalı
+    _put_book_goal(client, headers, 2024, 1)
+    after = client.get(f"/api/v1/users/{user.username}/badges")
+    after_by_key = {b["key"]: b for b in after.json()}
+    assert after_by_key["goal_getter"]["earned"] is True
+
+
+def test_badges_for_unknown_user_returns_404(client):
+    response = client.get("/api/v1/users/hicbiryerdeyok/badges")
+    assert response.status_code == 404
+
+
+def test_set_goals_with_zero_target_does_not_persist_or_earn_goal_getter(client, user_factory):
+    user = user_factory(username="sifirhedef", email="sifirhedef@example.com")
+    headers = auth_headers(user)
+
+    # Düzenleme formu, dokunulmamış alanları da target=0 olarak gönderebilir (ör. yalnız
+    # kitap hedefi değiştirilse bile film/dizi taslakları 0 olarak batch'e dahil olur) —
+    # bu satırlar KALICI OLMAMALI ve current>=0 her zaman doğru olduğu için "goal_getter"
+    # rozetini yanlışlıkla tetiklememeli.
+    response = client.put(
+        "/api/v1/users/me/goals",
+        params={"year": 2024},
+        json=[{"media_type": "movie", "target": 0}, {"media_type": "tv", "target": 0}],
+        headers=headers,
+    )
+    assert response.status_code == 200
+    body = {g["media_type"]: g for g in response.json()}
+    assert body["movie"]["target"] == 0
+    assert body["tv"]["target"] == 0
+
+    badges = client.get(f"/api/v1/users/{user.username}/badges")
+    goal_getter = next(b for b in badges.json() if b["key"] == "goal_getter")
+    assert goal_getter["earned"] is False

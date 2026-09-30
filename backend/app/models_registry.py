@@ -4,6 +4,7 @@ from app.modules.catalog.models import Content
 from app.modules.library.models import LibraryEntry, Review
 from app.modules.lists.models import ListItem, UserList
 from app.modules.social.models import Activity, ActivityComment, ActivityLike, Notification
+from app.modules.stats.models import UserGoal
 from app.modules.users.models import Follow, User
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "PasswordResetCode",
     "Review",
     "User",
+    "UserGoal",
     "UserList",
 ]

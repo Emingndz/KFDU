@@ -3,8 +3,16 @@ from fastapi import APIRouter, Query
 from app.core.deps import DbSession
 from app.core.pagination import Page
 from app.modules.catalog.schemas import ContentSummary, ContentType
+from app.modules.stats import badges as badges_service
 from app.modules.stats import service
-from app.modules.stats.schemas import ProfileSummaryOut, UserStatsOut, WrappedOut
+from app.modules.stats.schemas import (
+    BadgeOut,
+    GoalOut,
+    GoalUpdateIn,
+    ProfileSummaryOut,
+    UserStatsOut,
+    WrappedOut,
+)
 from app.modules.users.deps import CurrentUser
 
 router = APIRouter(tags=["stats"])
@@ -23,6 +31,23 @@ def get_user_stats(username: str, db: DbSession, year: int | None = None) -> Use
 @router.get("/users/me/wrapped", response_model=WrappedOut, summary="Yıllık özet")
 def get_wrapped(user: CurrentUser, db: DbSession, year: int | None = None) -> WrappedOut:
     return service.get_wrapped(db, user=user, year=year)
+
+
+@router.get("/users/me/goals", response_model=list[GoalOut], summary="Yıllık hedeflerim")
+def get_goals(user: CurrentUser, db: DbSession, year: int | None = None) -> list[GoalOut]:
+    return service.get_goals(db, user=user, year=year)
+
+
+@router.put("/users/me/goals", response_model=list[GoalOut], summary="Yıllık hedeflerimi güncelle")
+def set_goals(
+    payload: list[GoalUpdateIn], user: CurrentUser, db: DbSession, year: int | None = None
+) -> list[GoalOut]:
+    return service.set_goals(db, user=user, year=year, goals=payload)
+
+
+@router.get("/users/{username}/badges", response_model=list[BadgeOut], summary="Rozetler")
+def get_badges(username: str, db: DbSession) -> list[BadgeOut]:
+    return badges_service.get_badges(db, username=username)
 
 
 @router.get("/platform/top-rated", response_model=Page[ContentSummary], summary="En yüksek puanlılar")

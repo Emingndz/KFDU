@@ -13,8 +13,11 @@ from app.modules.catalog.schemas import ContentSummary
 from app.modules.library.models import LibraryEntry, Review
 from app.modules.lists.models import ListItem, UserList
 from app.modules.social.models import Activity, ActivityLike
+from app.modules.stats.models import UserGoal
 from app.modules.stats.schemas import (
     GenreCount,
+    GoalOut,
+    GoalUpdateIn,
     MonthlyCount,
     PersonCount,
     ProfileSummaryOut,
@@ -25,6 +28,8 @@ from app.modules.stats.schemas import (
     WrappedReview,
 )
 from app.modules.users.models import User
+
+GOAL_MEDIA_TYPES = ("movie", "tv", "book")
 
 BAYES_M = 3
 DEFAULT_RATING_MID = 5.5
@@ -413,3 +418,48 @@ def get_wrapped(db: Session, *, user: User, year: int | None = None) -> WrappedO
         dominant_genre=dominant_genre,
         fun_title=fun_title,
     )
+
+
+def get_goals(db: Session, *, user: User, year: int | None = None) -> list[GoalOut]:
+    resolved_year = year or datetime.now(UTC).year
+    rows = db.scalars(
+        select(UserGoal).where(UserGoal.user_id == user.id, UserGoal.year == resolved_year)
+    ).all()
+    targets = {g.media_type: g.target for g in rows}
+
+    completed = _completed_in_year(db, user_id=user.id, year=resolved_year)
+    current_counts = Counter(content.type for _, content in completed)
+
+    return [
+        GoalOut(media_type=mt, target=targets.get(mt, 0), current=current_counts.get(mt, 0))
+        for mt in GOAL_MEDIA_TYPES
+    ]
+
+
+def set_goals(db: Session, *, user: User, year: int | None, goals: list[GoalUpdateIn]) -> list[GoalOut]:
+    resolved_year = year or datetime.now(UTC).year
+    for goal in goals:
+        if goal.media_type not in GOAL_MEDIA_TYPES:
+            continue
+        existing = db.scalar(
+            select(UserGoal).where(
+                UserGoal.user_id == user.id,
+                UserGoal.year == resolved_year,
+                UserGoal.media_type == goal.media_type,
+            )
+        )
+        # target<=0 "hedef yok" anlamına gelir — kaydedilmez, zaten var olan satır silinir.
+        # Aksi halde bir hedef=0 satırı, current>=0 her zaman doğru olduğu için "goal_getter"
+        # rozetini anlamsızca tetikler.
+        if goal.target <= 0:
+            if existing is not None:
+                db.delete(existing)
+            continue
+        if existing is None:
+            db.add(
+                UserGoal(user_id=user.id, year=resolved_year, media_type=goal.media_type, target=goal.target)
+            )
+        else:
+            existing.target = goal.target
+    db.commit()
+    return get_goals(db, user=user, year=resolved_year)

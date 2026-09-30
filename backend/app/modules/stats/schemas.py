@@ -72,3 +72,28 @@ class WrappedOut(BaseModel):
     most_active_month: int | None = None
     dominant_genre: GenreCount | None = None
     fun_title: str | None = None
+
+
+class GoalOut(BaseModel):
+    media_type: str
+    target: int
+    current: int
+
+
+class GoalUpdateIn(BaseModel):
+    media_type: str
+    target: int = Field(ge=0)
+
+
+class BadgeProgress(BaseModel):
+    current: int
+    target: int
+
+
+class BadgeOut(BaseModel):
+    key: str
+    name: str
+    description: str
+    icon: str
+    earned: bool
+    progress: BadgeProgress

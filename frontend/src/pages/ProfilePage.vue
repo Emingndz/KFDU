@@ -28,6 +28,8 @@ import ContentGrid from '@/components/content/ContentGrid.vue'
 import ReviewItem from '@/components/content/ReviewItem.vue'
 import ListCard from '@/components/lists/ListCard.vue'
 import ListFormModal from '@/components/lists/ListFormModal.vue'
+import GoalRings from '@/components/stats/GoalRings.vue'
+import BadgeShowcase from '@/components/stats/BadgeShowcase.vue'
 
 const StatsCharts = defineAsyncComponent(() => import('@/components/stats/StatsCharts.vue'))
 
@@ -314,6 +316,8 @@ function showFollowing() {
         <div v-if="stats.isPending.value" class="flex justify-center py-6"><BaseSpinner /></div>
         <ErrorState v-else-if="stats.isError.value" message="İstatistikler yüklenemedi." @retry="() => stats.refetch()" />
         <StatsCharts v-else-if="stats.data.value" :stats="stats.data.value" />
+        <GoalRings v-if="profile.data.value?.is_me" :year="Number(statsYear)" />
+        <BadgeShowcase :username="username" />
       </div>
     </template>
 

@@ -1,8 +1,8 @@
 import { type MaybeRefOrGetter, toValue } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { api } from './client'
 import type { CatalogContentType } from './catalog'
-import type { ContentSummary, Page, ProfileSummaryOut, UserStatsOut, WrappedOut } from '@/types'
+import type { BadgeOut, ContentSummary, GoalOut, GoalUpdateIn, Page, ProfileSummaryOut, UserStatsOut, WrappedOut } from '@/types'
 
 export function getProfileSummaryRequest(username: string) {
   return api<ProfileSummaryOut>(`/users/${username}/summary`)
@@ -61,5 +61,41 @@ export function useWrapped(year: MaybeRefOrGetter<number>) {
     queryKey: ['wrapped', toValue(year)],
     queryFn: () => getWrappedRequest(toValue(year)),
     staleTime: 60 * 60_000,
+  }))
+}
+
+export function getGoalsRequest(year: number) {
+  return api<GoalOut[]>('/users/me/goals', { query: { year } })
+}
+
+export function useGoals(year: MaybeRefOrGetter<number>) {
+  return useQuery(() => ({
+    queryKey: ['goals', toValue(year)],
+    queryFn: () => getGoalsRequest(toValue(year)),
+    staleTime: 30_000,
+  }))
+}
+
+export function setGoalsRequest(year: number, goals: GoalUpdateIn[]) {
+  return api<GoalOut[]>('/users/me/goals', { method: 'PUT', query: { year }, body: goals })
+}
+
+export function useSetGoals(year: MaybeRefOrGetter<number>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (goals: GoalUpdateIn[]) => setGoalsRequest(toValue(year), goals),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['goals', toValue(year)] }),
+  })
+}
+
+export function getBadgesRequest(username: string) {
+  return api<BadgeOut[]>(`/users/${username}/badges`)
+}
+
+export function useBadges(username: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['badges', toValue(username)],
+    queryFn: () => getBadgesRequest(toValue(username)),
+    staleTime: 60_000,
   }))
 }

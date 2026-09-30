@@ -970,6 +970,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Yıllık hedeflerim */
+        get: operations["stats-get_goals"];
+        /** Yıllık hedeflerimi güncelle */
+        put: operations["stats-set_goals"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{username}/badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rozetler */
+        get: operations["stats-get_badges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/top-rated": {
         parameters: {
             query?: never;
@@ -1080,6 +1115,27 @@ export interface components {
             poster_url?: string | null;
             /** Year */
             year?: number | null;
+        };
+        /** BadgeOut */
+        BadgeOut: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            /** Icon */
+            icon: string;
+            /** Earned */
+            earned: boolean;
+            progress: components["schemas"]["BadgeProgress"];
+        };
+        /** BadgeProgress */
+        BadgeProgress: {
+            /** Current */
+            current: number;
+            /** Target */
+            target: number;
         };
         /** Body_auth-token_login */
         "Body_auth-token_login": {
@@ -1352,6 +1408,22 @@ export interface components {
             key: string;
             /** Label */
             label: string;
+        };
+        /** GoalOut */
+        GoalOut: {
+            /** Media Type */
+            media_type: string;
+            /** Target */
+            target: number;
+            /** Current */
+            current: number;
+        };
+        /** GoalUpdateIn */
+        GoalUpdateIn: {
+            /** Media Type */
+            media_type: string;
+            /** Target */
+            target: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -4318,6 +4390,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WrappedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "stats-get_goals": {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "stats-set_goals": {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoalUpdateIn"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoalOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "stats-get_badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadgeOut"][];
                 };
             };
             /** @description Validation Error */
