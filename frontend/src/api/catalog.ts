@@ -104,6 +104,38 @@ export function useSimilarContent(type: MaybeRefOrGetter<CatalogContentType>, ex
   }))
 }
 
+export function getBookAdaptationsRequest(externalId: string) {
+  return api<ContentSummary[]>(`/catalog/book/${externalId}/adaptations`)
+}
+
+export function useBookAdaptations(externalId: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
+  return useQuery(() => ({
+    queryKey: ['adaptations', toValue(externalId)],
+    queryFn: () => getBookAdaptationsRequest(toValue(externalId)),
+    enabled: toValue(enabled),
+    staleTime: 24 * 60 * 60_000,
+    retry: false,
+  }))
+}
+
+export function getSourceBookRequest(type: CatalogContentType, externalId: string) {
+  return api<ContentSummary>(`/catalog/${type}/${externalId}/source-book`)
+}
+
+export function useSourceBook(
+  type: MaybeRefOrGetter<CatalogContentType>,
+  externalId: MaybeRefOrGetter<string>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
+  return useQuery(() => ({
+    queryKey: ['source-book', toValue(type), toValue(externalId)],
+    queryFn: () => getSourceBookRequest(toValue(type), toValue(externalId)),
+    enabled: toValue(enabled),
+    staleTime: 24 * 60 * 60_000,
+    retry: false,
+  }))
+}
+
 export function getPersonDetailRequest(personId: string) {
   return api<PersonDetail>(`/catalog/people/${personId}`)
 }

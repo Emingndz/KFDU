@@ -1,0 +1,24 @@
+{
+  "id": 438631,
+  "title": "Dune",
+  "original_title": "Dune",
+  "overview": "Genç Paul Atreides, gezegeninin en değerli kaynağını korumak için kaderiyle yüzleşir.",
+  "release_date": "2021-10-20",
+  "poster_path": "/d5NXSklXo0qyIYkgV94XAgMIckC.jpg",
+  "backdrop_path": null,
+  "runtime": 155,
+  "original_language": "en",
+  "vote_average": 8.0,
+  "vote_count": 10000,
+  "genres": [{ "id": 878, "name": "Science Fiction" }],
+  "credits": {
+    "crew": [
+      { "id": 137427, "name": "Denis Villeneuve", "job": "Director", "profile_path": null },
+      { "id": 2091, "name": "Frank Herbert", "job": "Novel", "profile_path": null }
+    ],
+    "cast": []
+  },
+  "videos": { "results": [] },
+  "watch/providers": { "results": {} },
+  "keywords": { "keywords": [{ "id": 818, "name": "based on novel or short story" }] }
+}

@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { ApiError } from '@/api/client'
-import { type CatalogContentType, useContentDetail, useSimilarContent } from '@/api/catalog'
+import { type CatalogContentType, useBookAdaptations, useContentDetail, useSimilarContent, useSourceBook } from '@/api/catalog'
 import { useContentState } from '@/api/library'
 import { useAuthStore } from '@/stores/auth'
 import { useContentActions } from '@/composables/useContentActions'
@@ -22,6 +22,7 @@ import FavoriteButton from '@/components/content/FavoriteButton.vue'
 import AddToListMenu from '@/components/content/AddToListMenu.vue'
 import CastRow from '@/components/content/CastRow.vue'
 import SeasonRow from '@/components/content/SeasonRow.vue'
+import PosterCard from '@/components/content/PosterCard.vue'
 import WatchProviders from '@/components/content/WatchProviders.vue'
 import ReviewEditor from '@/components/content/ReviewEditor.vue'
 import ReviewList from '@/components/content/ReviewList.vue'
@@ -44,6 +45,15 @@ const contentState = useContentState(
 const similar = useSimilarContent(
   () => props.type,
   () => props.externalId,
+)
+const adaptations = useBookAdaptations(
+  () => props.externalId,
+  () => props.type === 'book',
+)
+const sourceBook = useSourceBook(
+  () => props.type,
+  () => props.externalId,
+  () => props.type !== 'book',
 )
 
 const is404 = computed(() => detail.isError.value && detail.error.value instanceof ApiError && detail.error.value.status === 404)
@@ -260,6 +270,18 @@ function onProgressChange(event: Event) {
         </li>
       </ul>
     </section>
+
+    <section v-if="sourceBook.data.value" class="flex flex-col gap-3">
+      <h2 class="text-lg font-semibold text-fg">📖 Uyarlandığı kitap</h2>
+      <PosterCard :content="sourceBook.data.value" size="sm" />
+    </section>
+
+    <ContentRow
+      v-if="(adaptations.data.value ?? []).length > 0"
+      title="🎬 Beyaz perdede"
+      :items="adaptations.data.value ?? []"
+      :loading="adaptations.isPending.value"
+    />
 
     <ContentRow v-if="(similar.data.value ?? []).length > 0" title="Benzer içerikler" :items="similar.data.value ?? []" :loading="similar.isPending.value" />
 

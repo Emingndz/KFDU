@@ -1,3 +1,4 @@
+import difflib
 import re
 
 from app.core.http import request_json
@@ -232,3 +233,23 @@ def author(author_id: str) -> AuthorDetail:
         "GET", f"{BASE_URL}/authors/{author_id}/works.json", params={"limit": 50}, service="Open Library"
     )
     return to_author_detail(raw, works_data)
+
+
+def find_source_book(title: str, author: str | None) -> ContentSummary | None:
+    params = {"title": title, "fields": _SEARCH_FIELDS, "limit": 5}
+    if author:
+        params["author"] = author
+    data = request_json("GET", f"{BASE_URL}/search.json", params=params, service="Open Library")
+    docs = data.get("docs", [])
+    if not docs:
+        return None
+
+    target = genre_utils.normalize_title(title)
+    best_doc, best_score = None, 0.0
+    for doc in docs:
+        candidate = genre_utils.normalize_title(doc.get("title", ""))
+        score = difflib.SequenceMatcher(None, target, candidate).ratio()
+        if score > best_score:
+            best_score, best_doc = score, doc
+
+    return to_summary(best_doc) if best_doc is not None and best_score >= 0.6 else None

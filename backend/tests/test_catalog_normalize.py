@@ -96,6 +96,24 @@ def test_tmdb_person_detail_normalizes_credits_sorted_and_deduped():
     assert detail.acting[0].year == 2011
 
 
+def test_tmdb_detail_extracts_novel_authors_and_book_keyword():
+    movie_raw = _load("tmdb_movie_detail_438631.json")
+    movie_detail = tmdb.to_detail(movie_raw, "movie")
+    assert movie_detail.novel_authors == ["Frank Herbert"]
+    assert movie_detail.has_book_keyword is True
+
+    tv_raw = _load("tmdb_tv_detail_1396.json")
+    tv_detail = tmdb.to_detail(tv_raw, "tv")
+    assert tv_detail.novel_authors == []
+    assert tv_detail.has_book_keyword is False
+
+
+def test_tmdb_keyword_ids_handles_movie_and_tv_response_shapes():
+    assert tmdb._keyword_ids({"keywords": [{"id": 818, "name": "based on novel or short story"}]}) == {818}
+    assert tmdb._keyword_ids({"results": [{"id": 818, "name": "based on novel or short story"}]}) == {818}
+    assert tmdb._keyword_ids({}) == set()
+
+
 def test_openlibrary_author_detail_normalizes_works_sorted_by_year():
     raw = _load("ol_author_OL34184A.json")
     works_raw = _load("ol_author_works_OL34184A.json")

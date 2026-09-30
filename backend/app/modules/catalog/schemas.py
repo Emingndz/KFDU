@@ -73,6 +73,8 @@ class ContentDetail(ContentSummary):
     external_votes: int | None = None
     isbn: list[str] = Field(default_factory=list)
     external_url: str | None = None
+    novel_authors: list[str] = Field(default_factory=list)
+    has_book_keyword: bool = False
 
 
 class PersonCredit(BaseModel):

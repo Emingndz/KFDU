@@ -158,6 +158,8 @@ def _detail_to_content_fields(detail: ContentDetail) -> dict:
             "isbn": detail.isbn,
             "external_url": detail.external_url,
             "seasons_detail": [s.model_dump() for s in detail.seasons_detail],
+            "novel_authors": detail.novel_authors,
+            "has_book_keyword": detail.has_book_keyword,
         },
         "fetched_at": datetime.now(UTC),
     }
@@ -240,6 +242,8 @@ def _content_to_detail(content: Content) -> ContentDetail:
         external_votes=content.external_votes,
         isbn=extra.get("isbn") or [],
         external_url=extra.get("external_url"),
+        novel_authors=extra.get("novel_authors") or [],
+        has_book_keyword=extra.get("has_book_keyword") or False,
     )
 
 
@@ -256,6 +260,33 @@ def get_person(person_id: str) -> PersonDetail:
 @ttl_cache(ttl=21600)
 def get_author(author_id: str) -> AuthorDetail:
     return openlibrary.author(author_id)
+
+
+@ttl_cache(ttl=604800)
+def _find_adaptations_cached(title: str, author: str | None) -> list[ContentSummary]:
+    return tmdb.find_adaptations(title, author)
+
+
+def get_book_adaptations(db: Session, external_id: str) -> list[ContentSummary]:
+    detail = get_detail(db, "book", external_id)
+    author = detail.authors[0].name if detail.authors else None
+    return _find_adaptations_cached(detail.title, author)
+
+
+@ttl_cache(ttl=604800)
+def _find_source_book_cached(title: str, author: str | None) -> ContentSummary | None:
+    return openlibrary.find_source_book(title, author)
+
+
+def get_source_book(db: Session, content_type: str, external_id: str) -> ContentSummary | None:
+    if content_type == "book":
+        return None
+    detail = get_detail(db, content_type, external_id)
+    if not detail.novel_authors and not detail.has_book_keyword:
+        return None
+    author = detail.novel_authors[0] if detail.novel_authors else None
+    title = detail.original_title or detail.title
+    return _find_source_book_cached(title, author)
 
 
 def search_best(title: str, types: list[str]) -> ContentSummary | None:

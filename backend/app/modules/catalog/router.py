@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query
 
 from app.core.deps import DbSession
+from app.core.errors import not_found
 from app.core.pagination import Page
 from app.modules.catalog import service
 from app.modules.catalog.schemas import (
@@ -80,3 +81,18 @@ def get_content_detail(type: ContentType, external_id: str, db: DbSession) -> Co
 @router.get("/{type}/{external_id}/similar", response_model=list[ContentSummary], summary="Benzer içerikler")
 def similar_content(type: ContentType, external_id: str) -> list[ContentSummary]:
     return service.similar(type.value, external_id)
+
+
+@router.get(
+    "/book/{external_id}/adaptations", response_model=list[ContentSummary], summary="Kitabın uyarlamaları"
+)
+def get_book_adaptations(external_id: str, db: DbSession) -> list[ContentSummary]:
+    return service.get_book_adaptations(db, external_id)
+
+
+@router.get("/{type}/{external_id}/source-book", response_model=ContentSummary, summary="Uyarlandığı kitap")
+def get_source_book(type: ContentType, external_id: str, db: DbSession) -> ContentSummary:
+    result = service.get_source_book(db, type.value, external_id)
+    if result is None:
+        raise not_found("Kaynak kitap bulunamadı")
+    return result

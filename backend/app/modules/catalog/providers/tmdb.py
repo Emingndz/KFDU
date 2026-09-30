@@ -1,3 +1,5 @@
+import difflib
+
 from app.core.config import settings
 from app.core.errors import AppError
 from app.core.http import request_json
@@ -123,6 +125,15 @@ def _pick_providers(region_data: dict) -> Providers:
     )
 
 
+_NOVEL_JOB = "Novel"
+_BOOK_KEYWORD_ID = 818
+
+
+def _keyword_ids(raw_keywords: dict) -> set[int]:
+    items = raw_keywords.get("keywords") or raw_keywords.get("results") or []
+    return {k["id"] for k in items}
+
+
 def to_detail(raw: dict, content_type: str) -> ContentDetail:
     summary = to_summary(raw, content_type)
     is_movie = content_type == "movie"
@@ -183,6 +194,8 @@ def to_detail(raw: dict, content_type: str) -> ContentDetail:
         external_votes=raw.get("vote_count"),
         isbn=[],
         external_url=f"https://www.themoviedb.org/{content_type}/{raw['id']}",
+        novel_authors=[c["name"] for c in crew if c.get("job") == _NOVEL_JOB],
+        has_book_keyword=_BOOK_KEYWORD_ID in _keyword_ids(raw.get("keywords", {})),
     )
 
 
@@ -354,3 +367,39 @@ def person(person_id: str) -> PersonDetail:
         )
         raw["biography"] = en_raw.get("biography")
     return to_person_detail(raw)
+
+
+def find_adaptations(title: str, author: str | None) -> list[ContentSummary]:
+    target = genre_utils.normalize_title(title)
+    scored: list[tuple[float, ContentSummary]] = []
+
+    for content_type in ("movie", "tv"):
+        endpoint = "search/movie" if content_type == "movie" else "search/tv"
+        params = _params(query=title, page=1)
+        data = request_json("GET", f"{BASE_URL}/{endpoint}", params=params, service="TMDB")
+        for raw in data.get("results", [])[:10]:
+            summary = to_summary(raw, content_type)
+            candidate = genre_utils.normalize_title(summary.title)
+            score = difflib.SequenceMatcher(None, target, candidate).ratio()
+            if score < 0.6:
+                continue
+
+            detail_endpoint = "movie" if content_type == "movie" else "tv"
+            detail_raw = request_json(
+                "GET",
+                f"{BASE_URL}/{detail_endpoint}/{raw['id']}",
+                params=_params(append_to_response="credits,keywords"),
+                service="TMDB",
+            )
+            crew = detail_raw.get("credits", {}).get("crew", [])
+            novel_authors = [c.get("name", "") for c in crew if c.get("job") == _NOVEL_JOB]
+            has_keyword = _BOOK_KEYWORD_ID in _keyword_ids(detail_raw.get("keywords", {}))
+            normalized_author = genre_utils.normalize_title(author) if author else None
+            author_matches = normalized_author is not None and any(
+                normalized_author == genre_utils.normalize_title(name) for name in novel_authors
+            )
+            if has_keyword or author_matches:
+                scored.append((score, summary))
+
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return [summary for _, summary in scored[:5]]
