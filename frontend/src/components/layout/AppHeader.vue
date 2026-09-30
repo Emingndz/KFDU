@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/composables/useTheme'
 import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import NotificationBell from '@/components/layout/NotificationBell.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -59,6 +60,7 @@ function logout() {
         </button>
 
         <template v-if="auth.isAuthenticated">
+          <NotificationBell />
           <div ref="menuRef" class="relative">
             <button
               type="button"

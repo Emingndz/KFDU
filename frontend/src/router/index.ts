@@ -110,8 +110,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/bildirimler',
     name: 'notifications',
-    component: ComingSoonPage,
-    props: { title: 'Bildirimler' },
+    component: () => import('@/pages/NotificationsPage.vue'),
     meta: { requiresAuth: true, title: 'Bildirimler' },
   },
   {

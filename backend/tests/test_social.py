@@ -276,3 +276,106 @@ def test_feed_avoids_n_plus_one_queries(client, db, user_factory):
         event.remove(test_engine, "before_cursor_execute", _count_queries)
 
     assert query_count <= 12
+
+
+def test_notifications_list_empty_for_new_user(client, user_factory):
+    user = user_factory(username="bildirimsiz", email="bildirimsiz@example.com")
+    response = client.get("/api/v1/notifications", headers=auth_headers(user))
+    assert response.status_code == 200
+    assert response.json() == {"items": [], "next_cursor": None}
+    assert client.get("/api/v1/notifications/unread-count", headers=auth_headers(user)).json() == {"count": 0}
+
+
+def test_follow_creates_notification_and_dedupes_while_unread(client, user_factory):
+    followed = user_factory(username="takipedilennot", email="takipedilennot@example.com")
+    follower = user_factory(username="takipedennot", email="takipedennot@example.com")
+
+    client.post("/api/v1/users/takipedilennot/follow", headers=auth_headers(follower))
+    items = client.get("/api/v1/notifications", headers=auth_headers(followed)).json()["items"]
+    assert len(items) == 1
+    assert items[0]["type"] == "follow"
+    assert items[0]["actor"]["username"] == "takipedennot"
+    assert items[0]["is_read"] is False
+
+    # Takipten çık + tekrar takip et — bildirim hâlâ okunmadıysa ikinci bir bildirim eklenmiyor.
+    client.delete("/api/v1/users/takipedilennot/follow", headers=auth_headers(follower))
+    client.post("/api/v1/users/takipedilennot/follow", headers=auth_headers(follower))
+    items = client.get("/api/v1/notifications", headers=auth_headers(followed)).json()["items"]
+    assert len(items) == 1
+
+
+@respx.mock
+def test_like_and_comment_notifications_include_content_and_excerpt(client, db, user_factory):
+    _mock_book_detail()
+    owner = user_factory(username="bildirimsahibi", email="bildirimsahibi@example.com")
+    other = user_factory(username="bildirimdigeri", email="bildirimdigeri@example.com")
+
+    client.put("/api/v1/library/book/OL45804W", json={"rating": 7}, headers=auth_headers(owner))
+    activity_id = db.query(Activity).filter_by(actor_id=owner.id).first().id
+
+    client.post(f"/api/v1/activities/{activity_id}/like", headers=auth_headers(other))
+    client.post(
+        f"/api/v1/activities/{activity_id}/comments",
+        json={"body": "harika bir kitap"},
+        headers=auth_headers(other),
+    )
+
+    items = client.get("/api/v1/notifications", headers=auth_headers(owner)).json()["items"]
+    assert len(items) == 2
+    by_type = {item["type"]: item for item in items}
+    assert by_type["like"]["content"]["title"] == "Fantastic Mr Fox"
+    assert by_type["comment"]["comment_excerpt"] == "harika bir kitap"
+
+
+def test_notifications_unread_count_and_mark_all_read(client, user_factory):
+    followed = user_factory(username="okunmamisbildirim", email="okunmamisbildirim@example.com")
+    for i in range(3):
+        follower = user_factory(username=f"coktakipci{i}", email=f"coktakipci{i}@example.com")
+        client.post("/api/v1/users/okunmamisbildirim/follow", headers=auth_headers(follower))
+
+    headers = auth_headers(followed)
+    assert client.get("/api/v1/notifications/unread-count", headers=headers).json() == {"count": 3}
+
+    mark_all = client.post("/api/v1/notifications/read-all", headers=headers)
+    assert mark_all.status_code == 204
+    assert client.get("/api/v1/notifications/unread-count", headers=headers).json() == {"count": 0}
+    items = client.get("/api/v1/notifications", headers=headers).json()["items"]
+    assert all(item["is_read"] for item in items)
+
+
+def test_mark_single_notification_read_requires_ownership(client, user_factory):
+    followed = user_factory(username="tekbildirimsahibi", email="tekbildirimsahibi@example.com")
+    follower = user_factory(username="tekbildirimtakip", email="tekbildirimtakip@example.com")
+    stranger = user_factory(username="tekbildirimyabanci", email="tekbildirimyabanci@example.com")
+
+    client.post("/api/v1/users/tekbildirimsahibi/follow", headers=auth_headers(follower))
+    notification_id = client.get("/api/v1/notifications", headers=auth_headers(followed)).json()["items"][0][
+        "id"
+    ]
+
+    forbidden = client.post(f"/api/v1/notifications/{notification_id}/read", headers=auth_headers(stranger))
+    assert forbidden.status_code == 404
+
+    ok = client.post(f"/api/v1/notifications/{notification_id}/read", headers=auth_headers(followed))
+    assert ok.status_code == 204
+    assert client.get("/api/v1/notifications/unread-count", headers=auth_headers(followed)).json() == {
+        "count": 0
+    }
+
+
+def test_notifications_cursor_pagination(client, user_factory):
+    followed = user_factory(username="sayfalibildirim", email="sayfalibildirim@example.com")
+    for i in range(5):
+        follower = user_factory(username=f"sayfatakipci{i}", email=f"sayfatakipci{i}@example.com")
+        client.post("/api/v1/users/sayfalibildirim/follow", headers=auth_headers(follower))
+
+    headers = auth_headers(followed)
+    first_page = client.get("/api/v1/notifications", params={"limit": 3}, headers=headers).json()
+    assert len(first_page["items"]) == 3
+    assert first_page["next_cursor"] is not None
+
+    second_page = client.get(
+        "/api/v1/notifications", params={"limit": 3, "cursor": first_page["next_cursor"]}, headers=headers
+    ).json()
+    assert len(second_page["items"]) == 2
+    assert second_page["next_cursor"] is None

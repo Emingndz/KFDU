@@ -2,8 +2,9 @@ import { type MaybeRefOrGetter, toValue } from 'vue'
 import { type InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { api } from './client'
+import { useAuthStore } from '@/stores/auth'
 import type { CatalogContentType } from './catalog'
-import type { ActivityOut, CommentOut, CursorPage, Page, ReviewDetail, ReviewOut } from '@/types'
+import type { ActivityOut, CommentOut, CursorPage, NotificationOut, Page, ReviewDetail, ReviewOut } from '@/types'
 
 export type FeedScope = 'following' | 'global'
 
@@ -192,4 +193,59 @@ export function useUserReviews(username: MaybeRefOrGetter<string>) {
     getNextPageParam: (lastPage: Page<ReviewOut>) => (lastPage.has_next ? lastPage.page + 1 : undefined),
     staleTime: 60_000,
   }))
+}
+
+export function listNotificationsRequest(cursor?: string, limit = 20) {
+  return api<CursorPage<NotificationOut>>('/notifications', { query: { cursor, limit } })
+}
+
+export function useNotifications() {
+  const auth = useAuthStore()
+  return useInfiniteQuery(() => ({
+    queryKey: ['notifications'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => listNotificationsRequest(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: CursorPage<NotificationOut>) => lastPage.next_cursor ?? undefined,
+    enabled: auth.isAuthenticated,
+    staleTime: 30_000,
+  }))
+}
+
+export function getUnreadNotificationsCountRequest() {
+  return api<{ count: number }>('/notifications/unread-count')
+}
+
+export function useUnreadNotificationsCount() {
+  const auth = useAuthStore()
+  return useQuery(() => ({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: getUnreadNotificationsCountRequest,
+    enabled: auth.isAuthenticated,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  }))
+}
+
+export function markAllNotificationsReadRequest() {
+  return api<void>('/notifications/read-all', { method: 'POST' })
+}
+
+export function useMarkAllNotificationsRead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: markAllNotificationsReadRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  })
+}
+
+export function markNotificationReadRequest(notificationId: number) {
+  return api<void>(`/notifications/${notificationId}/read`, { method: 'POST' })
+}
+
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: markNotificationReadRequest,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  })
 }
