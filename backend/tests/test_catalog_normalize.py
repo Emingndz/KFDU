@@ -77,3 +77,35 @@ def test_openlibrary_description_handles_string_and_dict_forms():
 def test_openlibrary_work_detail_description_is_extracted():
     work = _load("ol_work_OL45804W.json")
     assert isinstance(openlibrary._extract_description(work.get("description")), str)
+
+
+def test_tmdb_person_detail_normalizes_credits_sorted_and_deduped():
+    raw = _load("tmdb_person_525.json")
+    detail = tmdb.to_person_detail(raw)
+
+    assert detail.name == "Christopher Nolan"
+    assert detail.known_for == "Yönetmenlik"
+    assert detail.birthday == "1970-07-30"
+
+    # 3 "Director" işli ham kredi (biri kasıtlı tekrar) -> 2 tekil sonuç, popülerliğe göre azalan.
+    assert [c.title for c in detail.directing] == ["The Dark Knight", "Inception"]
+    assert detail.directing[0].external_id == "155"
+    assert detail.directing[0].type == "movie"
+
+    assert [c.title for c in detail.acting] == ["Larry Crowne"]
+    assert detail.acting[0].year == 2011
+
+
+def test_openlibrary_author_detail_normalizes_works_sorted_by_year():
+    raw = _load("ol_author_OL34184A.json")
+    works_raw = _load("ol_author_works_OL34184A.json")
+    detail = openlibrary.to_author_detail(raw, works_raw)
+
+    assert detail.id == "OL34184A"
+    assert detail.name == "Roald Dahl"
+    assert detail.biography == "İngiliz çocuk kitabı yazarı."
+
+    assert [w.title for w in detail.works] == ["Matilda", "Fantastic Mr Fox", "Eski Bir Eser"]
+    assert detail.works[0].poster_url == "https://covers.openlibrary.org/b/id/8231990-M.jpg"
+    # covers: [-1] "kapak yok" sentinel'i null'a çevrilmeli, hataya düşmemeli.
+    assert detail.works[2].poster_url is None

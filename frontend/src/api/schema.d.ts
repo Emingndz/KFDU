@@ -382,6 +382,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/people/{person_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kişi detayı */
+        get: operations["catalog-get_person"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/catalog/authors/{author_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Yazar detayı */
+        get: operations["catalog-get_author"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/catalog/{type}/{external_id}": {
         parameters: {
             query?: never;
@@ -950,6 +984,34 @@ export interface components {
             comments_count: number;
             /** Comments Preview */
             comments_preview: components["schemas"]["CommentPreview"][];
+        };
+        /** AuthorDetail */
+        AuthorDetail: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Photo Url */
+            photo_url?: string | null;
+            /** Biography */
+            biography?: string | null;
+            /** Birth Date */
+            birth_date?: string | null;
+            /** Death Date */
+            death_date?: string | null;
+            /** Works */
+            works?: components["schemas"]["AuthorWork"][];
+        };
+        /** AuthorWork */
+        AuthorWork: {
+            /** External Id */
+            external_id: string;
+            /** Title */
+            title: string;
+            /** Poster Url */
+            poster_url?: string | null;
+            /** Year */
+            year?: number | null;
         };
         /** Body_auth-token_login */
         "Body_auth-token_login": {
@@ -1524,6 +1586,39 @@ export interface components {
             role?: string | null;
             /** Photo Url */
             photo_url?: string | null;
+        };
+        /** PersonCredit */
+        PersonCredit: {
+            type: components["schemas"]["ContentType"];
+            /** External Id */
+            external_id: string;
+            /** Title */
+            title: string;
+            /** Poster Url */
+            poster_url?: string | null;
+            /** Year */
+            year?: number | null;
+        };
+        /** PersonDetail */
+        PersonDetail: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Photo Url */
+            photo_url?: string | null;
+            /** Biography */
+            biography?: string | null;
+            /** Birthday */
+            birthday?: string | null;
+            /** Birth Place */
+            birth_place?: string | null;
+            /** Known For */
+            known_for?: string | null;
+            /** Directing */
+            directing?: components["schemas"]["PersonCredit"][];
+            /** Acting */
+            acting?: components["schemas"]["PersonCredit"][];
         };
         /** PlatformStats */
         PlatformStats: {
@@ -2650,6 +2745,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenreOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "catalog-get_person": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "catalog-get_author": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDetail"];
                 };
             };
             /** @description Validation Error */

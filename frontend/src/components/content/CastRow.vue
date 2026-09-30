@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import type { Person } from '@/types'
 
 defineProps<{ people: Person[] }>()
@@ -9,9 +10,11 @@ const failedPhotos = ref(new Set<string | number>())
 
 <template>
   <div class="flex gap-4 overflow-x-auto pb-2">
-    <div
+    <component
+      :is="person.id ? RouterLink : 'div'"
       v-for="person in people"
       :key="person.id ?? person.name"
+      :to="person.id ? `/kisi/${person.id}` : undefined"
       class="flex w-20 shrink-0 flex-col items-center gap-1.5 text-center"
     >
       <img
@@ -28,6 +31,6 @@ const failedPhotos = ref(new Set<string | number>())
       </div>
       <p class="line-clamp-2 text-xs font-medium text-fg">{{ person.name }}</p>
       <p v-if="person.role" class="text-[10px] text-muted">{{ person.role }}</p>
-    </div>
+    </component>
   </div>
 </template>

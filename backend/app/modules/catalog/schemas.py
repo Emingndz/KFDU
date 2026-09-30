@@ -75,6 +75,43 @@ class ContentDetail(ContentSummary):
     external_url: str | None = None
 
 
+class PersonCredit(BaseModel):
+    type: ContentType
+    external_id: str
+    title: str
+    poster_url: str | None = None
+    year: int | None = None
+
+
+class PersonDetail(BaseModel):
+    id: str
+    name: str
+    photo_url: str | None = None
+    biography: str | None = None
+    birthday: str | None = None
+    birth_place: str | None = None
+    known_for: str | None = None
+    directing: list[PersonCredit] = Field(default_factory=list)
+    acting: list[PersonCredit] = Field(default_factory=list)
+
+
+class AuthorWork(BaseModel):
+    external_id: str
+    title: str
+    poster_url: str | None = None
+    year: int | None = None
+
+
+class AuthorDetail(BaseModel):
+    id: str
+    name: str
+    photo_url: str | None = None
+    biography: str | None = None
+    birth_date: str | None = None
+    death_date: str | None = None
+    works: list[AuthorWork] = Field(default_factory=list)
+
+
 class DiscoverParams(BaseModel):
     type: ContentType
     genre: str | None = None

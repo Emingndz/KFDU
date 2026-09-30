@@ -69,6 +69,28 @@ def test_tmdb_tv_without_key_returns_503(client):
     assert response.json()["code"] == "TMDB_NOT_CONFIGURED"
 
 
+def test_people_without_key_returns_503(client):
+    assert settings.TMDB_API_KEY == ""
+    response = client.get("/api/v1/catalog/people/525")
+    assert response.status_code == 503
+    assert response.json()["code"] == "TMDB_NOT_CONFIGURED"
+
+
+@respx.mock
+def test_author_detail_endpoint_returns_normalized_data(client):
+    respx.get("https://openlibrary.org/authors/OL34184A.json").mock(
+        return_value=Response(200, json=_load("ol_author_OL34184A.json"))
+    )
+    respx.get("https://openlibrary.org/authors/OL34184A/works.json").mock(
+        return_value=Response(200, json=_load("ol_author_works_OL34184A.json"))
+    )
+    response = client.get("/api/v1/catalog/authors/OL34184A")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["name"] == "Roald Dahl"
+    assert [w["title"] for w in body["works"]] == ["Matilda", "Fantastic Mr Fox", "Eski Bir Eser"]
+
+
 def test_tv_genres_work_without_tmdb_key(client):
     response = client.get("/api/v1/catalog/genres", params={"type": "tv"})
     assert response.status_code == 200

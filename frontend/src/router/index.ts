@@ -116,15 +116,15 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/kisi/:id',
     name: 'person',
-    component: ComingSoonPage,
-    props: { title: 'Kişi' },
+    component: () => import('@/pages/PersonPage.vue'),
+    props: (route) => ({ id: String(route.params.id) }),
     meta: { title: 'Kişi' },
   },
   {
     path: '/yazar/:id',
     name: 'author',
-    component: ComingSoonPage,
-    props: { title: 'Yazar' },
+    component: () => import('@/pages/AuthorPage.vue'),
+    props: (route) => ({ id: String(route.params.id) }),
     meta: { title: 'Yazar' },
   },
   {

@@ -3,7 +3,14 @@ from fastapi import APIRouter, Query
 from app.core.deps import DbSession
 from app.core.pagination import Page
 from app.modules.catalog import service
-from app.modules.catalog.schemas import ContentDetail, ContentSummary, ContentType, GenreOut
+from app.modules.catalog.schemas import (
+    AuthorDetail,
+    ContentDetail,
+    ContentSummary,
+    ContentType,
+    GenreOut,
+    PersonDetail,
+)
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -53,6 +60,16 @@ def collections(name: str) -> list[ContentSummary]:
 @router.get("/genres", response_model=list[GenreOut], summary="Tür listesi")
 def genre_list(type: ContentType) -> list[GenreOut]:
     return service.genres(type.value)
+
+
+@router.get("/people/{person_id}", response_model=PersonDetail, summary="Kişi detayı")
+def get_person(person_id: str) -> PersonDetail:
+    return service.get_person(person_id)
+
+
+@router.get("/authors/{author_id}", response_model=AuthorDetail, summary="Yazar detayı")
+def get_author(author_id: str) -> AuthorDetail:
+    return service.get_author(author_id)
 
 
 @router.get("/{type}/{external_id}", response_model=ContentDetail, summary="İçerik detayı")

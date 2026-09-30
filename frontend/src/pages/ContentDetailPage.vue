@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { ApiError } from '@/api/client'
 import { type CatalogContentType, useContentDetail, useSimilarContent } from '@/api/catalog'
@@ -82,12 +82,12 @@ const metaLine = computed(() => {
   return parts.join(' • ')
 })
 
-const creatorLine = computed(() => {
+const creatorPeople = computed(() => {
   const d = detail.data.value
-  if (!d) return ''
-  const people = (props.type === 'book' ? d.authors : d.directors) ?? []
-  return people.map((p) => p.name).join(', ')
+  if (!d) return []
+  return (props.type === 'book' ? d.authors : d.directors) ?? []
 })
+const creatorBasePath = computed(() => (props.type === 'book' ? '/yazar' : '/kisi'))
 
 const genreLabels = computed(() => (detail.data.value?.genres_detail ?? []).map((g) => g.label))
 const castList = computed(() => detail.data.value?.cast ?? [])
@@ -164,7 +164,13 @@ function onProgressChange(event: Event) {
           </p>
           <p v-else class="text-sm text-muted">{{ detail.data.value.year }}</p>
           <p class="text-sm text-muted">{{ metaLine }}</p>
-          <p v-if="creatorLine" class="text-sm text-fg">{{ creatorLine }}</p>
+          <p v-if="creatorPeople.length > 0" class="text-sm text-fg">
+            <template v-for="(person, i) in creatorPeople" :key="person.id ?? person.name">
+              <RouterLink v-if="person.id" :to="`${creatorBasePath}/${person.id}`" class="hover:underline">{{ person.name }}</RouterLink>
+              <span v-else>{{ person.name }}</span
+              ><span v-if="i < creatorPeople.length - 1">, </span>
+            </template>
+          </p>
           <span
             v-if="detail.data.value.external_rating"
             class="inline-flex w-fit items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-fg"

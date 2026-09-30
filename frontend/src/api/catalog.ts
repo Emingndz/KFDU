@@ -1,7 +1,7 @@
 import { type MaybeRefOrGetter, toValue } from 'vue'
 import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { api } from './client'
-import type { ContentDetail, ContentSummary, GenreOut, Page } from '@/types'
+import type { AuthorDetail, ContentDetail, ContentSummary, GenreOut, Page, PersonDetail } from '@/types'
 
 export type CatalogContentType = 'movie' | 'tv' | 'book'
 
@@ -101,5 +101,31 @@ export function useSimilarContent(type: MaybeRefOrGetter<CatalogContentType>, ex
     queryKey: ['similar', toValue(type), toValue(externalId)],
     queryFn: () => getSimilarContentRequest(toValue(type), toValue(externalId)),
     staleTime: 60 * 60_000,
+  }))
+}
+
+export function getPersonDetailRequest(personId: string) {
+  return api<PersonDetail>(`/catalog/people/${personId}`)
+}
+
+export function usePersonDetail(personId: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['person', toValue(personId)],
+    queryFn: () => getPersonDetailRequest(toValue(personId)),
+    staleTime: 60 * 60_000,
+    retry: 1,
+  }))
+}
+
+export function getAuthorDetailRequest(authorId: string) {
+  return api<AuthorDetail>(`/catalog/authors/${authorId}`)
+}
+
+export function useAuthorDetail(authorId: MaybeRefOrGetter<string>) {
+  return useQuery(() => ({
+    queryKey: ['author', toValue(authorId)],
+    queryFn: () => getAuthorDetailRequest(toValue(authorId)),
+    staleTime: 60 * 60_000,
+    retry: 1,
   }))
 }

@@ -1,0 +1,61 @@
+{
+  "id": 525,
+  "name": "Christopher Nolan",
+  "biography": "İngiliz yönetmen, senarist ve yapımcı.",
+  "birthday": "1970-07-30",
+  "deathday": null,
+  "place_of_birth": "London, England, UK",
+  "profile_path": "/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg",
+  "known_for_department": "Directing",
+  "combined_credits": {
+    "cast": [
+      {
+        "id": 8207,
+        "title": "Larry Crowne",
+        "media_type": "movie",
+        "character": "Man in Elevator",
+        "popularity": 5.0,
+        "release_date": "2011-07-01",
+        "poster_path": null
+      }
+    ],
+    "crew": [
+      {
+        "id": 27205,
+        "title": "Inception",
+        "media_type": "movie",
+        "job": "Director",
+        "popularity": 90.0,
+        "release_date": "2010-07-16",
+        "poster_path": "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
+      },
+      {
+        "id": 155,
+        "title": "The Dark Knight",
+        "media_type": "movie",
+        "job": "Director",
+        "popularity": 95.0,
+        "release_date": "2008-07-18",
+        "poster_path": null
+      },
+      {
+        "id": 27205,
+        "title": "Inception",
+        "media_type": "movie",
+        "job": "Director",
+        "popularity": 90.0,
+        "release_date": "2010-07-16",
+        "poster_path": "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
+      },
+      {
+        "id": 27205,
+        "title": "Inception",
+        "media_type": "movie",
+        "job": "Writer",
+        "popularity": 90.0,
+        "release_date": "2010-07-16",
+        "poster_path": null
+      }
+    ]
+  }
+}

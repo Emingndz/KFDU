@@ -13,7 +13,16 @@ from app.core.pagination import Page
 from app.modules.catalog import genres as genre_utils
 from app.modules.catalog.models import Content
 from app.modules.catalog.providers import google_books, openlibrary, tmdb
-from app.modules.catalog.schemas import ContentDetail, ContentSummary, GenreOut, Person, Providers, SeasonOut
+from app.modules.catalog.schemas import (
+    AuthorDetail,
+    ContentDetail,
+    ContentSummary,
+    GenreOut,
+    Person,
+    PersonDetail,
+    Providers,
+    SeasonOut,
+)
 
 CONTENT_FRESHNESS = timedelta(days=7)
 _OL_ID_PATTERN = re.compile(r"^OL\d+W$")
@@ -237,6 +246,16 @@ def _content_to_detail(content: Content) -> ContentDetail:
 def get_detail(db: Session, content_type: str, external_id: str) -> ContentDetail:
     content = get_or_create_content(db, content_type, external_id)
     return _content_to_detail(content)
+
+
+@ttl_cache(ttl=21600)
+def get_person(person_id: str) -> PersonDetail:
+    return tmdb.person(person_id)
+
+
+@ttl_cache(ttl=21600)
+def get_author(author_id: str) -> AuthorDetail:
+    return openlibrary.author(author_id)
 
 
 def search_best(title: str, types: list[str]) -> ContentSummary | None:

@@ -1,9 +1,20 @@
+import re
+
 from app.core.http import request_json
 from app.modules.catalog import genres as genre_utils
-from app.modules.catalog.schemas import ContentDetail, ContentSource, ContentSummary, Person
+from app.modules.catalog.schemas import (
+    AuthorDetail,
+    AuthorWork,
+    ContentDetail,
+    ContentSource,
+    ContentSummary,
+    Person,
+)
 
 BASE_URL = "https://openlibrary.org"
 COVERS_BASE = "https://covers.openlibrary.org"
+
+_YEAR_RE = re.compile(r"\d{4}")
 
 _LANGUAGE_MAP = {"tur": "tr", "eng": "en"}
 
@@ -34,6 +45,13 @@ def _extract_description(value: object) -> str | None:
     if isinstance(value, dict):
         return value.get("value")
     return value if isinstance(value, str) else None
+
+
+def _extract_year(value: str | None) -> int | None:
+    if not value:
+        return None
+    match = _YEAR_RE.search(value)
+    return int(match.group()) if match else None
 
 
 def to_summary(doc: dict) -> ContentSummary:
@@ -177,3 +195,40 @@ def similar(external_id: str) -> list[ContentSummary]:
                 to_summary(d) for d in data.get("docs", []) if _external_id(d["key"]) not in existing_ids
             ]
     return results[:10]
+
+
+def to_author_detail(raw: dict, works_data: dict) -> AuthorDetail:
+    works = []
+    for entry in works_data.get("entries", []):
+        covers = entry.get("covers") or []
+        cover_id = covers[0] if covers and covers[0] > 0 else None
+        works.append(
+            AuthorWork(
+                external_id=_external_id(entry["key"]),
+                title=entry.get("title", ""),
+                poster_url=_cover_url(cover_id, "M"),
+                year=_extract_year(entry.get("first_publish_date")),
+            )
+        )
+    works.sort(key=lambda w: w.year or 0, reverse=True)
+
+    photos = raw.get("photos") or []
+    photo_id = photos[0] if photos and photos[0] > 0 else None
+
+    return AuthorDetail(
+        id=_external_id(raw.get("key", "")),
+        name=raw.get("name", ""),
+        photo_url=f"{COVERS_BASE}/a/id/{photo_id}-M.jpg" if photo_id else None,
+        biography=_extract_description(raw.get("bio")),
+        birth_date=raw.get("birth_date"),
+        death_date=raw.get("death_date"),
+        works=works,
+    )
+
+
+def author(author_id: str) -> AuthorDetail:
+    raw = request_json("GET", f"{BASE_URL}/authors/{author_id}.json", service="Open Library")
+    works_data = request_json(
+        "GET", f"{BASE_URL}/authors/{author_id}/works.json", params={"limit": 50}, service="Open Library"
+    )
+    return to_author_detail(raw, works_data)

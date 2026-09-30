@@ -8,6 +8,8 @@ from app.modules.catalog.schemas import (
     ContentSummary,
     GenreOut,
     Person,
+    PersonCredit,
+    PersonDetail,
     Providers,
     SeasonOut,
 )
@@ -272,3 +274,83 @@ def similar(content_type: str, external_id: str) -> list[ContentSummary]:
         "GET", f"{BASE_URL}/{endpoint}/{external_id}/similar", params=_params(), service="TMDB"
     )
     return [to_summary(r, content_type) for r in data.get("results", [])]
+
+
+_DEPARTMENT_LABELS = {
+    "Directing": "Yönetmenlik",
+    "Acting": "Oyunculuk",
+    "Writing": "Senaryo",
+    "Production": "Yapımcılık",
+    "Sound": "Ses",
+    "Camera": "Görüntü Yönetmenliği",
+    "Editing": "Kurgu",
+    "Art": "Sanat Yönetmenliği",
+    "Crew": "Ekip",
+    "Creator": "Yaratıcı",
+    "Costume & Make-Up": "Kostüm ve Makyaj",
+    "Visual Effects": "Görsel Efektler",
+    "Lighting": "Işık",
+}
+
+
+def _to_credit(raw: dict) -> PersonCredit:
+    media_type = raw.get("media_type", "movie")
+    return PersonCredit(
+        type=media_type,
+        external_id=str(raw["id"]),
+        title=raw.get("title") or raw.get("name") or "",
+        poster_url=_image_url(raw.get("poster_path"), "w185"),
+        year=_year_from_date(raw.get("release_date") or raw.get("first_air_date")),
+    )
+
+
+def _dedupe_credits(raw_credits: list[dict], limit: int) -> list[dict]:
+    seen: set[str] = set()
+    result = []
+    for credit in raw_credits:
+        credit_id = str(credit["id"])
+        if credit_id in seen:
+            continue
+        seen.add(credit_id)
+        result.append(credit)
+        if len(result) >= limit:
+            break
+    return result
+
+
+def to_person_detail(raw: dict) -> PersonDetail:
+    credits_ = raw.get("combined_credits", {})
+    directing_raw = sorted(
+        (c for c in credits_.get("crew", []) if c.get("job") == "Director"),
+        key=lambda c: c.get("popularity", 0),
+        reverse=True,
+    )
+    acting_raw = sorted(credits_.get("cast", []), key=lambda c: c.get("popularity", 0), reverse=True)
+
+    known_for = raw.get("known_for_department")
+    return PersonDetail(
+        id=str(raw["id"]),
+        name=raw.get("name", ""),
+        photo_url=_image_url(raw.get("profile_path"), "w342"),
+        biography=raw.get("biography") or None,
+        birthday=raw.get("birthday"),
+        birth_place=raw.get("place_of_birth"),
+        known_for=_DEPARTMENT_LABELS.get(known_for, known_for),
+        directing=[_to_credit(c) for c in _dedupe_credits(directing_raw, 40)],
+        acting=[_to_credit(c) for c in _dedupe_credits(acting_raw, 40)],
+    )
+
+
+def person(person_id: str) -> PersonDetail:
+    raw = request_json(
+        "GET",
+        f"{BASE_URL}/person/{person_id}",
+        params=_params(append_to_response="combined_credits"),
+        service="TMDB",
+    )
+    if not raw.get("biography"):
+        en_raw = request_json(
+            "GET", f"{BASE_URL}/person/{person_id}", params={**_params(), "language": "en-US"}, service="TMDB"
+        )
+        raw["biography"] = en_raw.get("biography")
+    return to_person_detail(raw)
