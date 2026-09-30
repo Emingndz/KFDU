@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.5 tamamlandı (İstatistikler ve Yıllık Özet). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-09-30** — F4.6 tamamlandı (Hedefler ve rozetler). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.5 tamamlandı) |
-| Sıradaki adım | **F4.6** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.6 tamamlandı) |
+| Sıradaki adım | **F4.7** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -108,7 +108,13 @@
   - **Yorum-beğenisi köprüsü keşfi:** "En beğenilen incelemen" için incelemelerin kendi `Activity`/`ActivityLike` satırı YOK — bir inceleme, aynı (kullanıcı, içerik) çiftinin "log" tipi aktivitesine `social/service.py::_review_to_out`'un zaten kullandığı desenle eşleniyor; bu deseni tekrar kullanarak `Review`+`Activity`+`ActivityLike` JOIN'iyle tek sorguda en çok beğenilen inceleme bulundu.
   - **Frontend:** `npm install chart.js vue-chartjs` (önceden var olan, F4.5'ten bağımsız bir npm peer-dependency çakışması `--legacy-peer-deps` ile aşıldı — `openapi-typescript`'in istediği `typescript@^5.x` ile başka bir devDependency'nin çakışması, boş bir `npm install`'da bile aynı hatayı veriyordu). `components/stats/StatsCharts.vue` (aylık yığılmış çubuk + puan dağılımı çubuğu + tür halkası + 4 sayı kartı) `ProfilePage`'in yeni "İstatistik" sekmesine `defineAsyncComponent` ile tembel yükleniyor — üretim derlemesinde chart.js kendi ayrı 173 KB'lık chunk'ında (`StatsCharts-*.js`), ana `ProfilePage` chunk'ı yalnız 16 KB büyüdü, doğrulandı. `pages/WrappedPage.vue` (`/ozet/:year?`): tam ekran (`fixed inset-0`), Instagram/Spotify-Wrapped tarzı 4-9 slayt (veriye göre değişken — boş alanlar atlanıyor), üstte segment ilerleme çubukları, klavye (←/→/Esc) + dokunma (ekranın sol üçte-biri geri, kalanı ileri — ayrı bir swipe-gesture kütüphanesi eklenmedi) navigasyonu, `motion-safe` geçişler. `html-to-image` (paylaşım görseli) kullanıcıdan onay gerektirdiği için EKLENMEDİ — planın kendi öngördüğü yedek ("ekran görüntüsü alıp paylaş" ipucu) kullanıldı.
   - **Gerçek tarayıcı testi (F3.10'dan sonra ikinci kez):** Bu adımın ortasında, `npm install` sırasında AÇIK olan Vite dev sunucusunun modül önbelleği bozuldu (`@/stores/auth` gibi var olan dosyaları "bulunamadı" diye işaretledi — F3.9/F3.10'da da bir kez görülen, kod hatası OLMAYAN bilinen bir sınıf sorun); `node_modules/.vite` temizlenip sunucu yeniden başlatıldı. **Yeni ve önemli bir keşif:** `TaskStop` bu ortamda `npm run dev`/`vite` alt sürecini GÜVENİLİR şekilde SONLANDIRMIYOR — üç kez art arda "durduruldu" mesajı alınmasına rağmen eski `node.exe` süreçleri 5173/5174/5175 portlarını tutmaya devam etti (`Get-NetTCPConnection`+`Get-Process` ile doğrulandı, her biri gerçekten bizim başlattığımız `npm run dev` süreçleriydi, kullanıcının kendi tarayıcısı/süreçleri DEĞİLDİ), `Stop-Process -Force` ile tek tek temizlenmesi gerekti. Bu, gelecekteki sunucu yeniden başlatmalarında `TaskStop` sonrası port'un GERÇEKTEN boşaldığının `Get-NetTCPConnection` ile ayrıca doğrulanması gerektiği şeklinde bir ders olarak kaydedildi. Temiz sunucuyla `puppeteer-core` (F3.9'dan kalan scratchpad kurulumu, proje bağımlılığı DEĞİL) ile hem 1280×900 masaüstü hem 360×800 mobil görünümde gerçek demo kullanıcısıyla (demo1) test edildi: profil İstatistik sekmesinde 3 grafik (aylık/puan/tür) render oluyor, "İstatistik" linkinden Yıllık Özet'e geçiliyor, klavye ile ileri/geri gezinme + kapat butonu + dokunmayla (tap-zone) mobilde slayt değiştirme + boş yıla (2023) geçişte zarifçe "henüz içerik yok" durumu (hata DEĞİL) — **0 sorun bulundu**, ekran görüntüleriyle doğrulandı (drama türü→"Duygu Avcısı" gerçek veriyle canlı olarak da doğrulandı).
-- **Sırada:** F4.6 (Hedefler ve rozetler).
+- **F4.6 tamamlandı (2026-09-30):** Hedefler ve rozetler. **v2'nin ilk gerçek şema migrasyonu** (F1'in tek "ilk şema" migrasyonundan beri) — `user_goals` tablosu (`user_id`+`year`+`media_type` benzersiz, `target`) `alembic revision --autogenerate` ile üretildi (`03745900fb3f_hedef_tablosu.py`) ve dev DB'ye uygulandı (`alembic upgrade head`, `alembic check` temiz). `GET/PUT /users/me/goals?year=` (üç tür için her zaman `{media_type,target,current}` — hiç hedef konmamışsa `target=0`); `stats/badges.py` — plandaki 12 rozetin TAMAMI hesaplanıyor (çoğu zaten var olan `get_profile_summary`/yeni sorgularla — `first_step`/`critic`/`cinephile(_pro)`/`bookworm(_pro)`/`binge` doğrudan sayım, `explorer` `Content.genres` JSON'undan tekilleştirilmiş tür sayısı, `social`/`popular` `Follow` tablosu, `curator` liste sayısı, `goal_getter` kullanıcının TÜM `UserGoal` satırları için o yıla özel tamamlanma sayısı hedefi karşılıyor mu); `GET /users/{username}/badges` herkese açık (profil ziyaretçisi de görebilir).
+  - **Alembic autogenerate kusuru (hemen yakalandı):** Üretilen migrasyon `app.core.database.UTCDateTime(...)` kullanıyordu ama `app.core.database`'i hiç import etmiyordu (Alembic'in özel `TypeDecorator` tipleri için import eklemeyen bilinen bir autogenerate sınırlaması) — migrasyonu çalıştırır çalıştırmaz `NameError` verirdi, `import app.core.database` eklenerek düzeltildi.
+  - **Gerçek mantık hatası (tarayıcı testiyle yakalandı, kod incelemesiyle DEĞİL):** Hedef düzenleme formunun "Kaydet"i dokunulmamış alanları da (ör. yalnız kitap hedefi değiştirilse bile film/dizi taslakları `0` olarak) toplu gönderiyor — bu, `target=0` bir `UserGoal` satırı KALICI hale getiriyordu ve `current>=target` `0>=0` için HER ZAMAN doğru olduğundan "Hedef Avcısı" rozetini anlamsızca kazandırıyordu. Gerçek demo kullanıcısında (demo1) canlı olarak gözlemlendi (rozet, hedef koymadan hemen sonra yanlışlıkla "kazanıldı" görünüyordu). İki yerde düzeltildi: `set_goals` artık `target<=0`'ı KAYDETMİYOR (var olan satırı siliyor, "hedef yok" ile eşanlamlı), `_goal_getter_achieved` ayrıca savunmacı olarak `target<=0` satırları atlıyor. Regresyon testi eklendi; demo1'in kirlenen `(movie,0)`/`(tv,0)` satırları elle temizlendi.
+  - **Frontend:** `components/stats/GoalRings.vue` (SVG halka — `stroke-dasharray`/`stroke-dashoffset` ile ilerleme, "Hedeflerim" başlığı + kalem ikonuyla düzenleme modu, hedef tamamlanınca `watch` ile önceki/yeni veri karşılaştırılıp geçiş anında toast — yalnız GERÇEKTEN tamamlanmamıştan tamamlanmışa geçişte, sayfa ilk açıldığında zaten tamamlanmışsa tetiklenmiyor) ve `components/stats/BadgeShowcase.vue` (rozet vitrini, kazanılmayanlar `grayscale`+`opacity-40`) `ProfilePage`'in İstatistik sekmesine eklendi — hedef halkaları yalnız kendi profilinde (`is_me`), rozetler herkese açık.
+  - **Gerçek performans hatası (üretim derlemesi kontrolüyle yakalandı):** İlk taslak `BadgeShowcase.vue`'da `import * as icons from 'lucide-vue-next'` kullanıyordu — bu, TÜM lucide-vue-next ikon kütüphanesini (yüzlerce ikon) tree-shaking'i devre dışı bırakıp `ProfilePage`'in ana chunk'ına gömdü, chunk boyutu 16 KB'tan **628 KB**'a fırladı (`npm run build`'ın "chunks larger than 500 kB" uyarısıyla fark edildi). Yalnız kullanılan ~10 ikonun AÇIK isimle import edilmesine çevrildi, chunk 22 KB'a döndü.
+  - **Gerçek tarayıcı testi (üçüncü kez bu oturumda):** Temiz sunucuyla (bu kez `TaskStop`/`Stop-Process` port doğrulaması F4.5'teki dersle baştan doğru yapıldı) demo1 ile canlı test: halka+rozet grid'i doğru render oluyor, düzenleme modu açılıyor, kitap hedefini 30'a değiştirip kaydetme uçtan uca çalışıyor ve halka anında güncelleniyor, konsol/sayfa hatası YOK, mobilde de doğru görünüyor — ekran görüntüleriyle doğrulandı (bu sırada yukarıdaki `goal_getter` hatası fark edildi).
+- **Sırada:** F4.7 (Veri dışa/içe aktarma).
 
 ---
 
@@ -120,11 +126,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 5/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 6/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **36/64** | | |
+| **Toplam** | | | **37/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -203,7 +209,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.3 — Kişi ve yazar sayfaları — ✅ (2026-09-30)
 - [x] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅ (2026-09-30)
 - [x] F4.5 — İstatistikler ve Yıllık Özet — ✅ (2026-09-30)
-- [ ] F4.6 — Hedefler ve rozetler
+- [x] F4.6 — Hedefler ve rozetler — ✅ (2026-09-30)
 - [ ] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads)
 - [ ] F4.8 — PWA
 - [ ] F4.9 — Faz 4 kapanışı 🏁
@@ -399,6 +405,23 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.6 — Hedefler ve rozetler — ✅
+
+- **Yapılanlar:**
+  - **v2'nin ilk gerçek şema migrasyonu (F1'in tek "ilk şema" migrasyonundan beri):** `stats/models.py`'de yeni `UserGoal` (`user_id`+`year`+`media_type` benzersiz kısıtı, `target`), `models_registry.py`'ye kaydedildi, `alembic revision --autogenerate -m "hedef tablosu"` ile üretildi ve `alembic upgrade head` ile dev DB'ye uygulandı; `alembic check` → "No new upgrade operations detected" (temiz). F4.1-F4.5'in tüm şema değişiklikleri JSON `extra`/`people` kolonlarıyla çözüldüğü için bu, gerçekten yeni bir SQL tablosu gerektiren ilk adımdı.
+  - **Alembic autogenerate kusuru (hemen yakalandı):** Üretilen migrasyon dosyası `app.core.database.UTCDateTime(...)` kullanıyordu ama o modülü hiç import etmiyordu (Alembic'in özel `TypeDecorator` tipleri için import eklemeyen bilinen sınırlaması) — çalıştırılınca `NameError` verirdi, `import app.core.database` eklenerek düzeltildi.
+  - **Backend uçları:** `GET/PUT /users/me/goals?year=` (üç medya türü için her zaman `{media_type,target,current}` — hedef konmamışsa `target=0`, `current` o yılki gerçek tamamlanma sayısı). `stats/badges.py` — plandaki 12 rozetin TAMAMI: `first_step`/`critic`/`cinephile(_pro)`/`bookworm(_pro)`/`binge` (doğrudan sayım, çoğu zaten var olan `get_profile_summary` sorgularıyla aynı desende), `explorer` (`Content.genres` JSON'undan tekilleştirilmiş tür sayısı), `social`/`popular` (`Follow` tablosu), `curator` (liste sayısı), `goal_getter` (kullanıcının TÜM `UserGoal` satırları için o yıla özel tamamlanma sayısı hedefi karşılıyor mu). `GET /users/{username}/badges` herkese açık (profil ziyaretçisi de görebilir, `/users/{username}/stats` ile aynı desen).
+  - **Gerçek mantık hatası (tarayıcı testiyle yakalandı, kod incelemesiyle DEĞİL):** Hedef düzenleme formunun "Kaydet"i dokunulmamış alanları da toplu gönderiyor (ör. yalnız kitap hedefi değiştirilse bile film/dizi taslakları `0` olarak batch'e dahil oluyor) — bu, `target=0` bir `UserGoal` satırını KALICI hale getiriyordu ve `current>=target` ifadesi `0>=0` için HER ZAMAN doğru olduğundan "Hedef Avcısı" rozetini anlamsızca kazandırıyordu. Gerçek demo kullanıcısında (demo1) canlı tarayıcı testinde gözlemlendi. İki katmanlı düzeltme: `set_goals` artık `target<=0`'ı hiç KAYDETMİYOR (var olan satırı siliyor — "hedef yok" ile eşanlamlı); `_goal_getter_achieved` ayrıca savunmacı olarak `target<=0` satırlarını atlıyor. Regresyon testi eklendi (`test_set_goals_with_zero_target_does_not_persist_or_earn_goal_getter`); demo1'in kirlenen `(movie,0)`/`(tv,0)` satırları elle temizlendi, doğru `(book,30)` satırı korundu.
+  - **Frontend:** `components/stats/GoalRings.vue` (SVG halka — `stroke-dasharray`/`stroke-dashoffset` ile ilerleme animasyonu; kalem ikonuyla açılan düzenleme modu; hedef tamamlanınca `watch` ile önceki/sonraki veri karşılaştırılıp yalnız GERÇEK geçiş anında toast — sayfa ilk açıldığında zaten tamamlanmışsa tetiklenmiyor) ve `components/stats/BadgeShowcase.vue` (rozet vitrini, kazanılmayanlar `grayscale`+`opacity-40`, kazanılan+ilerleme metni) `ProfilePage`'in İstatistik sekmesine eklendi — hedef halkaları yalnız kendi profilinde (`is_me`, çünkü `/users/me/goals` özel), rozetler herkese açık.
+  - **Gerçek performans hatası (üretim derlemesi kontrolüyle yakalandı):** İlk taslak `BadgeShowcase.vue`'da `import * as icons from 'lucide-vue-next'` kullanıyordu — TÜM lucide-vue-next ikon kütüphanesini (yüzlerce ikon) tree-shaking'i devre dışı bırakarak `ProfilePage`'in ana chunk'ına gömdü: chunk boyutu 16 KB'tan **628 KB**'a fırladı (`npm run build`'ın "chunks larger than 500 kB" uyarısıyla fark edildi — F4.5'te chart.js'i TEMBEL yükleyerek tam bunun tersini başarmışken, bu kez SENKRON import'un içine kazayla bir kütüphanenin tamamı sızmıştı). Yalnız kullanılan ~10 ikonun açık isimle import edilmesine çevrildi, chunk 22 KB'a döndü.
+  - **Gerçek tarayıcı testi (F4.5'teki port/TaskStop dersi bu kez baştan doğru uygulandı):** Temiz sunucuyla demo1 ile canlı test: halka+rozet grid'i doğru render oluyor, düzenleme modu açılıyor, kitap hedefini 30'a değiştirip kaydetme uçtan uca çalışıyor ve halka anında güncelleniyor, konsol/sayfa hatası YOK, mobilde de doğru görünüyor — ekran görüntüleriyle doğrulandı (bu sırada yukarıdaki `goal_getter` hatası fark edilip düzeltildi ve tekrar doğrulandı).
+- **Değişen dosyalar:** `backend/app/models_registry.py`, `backend/app/modules/stats/{models.py (yeni),badges.py (yeni),router,schemas,service}.py`, `backend/alembic/versions/03745900fb3f_hedef_tablosu.py` (yeni), `backend/tests/test_stats.py`; `frontend/src/api/{stats,schema.d}.ts`, `frontend/src/types/index.ts`, `frontend/src/pages/ProfilePage.vue`, `frontend/src/components/stats/{GoalRings.vue,BadgeShowcase.vue}` (yeni).
+- **Doğrulama:** Backend: `pytest` → **98 passed** ✓ (5 yeni) · `ruff check`+`format` → temiz ✓ · `alembic check` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓ (chunk boyutu düzeltmesi dahil). Gerçek tarayıcı (Puppeteer, masaüstü+mobil, gerçek demo verisiyle, konsol hatası izleme dahil) → düzeltmelerden sonra **0 sorun**.
+- **Kapanan maddeler:** Plan F4.6 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F4.7 — Veri dışa/içe aktarma
 
 ### [2026-09-30] F4.5 — İstatistikler ve Yıllık Özet — ✅
 
