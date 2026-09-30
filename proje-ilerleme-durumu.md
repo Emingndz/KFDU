@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.3 tamamlandı (Kişi ve yazar sayfaları). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-09-30** — F4.4 tamamlandı (Kitap ↔ film köprüsü). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.3 tamamlandı) |
-| Sıradaki adım | **F4.4** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.4 tamamlandı) |
+| Sıradaki adım | **F4.5** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -98,7 +98,13 @@
   - **Frontend:** `PersonPage.vue` (`/kisi/:id`) ve `AuthorPage.vue` (`/yazar/:id`) — ikisi de aynı yeni `CreditCard.vue`'yu (poster+başlık+yıl, `PosterCard`'ın rozet/kütüphane-durumu OLMAYAN sadeleştirilmiş hâli — `PersonCredit`/`AuthorWork` tam bir `ContentSummary` taşımadığı için `PosterCard` doğrudan kullanılamadı) paylaşıyor. `ContentDetailPage`'deki yönetmen/yazar isimleri artık `/kisi/` veya `/yazar/`ya bağlı tıklanabilir linkler (`creatorPeople` + `creatorBasePath`); `CastRow.vue`'daki oyuncular da `/kisi/`ye bağlandı (`component :is` ile `id` varsa `RouterLink`, yoksa düz `div` — TMDB bazen `id`siz kişi döndürebiliyor).
   - **Gerçek veriyle canlı doğrulama (kod incelemesinin ÖTESİNDE):** Sistem düşük bellek nedeniyle arka plan sunucularını durdurup bu oturumu kesintiye uğrattı ama durdurulmadan HEMEN ÖNCE `/catalog/authors/OL34184A` gerçek Open Library API'sine karşı denendi — rastgele seçilen bu ID'nin GERÇEKTEN Roald Dahl'a ait olduğu ortaya çıktı, yanıt tam beklenen şekilde geldi (ad, biyografi, doğum/ölüm tarihi, kapak görselleri olan gerçek eser listesi) — Open Library anahtar gerektirmediği için bu özellik U2'den bağımsız olarak ŞİMDİDEN tamamen çalışıyor durumda. `/catalog/people/525` da (TMDB, anahtarsız) beklenen temiz 503'ü verdi ve bu, router sıralamasının doğru çalıştığının da kanıtı oldu (422 DEĞİL, 503 döndü).
   - **Kesinti notu:** Bu adımın ortasında oturum kullanım limitine takıldı; arka plandaki Vite dev sunucusu ve backend uvicorn'u sistem düşük bellek koruması tarafından durduruldu (kod hatası değil). Devam eden oturum yalnız `/kisi/:id`+`/yazar/:id` rota bağlamasını tamamladı ve sunucuları YENİDEN BAŞLATMADI (bellek baskısı sürebileceği için); tüm doğrulama bu yüzden sunucu-gerektirmeyen araçlarla yapıldı (`pytest` kendi test istemcisini kuruyor, `lint`/`type-check`/`test:unit`/`build` zaten sunucu gerektirmiyor). Tarayıcıda görsel doğrulama bu adımda YAPILAMADI — kullanıcı isterse `npm run dev`+backend'i kendisi başlatıp bakabilir.
-- **Sırada:** F4.4 (Kitap ↔ film köprüsü).
+- **F4.4 tamamlandı (2026-09-30):** Kitap ↔ film köprüsü (uyarlamalar). `GET /catalog/book/{id}/adaptations`: kitabın başlığıyla TMDB `search/movie`+`search/tv` (ilk 10'ar aday) → başlık benzerliği ≥0.6 (`difflib.SequenceMatcher`, `service.py::search_best`'in kullandığı AYNI eşik) ÖNCE elenir (ucuz, HTTP'siz) → yalnız kalan adaylar için `credits+keywords` ile detay çekilip (`crew`'de `job=="Novel"` yazar adı kitabın yazarıyla eşleşiyor MU) VEYA (anahtar kelime 818 "based on novel or short story" var mı) kontrolü → en fazla 5, benzerliğe göre azalan. `GET /catalog/{movie|tv}/{id}/source-book`: film/dizi detayı zaten `credits`+`keywords`'ü ÇEKTİĞİ İÇİN (F1.6'dan beri `append_to_response`'ta vardı) ekstra TMDB çağrısı GEREKMEDİ — `to_detail()`'e `novel_authors`(`job=="Novel"` olan crew adları) ve `has_book_keyword` (818 var mı) iki yeni alan eklendi, `seasons_detail` ile aynı `extra` JSON yoluyla DB'de saklanıyor; bu ikisinden biri doluysa Open Library `search.json?title=&author=` ile en iyi eşleşme (≥0.6) aranıyor, yoksa DOĞRUDAN 404 (hiç OL çağrısı yapılmadan) — çoğu film/dizi kitap uyarlaması olmadığı için bu kısa-devre önemli.
+  - **Gerçek TMDB API tutarsızlığı yakalandı ve düzeltildi:** `keywords` alanı TMDB'de FİLM için `{"keywords":[...]}`, DİZİ için `{"results":[...]}` şeklinde FARKLI anahtar kullanıyor — `_keyword_ids()` yardımcı fonksiyonu ikisini de (`.get("keywords") or .get("results")`) destekliyor, ayrı bir birim testiyle (`test_tmdb_keyword_ids_handles_movie_and_tv_response_shapes`) doğrulandı. Bu, F4.1'in `created_by`/`crew` film-dizi ayrımı hatasına BENZER bir sınıf hata — kod incelemesiyle ÖNCEDEN yakalandı (canlı testle değil), çünkü artık bu tür TMDB film/dizi şekil farklılıklarına karşı dikkatli olma alışkanlığı oturdu.
+  - **Test zorluğu — TMDB anahtar gerektiren ilk gerçek testler:** Bu projede `TMDB_API_KEY` test ortamında HER ZAMAN boş (`""`) — önceki tüm TMDB testleri ya saf `to_detail()`/`to_summary()` fonksiyonlarını (anahtar kontrolünü hiç görmüyor) ya da "anahtarsız 503" sözleşmesini test ediyordu; hiçbiri "anahtar VARMIŞ gibi" bir uçtan uca akışı test etmiyordu. F4.4'ün `adaptations`/`source-book` uçları GERÇEKTEN çalışan bir TMDB anahtarı gerektirdiği için `test_users.py`'de zaten var olan `monkeypatch.setattr(settings, "TMDB_API_KEY", "test-key")` deseni ilk kez `catalog` testlerinde kullanıldı — diğer testlerin `TMDB_API_KEY==""` varsayımını bozmadan (`monkeypatch` yalnız o test fonksiyonu için geçerli, otomatik geri alınıyor).
+  - **Mimari desen (yine tekrarlanan bir tema):** `find_adaptations`/`find_source_book` mevcut `to_detail()`/`detail()` ayrımını DEĞİL, `search_best()`'in (F1.6, kitap↔film eşleştirmesi için zaten var olan benzerlik-skoru deseni) yaklaşımını izliyor — tekerlek yeniden icat edilmedi.
+  - **Frontend:** Yeni backend alanları (`novel_authors`/`has_book_keyword`) frontend'e HİÇ YANSIMADI (yalnız arka planda kısa-devre optimizasyonu için var) — bu yüzden `npm run gen:api` çalıştırmaya/backend'i yeniden başlatmaya GEREK KALMADI, yeni uçların ikisi de zaten var olan `ContentSummary` tipini döndürüyor. `api/catalog.ts`'e `useBookAdaptations`/`useSourceBook` (`enabled` parametresiyle tipe göre şartlı) eklendi; `ContentDetailPage`'e kitapta "🎬 Beyaz perdede" şeridi (`ContentRow`, boşsa gizli) ve film/dizide "📖 Uyarlandığı kitap" tek kartı (`PosterCard`, 404'te gizli — `retry:false` ile gereksiz yeniden deneme yok) eklendi.
+  - **Kesinti/bellek notu devam ediyor:** Bu adım TAMAMEN sunucusuz tamamlandı (F4.3'ün sonunda durdurulan Vite+uvicorn kasıtlı olarak yeniden başlatılmadı) — `pytest` kendi test istemcisini kurduğu ve yeni uçlar mevcut şemaları kullandığı için hem backend hem frontend eksiksiz doğrulandı, ama gerçek TMDB/Open Library verisiyle canlı bir uçtan uca deneme (F4.3'teki Roald Dahl doğrulaması gibi) bu adımda YAPILAMADI.
+- **Sırada:** F4.5 (İstatistikler ve Yıllık Özet).
 
 ---
 
@@ -110,11 +116,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 3/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 4/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **34/64** | | |
+| **Toplam** | | | **35/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -191,7 +197,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.1 — Diziler (TV) — ✅ (2026-09-30)
 - [x] F4.2 — Bildirim merkezi — ✅ (2026-09-30)
 - [x] F4.3 — Kişi ve yazar sayfaları — ✅ (2026-09-30)
-- [ ] F4.4 — Kitap ↔ film köprüsü (uyarlamalar)
+- [x] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅ (2026-09-30)
 - [ ] F4.5 — İstatistikler ve Yıllık Özet
 - [ ] F4.6 — Hedefler ve rozetler
 - [ ] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads)
@@ -389,6 +395,23 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅
+
+- **Yapılanlar:**
+  - **`GET /catalog/book/{id}/adaptations`:** Kitabın başlığıyla TMDB `search/movie`+`search/tv` (her birinden ilk 10 aday) → `search_best()`'in (F1.6) kullandığı AYNI `difflib.SequenceMatcher` benzerlik eşiği (≥0.6) ile ÖNCE ucuz bir ön-eleme (HTTP'siz) → yalnız benzerliği geçen adaylar için `credits,keywords` ile detay çekilip `crew`'de `job=="Novel"` olan bir isim kitabın yazarıyla eşleşiyor MU veya 818 ("based on novel or short story") anahtar kelimesi var MI kontrol ediliyor → ikisinden biri doğruysa dahil, benzerliğe göre azalan sıralı, en fazla 5. 7 gün önbellek (`_find_adaptations_cached`).
+  - **`GET /catalog/{movie|tv}/{id}/source-book`:** Film/dizi detayının `append_to_response`'u F1.6'dan beri zaten `credits`+`keywords` çektiği için EKSTRA bir TMDB çağrısı gerekmedi — `tmdb.py::to_detail()`'e iki yeni türetilmiş alan eklendi: `novel_authors` (`job=="Novel"` crew isimleri) ve `has_book_keyword` (818 var mı). Bu ikisi `seasons_detail`'in (F4.1) izlediği `ContentDetail`→`extra` JSON→DB yoluyla taşınıyor. `get_source_book()`: bu iki alandan biri doluysa Open Library `search.json?title=&author=`'a gidip en iyi eşleşmeyi (≥0.6) arıyor; İKİSİ de boşsa (çoğu film/dizi durumu) DOĞRUDAN 404 dönüyor, hiç Open Library çağrısı yapılmadan.
+  - **Gerçek TMDB API tutarsızlığı (kod incelemesiyle ÖNCEDEN yakalandı):** `keywords` alanı TMDB'de FİLM için `{"keywords":[...]}`, DİZİ için `{"results":[...]}` — farklı anahtar isimleri. `_keyword_ids()` yardımcı fonksiyonu ikisini de destekliyor (`.get("keywords") or .get("results")`), ayrı bir birim testiyle doğrulandı. F4.1'in `created_by`/`crew` film-dizi ayrımı hatasıyla AYNI SINIFTAN bir tuzak — bu kez canlı testle değil, geçmiş deneyimle önceden fark edildi.
+  - **Test altyapısı — bu projede TMDB-anahtarlı bir akışın ilk gerçek testi:** `TMDB_API_KEY` test ortamında her zaman `""` (önceki TÜM TMDB testleri ya saf normalize fonksiyonlarını ya da "anahtarsız 503" sözleşmesini test ediyordu). F4.4'ün uçları gerçekten çalışan bir anahtar gerektirdiği için `test_users.py`'de zaten var olan `monkeypatch.setattr(settings, "TMDB_API_KEY", "test-key")` deseni ilk kez `catalog` testlerinde kullanıldı (yalnız o test için geçerli, diğer testlerin `TMDB_API_KEY==""` varsayımını bozmuyor).
+  - **Test tasarımı — "gereksiz HTTP çağrısı yapılmadığının" doğrulanması:** Uyarlama testinde, benzerlik eşiğini GEÇEMEYEN bir TV adayı için kasıtlı olarak detay ucu respx'te MOCK'LANMADI — kod yanlışlıkla o adayın detayını çekmeye çalışsaydı test `AllMockedAssertionError` ile açıkça patlardı (sessizce yanlış geçmezdi). Film testinde de (Inception fixture'ı — ne `job=="Novel"` ne 818 var) Open Library hiç mock'lanmadı; kod gerçekten hiç çağırmadığı için test zaten geçti.
+  - **Frontend:** Yeni backend alanları (`novel_authors`/`has_book_keyword`) frontend'e hiç yansımadı, yeni uçların ikisi de var olan `ContentSummary` tipini döndürdüğü için `npm run gen:api`/backend yeniden başlatma GEREKMEDİ. `api/catalog.ts`'e `useBookAdaptations`/`useSourceBook` (`enabled` parametresiyle `type`'a göre şartlı, `retry:false` — 404 çoğu içerik için beklenen/kalıcı bir durum, yeniden denemeye değmez). `ContentDetailPage`: kitapta "🎬 Beyaz perdede" şeridi (`ContentRow`, boşsa gizli), film/dizide "📖 Uyarlandığı kitap" tek kartı (`PosterCard`, 404'te gizli).
+  - **Kesinti/bellek notu devam ediyor:** F4.3'ün sonunda sistem düşük belleği nedeniyle durdurulan Vite+uvicorn kasıtlı olarak yeniden başlatılmadı; bu adım TAMAMEN sunucusuz tamamlandı (`pytest` kendi istemcisini kuruyor, yeni uçlar mevcut şemaları kullandığı için frontend tarafı da sunucu gerektirmedi). Gerçek TMDB/Open Library verisiyle canlı bir uçtan uca deneme (F4.3'teki Roald Dahl doğrulaması gibi) bu adımda yapılamadı.
+- **Değişen dosyalar:** `backend/app/modules/catalog/{router,schemas,service}.py`, `backend/app/modules/catalog/providers/{tmdb,openlibrary}.py`, `backend/tests/test_catalog_{api,normalize}.py`, `backend/tests/fixtures/tmdb_movie_detail_438631.json` (yeni); `frontend/src/api/catalog.ts`, `frontend/src/pages/ContentDetailPage.vue`.
+- **Doğrulama:** Backend: `pytest` → **89 passed** ✓ (5 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓. Canlı doğrulama YOK (sunucu bilinçli olarak başlatılmadı, yukarı bkz.).
+- **Kapanan maddeler:** Plan F4.4 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Gerçek TMDB anahtarı gelince (`U2`), `scripts/seed.py --reset` sonrası "Dune" gibi bilinen bir uyarlamayla gerçek veride bir kere elle doğrulanması faydalı olur (kabul kriteri kod/fixture seviyesinde zaten kanıtlandı, yalnız gerçek TMDB arama sıralaması/alaka düzeyi teorik olarak farklı sonuç verebilir).
+- **Sonraki adım:** F4.5 — İstatistikler ve Yıllık Özet
 
 ### [2026-09-30] F4.3 — Kişi ve yazar sayfaları — ✅
 
