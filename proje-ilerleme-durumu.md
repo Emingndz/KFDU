@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.1 tamamlandı (Diziler/TV). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-09-30** — F4.2 tamamlandı (Bildirim merkezi). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1 tamamlandı) |
-| Sıradaki adım | **F4.2** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.2 tamamlandı) |
+| Sıradaki adım | **F4.3** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -89,7 +89,12 @@
 - **Faz 3 kapanışı (2026-09-30):** Kullanıcı `main`e birleştirmeyi onayladı ("Birleştir ve push et") — `v2` → `main` `--ff-only` ile birleştirildi (`5701059`), hem `main` hem `v2` origin'e push edildi. Çalışma dalı `v2` olarak devam ediyor.
 - **D-23 — Öncelik kararı (2026-09-30):** Kullanıcı, U1 (Gmail)/U2 (TMDB) anahtarlarının ve kapsamlı test/QA'nın (Faz 7) proje SONUNA ertelenmesini istedi; Faz 4-5-6 boyunca odak "doğru, çalışan, kullanıcı dostu, gerçekten güzel" özellikler inşa etmek. Fazlar bitince kullanıcı anahtarları kendisi girecek, SONRA eski/legacy veriyi (`legacy-v1` etiketi, `backend/legacy_backup/`) silmemi ayrıca isteyecek (bkz. U13) — bu talep gelmeden legacy veriye dokunulmuyor. Ayrıntı: 👤 Kararlar tablosu D-23.
 - **F4.1 tamamlandı (2026-09-30):** Diziler (TV) desteği. Beklenenin çok altında iş çıktı çünkü backend/frontend **Faz 1-3 boyunca zaten `tv` içeren jenerik `CatalogContentType` üzerine** kuruldu — genre eşlemesi, `TYPE_NOUN`/`STATUS_VERBS` (akış metinleri), `BaseBadge`/`PosterCard` rozetleri, `statusLabel`/`LibraryButtons`, `ProfileSummaryOut.tv_completed`+`ProfileHeader` sayacı hep baştan `tv`'yi kapsıyordu. Gerçekte eksik olan yalnız: (1) backend'de dizi yaratıcısı (`created_by`) alanının `to_detail()`'de hâlâ film mantığıyla (`crew`'de `job=="Director"`) hesaplanması (sessiz veri hatası — `to_summary()` doğruydu ama `to_detail()` yanlıştı, test bunu hiç yakalamıyordu çünkü fixture'ın `credits.crew`'i zaten boştu), (2) sezon listesi (`SeasonOut`/`seasons_detail`) hiç yoktu, (3) Keşfet'te "Dizi" sekmesi + `/dizi/:id` rotası (`ComingSoonPage` yer tutucuydu), (4) `in_progress` iken "Kaçıncı bölümdesin?" (`progress`) girişi, (5) profil Kütüphane sekmesinin İzlediklerim/İzlenecekler/İzliyorum alt filtrelerinin yalnız `movie` sorgulaması (bu sınırlama F3.6'da bilinçli olarak not edilmişti). Beşi de bu adımda kapatıldı. Ayrıntı: 📝 Adım Günlüğü.
-- **Sırada:** F4.2 (Bildirim merkezi).
+- **F4.2 tamamlandı (2026-09-30):** Bildirim merkezi. Backend zaten Faz 1'de (F1.8) tam kurulmuştu (`Notification` modeli, `/notifications` + `/notifications/unread-count` + `/notifications/read-all` + `/notifications/{id}/read`, follow/like/comment olay-tetikleyicileri `social/handlers.py`'de) ama uçlara ait DOĞRUDAN test yoktu (yalnız like'ın dolaylı bir model-seviyesi kontrolü vardı) — bu adımda `test_social.py`'ye 7 uç-testi eklendi (liste+sayfalama, unread-count, tümünü/tekini okundu işaretle+sahiplik kontrolü, takip bildiriminin okunmadıkça tekrarlanmaması, like/comment bildirimlerinin içerik/alıntı taşıması). Frontend tamamen yeni: `api/social.ts`'e `useNotifications`/`useUnreadNotificationsCount` (`refetchInterval: 60_000`)/`useMarkAllNotificationsRead`/`useMarkNotificationRead`; `utils/notifications.ts` (metin+hedef sayfa eşlemesi); `useNotificationClick` composable (okundu işaretle+yönlendir, hem zil panelinde hem tam sayfada paylaşılıyor); `components/notifications/NotificationRow.vue` (paylaşılan satır — `AppHeader`'daki `NotificationBell.vue` açılır paneli VE `/bildirimler` (`NotificationsPage.vue`, sonsuz kaydırma) ikisi de kullanıyor); mobil alt menüye rozetli zil eklendi.
+  - **Kusur kendi kodumda, commit'ten önce yakalandı:** İlk taslakta `NotificationRow`'un kendi içinde `useFollowToggle()` çağırması planlanmıştı ("Geri takip et" butonu için) — ama bu composable `DiscoverPage`/`FeedPage`'de zaten SAYFA seviyesinde bir kez çağrılıp `UserCard`'a prop olarak geçiriliyor (kendi state'i bir Pinia store değil, yerel `ref`); satır bileşeninin İÇİNDE çağırmak her satır için ayrı bir "takip edildi" kümesi yaratıp aynı kullanıcı iki bildirimde görünürse tutarsız görünüme yol açardı. `UserCard`'ın zaten kullandığı `isFollowing`/`followPending` prop + `followBack` event desenine çevrildi (composable artık yalnız `NotificationBell`/`NotificationsPage` seviyesinde, tek sefer, çağrılıyor).
+  - **Test altyapısı düzeltmesi:** `App.spec.ts` artık `AppHeader`/`AppBottomNav` üzerinden TanStack Query kullanıyor (önceden bu genel iskelet bileşenlerinin hiçbiri sorgu yapmıyordu) — testin `mount()` çağrısına `VueQueryPlugin` eklenmedi diye `No 'queryClient' found` hatasıyla kırıldı; `retry:false` ile taze bir `QueryClient` eklenerek düzeltildi.
+  - **Gerçek backend'e karşı uçtan uca (iki test kullanıcısı, canlı dev sunucusu):** kayıt → takip et → `GET /notifications` doğru `actor`/`type` ile 1 satır → `unread-count` 1 → okundu işaretle → `unread-count` 0; test kullanıcıları sonunda DB'den silindi (bildirimleriyle birlikte), 0 kaldığı doğrulandı.
+  - **Kapsam notu:** `GET /activities/{id}` için hâlâ özel bir kalıcı bağlantı (permalink) sayfası yok (yalnız akışta/profilde satır içi gösteriliyor); bu yüzden like/comment bildirimleri en yakın anlamlı hedefe (`content` doluysa içerik sayfası, değilse aktörün profili) yönlendiriyor — tam aktivite izole sayfası plan kapsamında ayrıca istenmiyor.
+- **Sırada:** F4.3 (Kişi ve yazar sayfaları).
 
 ---
 
@@ -101,11 +106,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 1/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 2/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **32/64** | | |
+| **Toplam** | | | **33/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -180,7 +185,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 ### Faz 4 — Çağ Atlatma Paketi
 
 - [x] F4.1 — Diziler (TV) — ✅ (2026-09-30)
-- [ ] F4.2 — Bildirim merkezi
+- [x] F4.2 — Bildirim merkezi — ✅ (2026-09-30)
 - [ ] F4.3 — Kişi ve yazar sayfaları
 - [ ] F4.4 — Kitap ↔ film köprüsü (uyarlamalar)
 - [ ] F4.5 — İstatistikler ve Yıllık Özet
@@ -380,6 +385,24 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.2 — Bildirim merkezi — ✅
+
+- **Yapılanlar:**
+  - **Keşif:** Backend bildirim altyapısı (`Notification` modeli, 4 uç, `social/handlers.py`'deki follow/like/comment tetikleyicileri) Faz 1'de (F1.8) zaten tam kurulmuştu — bu adımda backend kod DEĞİŞİKLİĞİ gerekmedi, yalnız eksik test kapsamı kapatıldı.
+  - **Backend testleri (yeni):** `test_social.py`'ye 7 test — boş liste, takip bildirimi oluşturma + okunmadıkça tekrarlanmaması (`handlers.py`'nin dedup mantığı ilk kez doğrudan test edildi), like/comment bildirimlerinin `content`/`comment_excerpt` alanları, `unread-count`+`read-all`, tekil `read` (+ başkasının bildirimini okuma girişimine 404), cursor sayfalama.
+  - **Frontend — API katmanı:** `api/social.ts`'e `useNotifications` (sonsuz sorgu), `useUnreadNotificationsCount` (`refetchInterval: 60_000` — sekme arka plandayken TanStack Query'nin varsayılan `refetchIntervalInBackground:false`'ı zaten durduruyor, ekstra kod gerekmedi), `useMarkAllNotificationsRead`, `useMarkNotificationRead`.
+  - **Frontend — UI:** `utils/notifications.ts` (tür→Türkçe metin: "X seni takip etmeye başladı" / "aktiviteni beğendi" / 'aktivitene yorum yaptı: "…"'; tür→hedef sayfa: follow→aktörün profili, like/comment→`content` doluysa içerik sayfası); `useNotificationClick` composable (okundu işaretle+yönlendir); `components/notifications/NotificationRow.vue` (paylaşılan satır — avatar, metin, göreli zaman, içerik küçük görseli, okunmamış noktası, follow tipinde "Geri takip et"); `components/layout/NotificationBell.vue` (`AppHeader`'da zil+rozet+açılır panel, son 10 bildirim); `pages/NotificationsPage.vue` (`/bildirimler`, sonsuz kaydırma, okunmamışlar `bg-brand-500/5` ile vurgulu); `AppBottomNav.vue`'a rozetli "Bildirimler" sekmesi eklendi (plandaki mobil sıralamaya uygun: Akış, Keşfet, Bildirimler, Profil).
+  - **Kusur kendi kodumda, commit'ten önce yakalandı:** İlk taslakta "Geri takip et" için `NotificationRow`'un kendi içinde `useFollowToggle()` çağırması vardı — ama bu composable sayfa seviyesinde tek bir yerel `ref` Set'i tutuyor (Pinia store değil); satır bileşeni İÇİNDE çağrılırsa her satırın kendi ayrı "takip edildi" kümesi olur ve aynı aktör iki bildirimde görünürse (ör. hem beğenip hem takip etmişse) tutarsız görünürdü. `DiscoverPage`/`FeedPage`'in `UserCard`'da zaten kullandığı `isFollowing`/`followPending` prop + `followBack` event desenine çevrilip composable `NotificationBell`/`NotificationsPage` seviyesine taşındı.
+  - **Test altyapısı düzeltmesi:** `AppHeader`/`AppBottomNav` ilk kez TanStack Query kullanır hale gelince (`NotificationBell` + rozet), önceden yalnız `pinia`+`router` ile mount edilen `App.spec.ts` `No 'queryClient' found in Vue context` hatasıyla kırıldı — `mount()`'a `retry:false`'lu taze bir `QueryClient` + `VueQueryPlugin` eklendi.
+  - **Gerçek backend'e karşı uçtan uca (iki test kullanıcısı, canlı dev sunucusu):** kayıt→takip et→`GET /notifications` doğru `actor.username`/`type` ile 1 satır→`unread-count` 1→`POST /notifications/{id}/read`→`unread-count` 0; iki test kullanıcısı + bildirimleri sonunda DB'den silindi, 0 kaldığı sorguyla doğrulandı.
+  - **Kapsam notu:** Aktiviteler için ayrı bir kalıcı bağlantı (permalink) sayfası yok (yalnız akış/profilde satır içi gösteriliyor) — bu, plan kapsamında istenmiyor; like/comment bildirimleri bu yüzden en yakın anlamlı hedefe (`content` varsa içerik sayfası, yoksa aktörün profili) yönlendiriyor.
+- **Değişen dosyalar:** `backend/tests/test_social.py`; `frontend/src/api/social.ts`, `frontend/src/types/index.ts`, `frontend/src/utils/notifications.ts` (yeni), `frontend/src/composables/useNotificationClick.ts` (yeni), `frontend/src/components/notifications/NotificationRow.vue` (yeni), `frontend/src/components/layout/{NotificationBell.vue (yeni),AppHeader.vue,AppBottomNav.vue}`, `frontend/src/pages/NotificationsPage.vue` (yeni), `frontend/src/router/index.ts`, `frontend/src/__tests__/App.spec.ts`.
+- **Doğrulama:** Backend: `pytest` → **81 passed** ✓ (7 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓. Canlı curl (iki kullanıcı): takip→bildirim→unread-count→okundu işaretle uçtan uca doğrulandı, test kullanıcıları temizlendi.
+- **Kapanan maddeler:** Plan F4.2 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F4.3 — Kişi ve yazar sayfaları
 
 ### [2026-09-30] F4.1 — Diziler (TV) — ✅
 
