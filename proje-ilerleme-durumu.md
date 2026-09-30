@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.2 tamamlandı (Bildirim merkezi). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-09-30** — F4.3 tamamlandı (Kişi ve yazar sayfaları). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.2 tamamlandı) |
-| Sıradaki adım | **F4.3** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.3 tamamlandı) |
+| Sıradaki adım | **F4.4** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -94,7 +94,11 @@
   - **Test altyapısı düzeltmesi:** `App.spec.ts` artık `AppHeader`/`AppBottomNav` üzerinden TanStack Query kullanıyor (önceden bu genel iskelet bileşenlerinin hiçbiri sorgu yapmıyordu) — testin `mount()` çağrısına `VueQueryPlugin` eklenmedi diye `No 'queryClient' found` hatasıyla kırıldı; `retry:false` ile taze bir `QueryClient` eklenerek düzeltildi.
   - **Gerçek backend'e karşı uçtan uca (iki test kullanıcısı, canlı dev sunucusu):** kayıt → takip et → `GET /notifications` doğru `actor`/`type` ile 1 satır → `unread-count` 1 → okundu işaretle → `unread-count` 0; test kullanıcıları sonunda DB'den silindi (bildirimleriyle birlikte), 0 kaldığı doğrulandı.
   - **Kapsam notu:** `GET /activities/{id}` için hâlâ özel bir kalıcı bağlantı (permalink) sayfası yok (yalnız akışta/profilde satır içi gösteriliyor); bu yüzden like/comment bildirimleri en yakın anlamlı hedefe (`content` doluysa içerik sayfası, değilse aktörün profili) yönlendiriyor — tam aktivite izole sayfası plan kapsamında ayrıca istenmiyor.
-- **Sırada:** F4.3 (Kişi ve yazar sayfaları).
+- **F4.3 tamamlandı (2026-09-30):** Kişi ve yazar sayfaları. Bu, Faz 4'ün F4.1/F4.2'nin aksine GERÇEKTEN yeni backend kodu gerektiren ilk adımıydı — `GET /catalog/people/{tmdb_id}` (TMDB `/person/{id}?append_to_response=combined_credits`, biyografi tr→en fallback'i film/dizi detayıyla birebir aynı desen, `crew`'den `job=="Director"` → "Yönetmenlik", `cast` → "Oyunculuk", ikisi de popülerliğe göre azalan + id bazlı tekilleştirilmiş + en fazla 40) ve `GET /catalog/authors/{ol_id}` (Open Library `/authors/{id}.json` + `/authors/{id}/works.json`, `_extract_description` zaten var olan sözlük/düz-metin bio ayrıştırıcısı yeniden kullanıldı, eserler yıla göre azalan sıralı). İkisi de mevcut `to_detail()`/`detail()` ayrımını taklit eden saf-normalize + ince-HTTP-sarmalayıcı deseniyle yazıldı (`to_person_detail(raw)`/`to_author_detail(raw, works_raw)`) — bu sayede birim testleri gerçek HTTP'ye hiç dokunmadan fixture'larla çalışıyor. **Router sırası kritik detay:** yeni `/people/{id}` ve `/authors/{id}` uçları var olan genel `/{type}/{external_id}` deseninden ÖNCE eklendi — Starlette rotaları kayıt sırasına göre eşleştirdiği için, sonra eklenselerdi `/catalog/people/525` isteği `type="people"` olarak yakalanıp `ContentType` doğrulamasında 422 ile patlardı.
+  - **Frontend:** `PersonPage.vue` (`/kisi/:id`) ve `AuthorPage.vue` (`/yazar/:id`) — ikisi de aynı yeni `CreditCard.vue`'yu (poster+başlık+yıl, `PosterCard`'ın rozet/kütüphane-durumu OLMAYAN sadeleştirilmiş hâli — `PersonCredit`/`AuthorWork` tam bir `ContentSummary` taşımadığı için `PosterCard` doğrudan kullanılamadı) paylaşıyor. `ContentDetailPage`'deki yönetmen/yazar isimleri artık `/kisi/` veya `/yazar/`ya bağlı tıklanabilir linkler (`creatorPeople` + `creatorBasePath`); `CastRow.vue`'daki oyuncular da `/kisi/`ye bağlandı (`component :is` ile `id` varsa `RouterLink`, yoksa düz `div` — TMDB bazen `id`siz kişi döndürebiliyor).
+  - **Gerçek veriyle canlı doğrulama (kod incelemesinin ÖTESİNDE):** Sistem düşük bellek nedeniyle arka plan sunucularını durdurup bu oturumu kesintiye uğrattı ama durdurulmadan HEMEN ÖNCE `/catalog/authors/OL34184A` gerçek Open Library API'sine karşı denendi — rastgele seçilen bu ID'nin GERÇEKTEN Roald Dahl'a ait olduğu ortaya çıktı, yanıt tam beklenen şekilde geldi (ad, biyografi, doğum/ölüm tarihi, kapak görselleri olan gerçek eser listesi) — Open Library anahtar gerektirmediği için bu özellik U2'den bağımsız olarak ŞİMDİDEN tamamen çalışıyor durumda. `/catalog/people/525` da (TMDB, anahtarsız) beklenen temiz 503'ü verdi ve bu, router sıralamasının doğru çalıştığının da kanıtı oldu (422 DEĞİL, 503 döndü).
+  - **Kesinti notu:** Bu adımın ortasında oturum kullanım limitine takıldı; arka plandaki Vite dev sunucusu ve backend uvicorn'u sistem düşük bellek koruması tarafından durduruldu (kod hatası değil). Devam eden oturum yalnız `/kisi/:id`+`/yazar/:id` rota bağlamasını tamamladı ve sunucuları YENİDEN BAŞLATMADI (bellek baskısı sürebileceği için); tüm doğrulama bu yüzden sunucu-gerektirmeyen araçlarla yapıldı (`pytest` kendi test istemcisini kuruyor, `lint`/`type-check`/`test:unit`/`build` zaten sunucu gerektirmiyor). Tarayıcıda görsel doğrulama bu adımda YAPILAMADI — kullanıcı isterse `npm run dev`+backend'i kendisi başlatıp bakabilir.
+- **Sırada:** F4.4 (Kitap ↔ film köprüsü).
 
 ---
 
@@ -106,11 +110,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 2/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 3/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **33/64** | | |
+| **Toplam** | | | **34/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -186,7 +190,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 - [x] F4.1 — Diziler (TV) — ✅ (2026-09-30)
 - [x] F4.2 — Bildirim merkezi — ✅ (2026-09-30)
-- [ ] F4.3 — Kişi ve yazar sayfaları
+- [x] F4.3 — Kişi ve yazar sayfaları — ✅ (2026-09-30)
 - [ ] F4.4 — Kitap ↔ film köprüsü (uyarlamalar)
 - [ ] F4.5 — İstatistikler ve Yıllık Özet
 - [ ] F4.6 — Hedefler ve rozetler
@@ -385,6 +389,23 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.3 — Kişi ve yazar sayfaları — ✅
+
+- **Yapılanlar:**
+  - **Backend (F4.1/F4.2'den farklı olarak GERÇEK yeni kod):** `GET /catalog/people/{tmdb_id}` — TMDB `/person/{id}?append_to_response=combined_credits`; biyografi boşsa `language=en-US` ile ikinci çağrı (film/dizi `detail()`'deki tr→en fallback deseniyle birebir aynı); `combined_credits.crew`'den `job=="Director"` → "Yönetmenlik", `combined_credits.cast` → "Oyunculuk", ikisi de `popularity`'ye göre azalan sıralı, id bazlı tekilleştirilmiş (`_dedupe_credits`), en fazla 40'ar; `known_for_department` küçük bir sözlükle Türkçeleştirildi (`_DEPARTMENT_LABELS`). `GET /catalog/authors/{ol_id}` — Open Library `/authors/{id}.json` + `/authors/{id}/works.json`; biyografi için zaten var olan `_extract_description` (sözlük/düz-metin ayrımı) yeniden kullanıldı; eserler `first_publish_date`'ten regex ile çıkarılan yıla göre azalan sıralı; kapak/foto id'si `-1` (Open Library'nin "yok" sentinel'i) `None`'a çevriliyor, hataya düşmüyor.
+  - **Mimari desen:** İkisi de mevcut `to_detail()` (saf normalize) / `detail()` (HTTP + tr→en fallback) ayrımı birebir taklit edilerek `to_person_detail(raw)`/`person(id)` ve `to_author_detail(raw, works_raw)`/`author(id)` olarak ikiye bölündü — bu sayede yeni birim testleri (`test_catalog_normalize.py`) gerçek HTTP'ye hiç dokunmadan, tamamen fixture'larla pure-function olarak çalışıyor.
+  - **Kritik rota sırası düzeltmesi:** Yeni `/people/{id}` ve `/authors/{id}` uçları `router.py`'de var olan genel `/{type}/{external_id}` deseninden ÖNCE eklendi. Starlette rotaları kayıt sırasına göre eşleştirir; sonra eklenselerdi `/catalog/people/525` isteği önce `/{type}/{external_id}`'e düşüp `type="people"`yi `ContentType` enum'una çevirmeye çalışıp 422 ile patlardı (bu, `test_people_without_key_returns_503` testinin 503 — 422 DEĞİL — beklemesiyle dolaylı olarak da doğrulanıyor).
+  - **Frontend:** `api/catalog.ts`'e `usePersonDetail`/`useAuthorDetail`; yeni `components/content/CreditCard.vue` (poster+başlık+yıl — `PosterCard`'ın rozet/kütüphane-durumu olmayan sadeleşmiş hâli, çünkü `PersonCredit`/`AuthorWork` tam bir `ContentSummary` taşımıyor); `pages/PersonPage.vue` (`/kisi/:id`) ve `pages/AuthorPage.vue` (`/yazar/:id`) — ikisi de aynı `CreditCard`'ı paylaşıyor. `ContentDetailPage`'deki yönetmen/yazar satırı düz metinden (`creatorLine`) tıklanabilir linklere çevrildi (`creatorPeople` + `creatorBasePath` — film/dizi→`/kisi`, kitap→`/yazar`); `CastRow.vue`'daki oyuncular da `/kisi/`ye bağlandı (`<component :is="person.id ? RouterLink : 'div'">` — TMDB bazen `id`siz kişi döndürebildiği için düz metne düşüyor).
+  - **Kusur önleme (test yazarken kendi kodumda yakalandı):** `PersonDetail.directing`/`.acting`/`AuthorDetail.works` Pydantic'te `Field(default_factory=list)` olduğu için OpenAPI şemasında "opsiyonel" (`?:`) çıkıyor — `vue-tsc` bu yüzden `detail.data.value.directing.length` gibi doğrudan erişimlere "possibly undefined" hatası verdi. `ContentDetailPage`'in `castList`/`seasonsList` computed'larında zaten kullanılan `?? []` deseni (`directing`/`acting`/`works` computed'ları) ile düzeltildi.
+  - **Gerçek veriyle canlı doğrulama:** Sistem düşük bellek nedeniyle arka plan sunucularını (Vite + uvicorn) durdurup oturumu kesintiye uğratmadan HEMEN ÖNCE `/catalog/authors/OL34184A` gerçek Open Library API'sine karşı denendi — test için rastgele seçilen bu ID'nin GERÇEKTEN Roald Dahl'a ait olduğu ortaya çıktı; yanıt tam beklenen şekilde geldi (ad, İngilizce biyografi, doğum/ölüm tarihi, gerçek kapak görselli eser listesi). Open Library anahtar gerektirmediği için bu özellik U2'den TAMAMEN bağımsız, şimdiden gerçek veriyle çalışıyor. `/catalog/people/525` (TMDB, anahtarsız) beklenen temiz 503'ü verdi — hem U2 bekleniyor kuralını hem router sıralaması düzeltmesini doğruladı.
+  - **Kesinti notu:** Bu adımın ortasında oturum kullanım limitine takıldı; arka plandaki Vite dev sunucusu ve backend uvicorn'u sistem düşük bellek koruması tarafından (kod hatası DEĞİL) durduruldu. Devam eden oturum rota bağlamasını (`/kisi/:id`, `/yazar/:id`) tamamladı ve sunucuları kasıtlı olarak YENİDEN BAŞLATMADI (bellek baskısı sürebileceği için); tüm doğrulama sunucu gerektirmeyen araçlarla yapıldı. Tarayıcıda uçtan uca görsel doğrulama bu adımda yapılamadı.
+- **Değişen dosyalar:** `backend/app/modules/catalog/{router,schemas,service}.py`, `backend/app/modules/catalog/providers/{tmdb,openlibrary}.py`, `backend/tests/test_catalog_{api,normalize}.py`, `backend/tests/fixtures/{tmdb_person_525,ol_author_OL34184A,ol_author_works_OL34184A}.json` (yeni); `frontend/src/api/catalog.ts`, `frontend/src/types/index.ts`, `frontend/src/components/content/{CreditCard.vue (yeni),CastRow.vue}`, `frontend/src/pages/{PersonPage.vue (yeni),AuthorPage.vue (yeni),ContentDetailPage.vue}`, `frontend/src/router/index.ts`, `frontend/src/api/schema.d.ts` (yeniden üretildi).
+- **Doğrulama:** Backend: `pytest` → **84 passed** ✓ (4 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓. Canlı: `/catalog/authors/OL34184A` gerçek Open Library verisiyle doğrulandı (Roald Dahl); `/catalog/people/525` beklenen 503.
+- **Kapanan maddeler:** Plan F4.3 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Tarayıcı tabanlı görsel doğrulama, oturumun bu adımın ortasında kesintiye uğrayıp arka plan sunucularının bellek koruması tarafından durdurulması nedeniyle yapılamadı (kod tarafında bilinen bir sorun yok, yalnız ortam kısıtı). Kullanıcı isterse `npm run dev` + backend'i kendisi başlatıp `/kisi/525` ve `/yazar/OL34184A`'yı deneyebilir.
+- **Sonraki adım:** F4.4 — Kitap ↔ film köprüsü
 
 ### [2026-09-30] F4.2 — Bildirim merkezi — ✅
 
