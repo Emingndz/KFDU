@@ -27,7 +27,7 @@
 | Son commit | `5701059` (docs(F3.10): Faz 3 kapanışı) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film tarafı U2'yi bekliyor |
 | Frontend | v2 — Vue 3 SFC + Router + Pinia + TanStack Query (Faz 2'de sıfırdan kuruldu) |
-| Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
+| Açık engeller | Yok — U1/U2 (👤 Kararlar tablosuna bkz.) kullanıcı kararıyla proje sonuna ertelendi (D-23), kod ilerlemesini engellemiyor |
 
 ### Bağlam özeti (yeni oturum açan uygulayıcı için)
 
@@ -87,6 +87,7 @@
   - **Bilinçli sınırlamalar (düzeltilmedi, kayda geçirildi):** (a) Backend tamamen erişilemezken Keşfet'in vitrin şeritleri (`ContentRow`) sessizce boş kalıyor, `ErrorState` göstermiyor — F3.2'nin TMDB-503'e özel kararının doğal bir uzantısı; genel bir "sunucuya ulaşılamıyor" banner'ı Faz 3 kapsamı dışında bırakıldı (gelecekte DEBT olarak değerlendirilebilir). (b) Windows konsolu backend'in dev-modu e-posta loglarını UTF-8 olmayan bir codepage'e yazıyor (Türkçe harfler mojibake oluyor) — yalnız TERMİNAL GÖRÜNÜMÜ etkileniyor, gerçek SMTP e-postası `core/email.py`'de açıkça UTF-8 `MIMEText` kullanıyor, kullanıcıya giden gerçek e-postalar etkilenmiyor; kod değişikliği gerekmedi. (c) Film tarafı hâlâ U2'yi (TMDB anahtarı) bekliyor, tüm test turu kitap tarafında yapıldı.
   - **Temizlik:** Bu adım + önceki adımlarda (F3.7/F3.8) unutulan **9 test kullanıcısı** (`tur1*`/`tur2*`/`tur3*`/`f37test*`) veritabanından silindi (F3.7'nin kendi temizlik betiği sessizce başarısız olmuş — bu, "betik kendini temizledi" varsayımının HER ZAMAN ayrıca doğrulanması gerektiğinin bir hatırlatıcısı).
 - **Faz 3 kapanışı (2026-09-30):** Kullanıcı `main`e birleştirmeyi onayladı ("Birleştir ve push et") — `v2` → `main` `--ff-only` ile birleştirildi (`5701059`), hem `main` hem `v2` origin'e push edildi. Çalışma dalı `v2` olarak devam ediyor.
+- **D-23 — Öncelik kararı (2026-09-30):** Kullanıcı, U1 (Gmail)/U2 (TMDB) anahtarlarının ve kapsamlı test/QA'nın (Faz 7) proje SONUNA ertelenmesini istedi; Faz 4-5-6 boyunca odak "doğru, çalışan, kullanıcı dostu, gerçekten güzel" özellikler inşa etmek. Fazlar bitince kullanıcı anahtarları kendisi girecek, SONRA eski/legacy veriyi (`legacy-v1` etiketi, `backend/legacy_backup/`) silmemi ayrıca isteyecek (bkz. U13) — bu talep gelmeden legacy veriye dokunulmuyor. Ayrıntı: 👤 Kararlar tablosu D-23.
 - **Sırada:** F4.1 (Faz 4 — Çağ Atlatma Paketi).
 
 ---
@@ -113,8 +114,8 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 | # | Eylem / karar | Ne zaman | Durum |
 |---|---|---|---|
-| U1 | **ACİL — Gmail uygulama şifresini iptal et:** https://myaccount.google.com/apppasswords (şifre public depoda açıkta) | Hemen | ⬜ |
-| U2 | TMDB API anahtarını yenile (https://www.themoviedb.org/settings/api) ve yenisini `backend/.env`'ye yaz | F0.3 | ⬜ |
+| U1 | Gmail uygulama şifresini iptal et: https://myaccount.google.com/apppasswords (şifre public depoda açıkta) | ⏸️ Kullanıcı kararıyla (D-23) proje sonuna ertelendi | ⬜ |
+| U2 | TMDB API anahtarını yenile (https://www.themoviedb.org/settings/api) ve yenisini `backend/.env`'ye yaz | ⏸️ Kullanıcı kararıyla (D-23) proje sonuna ertelendi | ⬜ |
 | U3 | Node.js'i 24 LTS'e güncelle (en az 22.18): https://nodejs.org veya `winget install OpenJS.NodeJS.LTS` | F0.4 (Faz 2'den önce) | ✅ Yapıldı (2026-09-26) — Node 24.19.0 |
 | U4 | `backend/.env` değerlerini doldur (TMDB; isteğe bağlı yeni SMTP uygulama şifresi; `CONTACT_EMAIL`) | F0.3 | ⬜ |
 | U5 | Karar: Git geçmişi temizlensin mi? (F0.5 — force push gerektirir) | Faz 0 | ✅ Hayır — atlandı (2026-09-26) |
@@ -124,7 +125,8 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 | U9 | (Opsiyonel) Google Books API anahtarı | İstenirse | ⬜ |
 | U10 | Karar: lisans (MIT önerilir) | F7.7 | ⬜ |
 | U11 | Karar: canlıya alma yöntemi (opsiyonel) | F7.8 | ⬜ |
-| U12 | Faz sonlarında: `v2` dalını push etme ve `main`e birleştirme onayları | Her 🏁 | ⬜ |
+| U12 | Faz sonlarında: `v2` dalını push etme ve `main`e birleştirme onayları | Her 🏁 | ✅ Faz 0/3'te uygulandı, sonraki fazlarda tekrar sorulacak |
+| U13 | Karar: `legacy-v1` etiketi/`backend/legacy_backup/sql_app_v1.db` (eski v1 verisi) ne zaman silinsin? | Proje sonu (Faz 7 sonrası) | ⏸️ Kullanıcı kararıyla (D-23) ertelendi — kullanıcı API anahtarlarını kendisi girdikten sonra silme talimatı verecek |
 
 ---
 
@@ -322,6 +324,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-27 | D-20 | `BaseInput.vue`'ya `inheritAttrs:false` + `v-bind="$attrs"` (iç `<input>`'a) eklendi | ✅ Uygulayıcı kararı — F2.4'te Caps Lock algılama/alan-dokunma (`@blur`) ihtiyacıyla fark edildi: dışarıdan verilen olay dinleyicileri Vue'nun varsayılan attrs devralma davranışıyla dış `<div>`'e bağlanıp hiç tetiklenmiyordu. Geriye dönük uyumlu (önceki hiçbir kullanım ekstra attr geçirmiyordu). |
 | 2026-09-27 | D-21 | `core/http.py`'deki `request_json`, dış sağlayıcıdan (TMDB/Open Library) gelen 404'ü artık `not_found()` ile temiz 404'e çeviriyor (önceden sarmalanmadan fırlatılıp genel yakalayıcıda 500'e dönüşüyordu) | ✅ Uygulayıcı kararı — F3.3'te `ContentDetailPage`'in "Bu içerik bulunamadı" durumunu canlı test ederken bulundu (`catalog/book/OL999999999W` → 500 dönüyordu). Diğer 4xx kodları (400/401/403) eskisi gibi sarmalanmadan fırlatılmaya devam ediyor — yalnızca 404'e özel, dar kapsamlı bir düzeltme. |
 | 2026-09-27 | D-22 | `social/service.py`'deki `is_edited` hesaplaması `updated_at > created_at` yerine `(updated_at - created_at).total_seconds() > 1` oldu | ✅ Uygulayıcı kararı — F3.3'te canlı test sırasında bulundu: `TimestampMixin` her iki alanı da ayrı `datetime.now(UTC)` çağrısıyla dolduruyor, bu yüzden her yeni inceleme mikrosaniyelik farktan dolayı yanlışlıkla "düzenlendi" görünüyordu. `TimestampMixin`'in kendisi (12+ tabloyu etkiler) değil, yalnızca bu tek kullanım yeri değiştirildi — daha dar kapsamlı ve düşük riskli. Regresyon testi eklendi. |
+| 2026-09-30 | D-23 | **Öncelik kararı (Faz 3 kapanışından sonra):** Gerçek veri/API anahtarları (U1 Gmail, U2 TMDB) ve kapsamlı test/QA aşaması (Faz 7) proje sonuna ertelensin; Faz 4-5-6 boyunca öncelik "doğru, çalışan, kullanıcı dostu, gerçekten güzel" özellikleri inşa etmek olsun. TMDB gerektiren yerlerde (film verisi) aynı desen korunur: kod yazılır+test edilir (mock/fixture'larla), gerçek canlı doğrulama U2 tamamlanınca yapılır — bu zaten F1.6'dan beri izlenen yöntem. | ✅ Kullanıcı kararı — "gerçek veriler, api keyleri ve test aşaması beklesin ... sonrasında ... eski verileri silmeni isticem." Kullanıcı fazların sonunda API anahtarlarını kendisi girecek, ardından eski/legacy verinin (`legacy-v1` etiketi, `backend/legacy_backup/`) silinmesini AYRICA isteyecek (bkz. U13) — bu istek gelmeden legacy veriye dokunulmayacak. |
 
 ---
 
@@ -340,8 +343,8 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 | Ölçüm | Hedef | Değer | Tarih |
 |---|---|---|---|
 | Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%80** | 2026-09-26 (F1.11) |
-| Lighthouse Performans (mobil: Keşfet / Detay / Akış) | ≥ 85 | – | – |
-| Lighthouse Erişilebilirlik (mobil) | ≥ 90 | – | – |
+| Lighthouse Performans (mobil: Keşfet / Detay / Akış) | ≥ 85 | – (yalnız erişilebilirlik kategorisi ölçüldü) | – |
+| Lighthouse Erişilebilirlik (mobil) | ≥ 90 | **96 / 97 / 96** | 2026-09-30 (F3.9/F3.10) |
 | İlk yük JavaScript (gzip) | ≤ 200 KB | – | – |
 | Asistan niyet doğruluğu (LLM / yedek mod) | ≥ 12/15 / ≥ 9/15 | – | – |
 | Asistan yanıt süresi p50 | < 6 sn | – | – |
