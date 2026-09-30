@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F3.10 tamamlandı — 🏁 **Faz 3 kapandı** (ilk kullanılabilir v2). `v2` → `main` birleştirildi ve push edildi (kullanıcı onayıyla).
+> Son güncelleme: **2026-09-30** — F4.1 tamamlandı (Diziler/TV). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -20,12 +20,12 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (henüz başlamadı) |
-| Sıradaki adım | **F4.1** |
-| Çalışma dalı | `v2` (`main` ile senkron, `5701059`) |
-| Son commit | `5701059` (docs(F3.10): Faz 3 kapanışı) |
-| Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film tarafı U2'yi bekliyor |
+| Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1 tamamlandı) |
+| Sıradaki adım | **F4.2** |
+| Çalışma dalı | `v2` |
+| Son commit | (bu adımın commit'i aşağıda) |
+| Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
 | Frontend | v2 — Vue 3 SFC + Router + Pinia + TanStack Query (Faz 2'de sıfırdan kuruldu) |
 | Açık engeller | Yok — U1/U2 (👤 Kararlar tablosuna bkz.) kullanıcı kararıyla proje sonuna ertelendi (D-23), kod ilerlemesini engellemiyor |
 
@@ -88,7 +88,8 @@
   - **Temizlik:** Bu adım + önceki adımlarda (F3.7/F3.8) unutulan **9 test kullanıcısı** (`tur1*`/`tur2*`/`tur3*`/`f37test*`) veritabanından silindi (F3.7'nin kendi temizlik betiği sessizce başarısız olmuş — bu, "betik kendini temizledi" varsayımının HER ZAMAN ayrıca doğrulanması gerektiğinin bir hatırlatıcısı).
 - **Faz 3 kapanışı (2026-09-30):** Kullanıcı `main`e birleştirmeyi onayladı ("Birleştir ve push et") — `v2` → `main` `--ff-only` ile birleştirildi (`5701059`), hem `main` hem `v2` origin'e push edildi. Çalışma dalı `v2` olarak devam ediyor.
 - **D-23 — Öncelik kararı (2026-09-30):** Kullanıcı, U1 (Gmail)/U2 (TMDB) anahtarlarının ve kapsamlı test/QA'nın (Faz 7) proje SONUNA ertelenmesini istedi; Faz 4-5-6 boyunca odak "doğru, çalışan, kullanıcı dostu, gerçekten güzel" özellikler inşa etmek. Fazlar bitince kullanıcı anahtarları kendisi girecek, SONRA eski/legacy veriyi (`legacy-v1` etiketi, `backend/legacy_backup/`) silmemi ayrıca isteyecek (bkz. U13) — bu talep gelmeden legacy veriye dokunulmuyor. Ayrıntı: 👤 Kararlar tablosu D-23.
-- **Sırada:** F4.1 (Faz 4 — Çağ Atlatma Paketi).
+- **F4.1 tamamlandı (2026-09-30):** Diziler (TV) desteği. Beklenenin çok altında iş çıktı çünkü backend/frontend **Faz 1-3 boyunca zaten `tv` içeren jenerik `CatalogContentType` üzerine** kuruldu — genre eşlemesi, `TYPE_NOUN`/`STATUS_VERBS` (akış metinleri), `BaseBadge`/`PosterCard` rozetleri, `statusLabel`/`LibraryButtons`, `ProfileSummaryOut.tv_completed`+`ProfileHeader` sayacı hep baştan `tv`'yi kapsıyordu. Gerçekte eksik olan yalnız: (1) backend'de dizi yaratıcısı (`created_by`) alanının `to_detail()`'de hâlâ film mantığıyla (`crew`'de `job=="Director"`) hesaplanması (sessiz veri hatası — `to_summary()` doğruydu ama `to_detail()` yanlıştı, test bunu hiç yakalamıyordu çünkü fixture'ın `credits.crew`'i zaten boştu), (2) sezon listesi (`SeasonOut`/`seasons_detail`) hiç yoktu, (3) Keşfet'te "Dizi" sekmesi + `/dizi/:id` rotası (`ComingSoonPage` yer tutucuydu), (4) `in_progress` iken "Kaçıncı bölümdesin?" (`progress`) girişi, (5) profil Kütüphane sekmesinin İzlediklerim/İzlenecekler/İzliyorum alt filtrelerinin yalnız `movie` sorgulaması (bu sınırlama F3.6'da bilinçli olarak not edilmişti). Beşi de bu adımda kapatıldı. Ayrıntı: 📝 Adım Günlüğü.
+- **Sırada:** F4.2 (Bildirim merkezi).
 
 ---
 
@@ -100,11 +101,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 1/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **31/64** | | |
+| **Toplam** | | | **32/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -178,7 +179,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 
 ### Faz 4 — Çağ Atlatma Paketi
 
-- [ ] F4.1 — Diziler (TV)
+- [x] F4.1 — Diziler (TV) — ✅ (2026-09-30)
 - [ ] F4.2 — Bildirim merkezi
 - [ ] F4.3 — Kişi ve yazar sayfaları
 - [ ] F4.4 — Kitap ↔ film köprüsü (uyarlamalar)
@@ -379,6 +380,21 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.1 — Diziler (TV) — ✅
+
+- **Yapılanlar:**
+  - **Gerçek hata düzeltmesi (kod incelemesinde bulundu):** `tmdb.py`'nin `to_detail()`'i dizi yaratıcısını (`created_by`) hâlâ film mantığıyla hesaplıyordu (`credits.crew`'de `job=="Director"` arıyordu) — `to_summary()` zaten doğru şekilde `created_by`'ı kullanıyordu ama `to_detail()` unutulmuştu. Var olan test bunu yakalamıyordu çünkü yalnız `detail.creators`'ı (doğru olan) doğruluyordu, hiç `detail.directors`'ı (yanlış olan) kontrol etmiyordu — fixture'ın `credits.crew`'i zaten boş olduğu için hata sessiz kalıyordu. Düzeltildi (`created_by`→`Person(role="creator")`) ve test güçlendirildi.
+  - **Backend — sezon listesi:** `SeasonOut` şeması (`number`/`name`/`episode_count`/`air_year`/`poster_url`), `ContentDetail.seasons_detail`, `tmdb.py::_seasons_detail()`, `service.py`'nin `_detail_to_content_fields`/`_content_to_detail`'i `extra.seasons_detail` üzerinden taşıyor. Fixture (`tmdb_tv_detail_1396.json`) 2 sezonla genişletildi, 4 yeni/güçlendirilmiş test eklendi.
+  - **Frontend:** `useContentActions`'a `progress`/`setProgress` eklendi (`rating`/`setRating` ile birebir aynı iyimser-güncelleme deseni). `ContentDetailPage`: yeni `SeasonRow.vue` (`CastRow` ile aynı yatay kaydırmalı kart deseni) ile sezon listesi (`type==='tv'` iken), eylem çubuğunda `in_progress` iken "Kaçıncı bölümdesin?" sayı girişi (`FilterPanel`'deki mevcut çıplak `<input type="number">` deseniyle, `BaseInput` string-odaklı olduğu için kullanılmadı). `DiscoverPage`: `DiscoverTab`/`TAB_TYPE`'a `dizi`→`tv` eklendi, "Dizi" sekmesi, vitrin bloğu üçlü dala çıkarıldı (film/dizi/kitap — dizi haftanın trend dizileri şeridini kullanıyor, `topRated`/`popular`/`browseGenres` zaten `contentType`'a bağlı olduğu için otomatik çalıştı). `router/index.ts`: `/dizi/:id` artık `ComingSoonPage` değil gerçek `ContentDetailPage` (`contentPath()` zaten `tv`→`/dizi` eşliyordu, F3'ten beri jenerikti). `ProfilePage`: "İzlediklerim/İzlenecekler/İzliyorum" `LIBRARY_FILTERS`'ı tek `type` yerine `types: CatalogContentType[]` aldı; backend `type` parametresi tek değer kabul ettiği için movie+tv için **iki paralel `useQuery`** (`libraryQueryA`/`B`, B yalnız `types.length>1` iken `enabled`) çalıştırılıp yeni `sortEntries()` ile (recent/rating/title/year) istemci tarafında yeniden sıralanarak birleştiriliyor — bu tasarım F3.6'da önceden not edilmişti ("iki ayrı sorgu birleştirilecek"). Kitap/"yarım bıraktıklarım" filtreleri tek sorgu davranışını (`types[0]` tek değer veya `undefined`=tümü) değişmeden koruyor.
+  - **Kapsam kontrolü (plan F4.1 maddeleri tek tek doğrulandı):** akış metinleri ("bir diziyi puanladı" — `utils/activity.ts`), dizi rozetleri/etiketleri (`BaseBadge`/`PosterCard`/`LibraryButtons`/`statusLabel`) ve profil dizi sayacı (`ProfileHeader`, `summary.tv_completed`) **zaten** Faz 2-3'te jenerik yazılmıştı, bu adımda hiç dokunulmadı — yalnız yukarıdaki 5 gerçek eksik kapatıldı.
+  - **D-23 kapsamında bilinçli sınırlama:** Gerçek TMDB anahtarı yok (U2 ertelendi) — tüm doğrulama mock fixture'lar + backend'in 503 (`TMDB_NOT_CONFIGURED`) ile temiz başarısız olduğunun canlı curl doğrulamasıyla yapıldı; gerçek dizi verisiyle uçtan uca deneme kullanıcı U2'yi tamamladıktan sonraya bırakıldı.
+- **Değişen dosyalar:** `backend/app/modules/catalog/{schemas,service}.py`, `backend/app/modules/catalog/providers/tmdb.py`, `backend/tests/fixtures/tmdb_tv_detail_1396.json`, `backend/tests/test_catalog_{api,normalize}.py`, `frontend/src/composables/useContentActions.ts`, `frontend/src/pages/{ContentDetailPage,DiscoverPage,ProfilePage}.vue`, `frontend/src/components/content/SeasonRow.vue` (yeni), `frontend/src/router/index.ts`, `frontend/src/types/index.ts`, `frontend/src/api/schema.d.ts` (yeniden üretildi).
+- **Doğrulama:** Backend: `pytest` → **74 passed** ✓ (3 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓. Canlı curl: `GET /catalog/genres?type=tv` → 200 (action/children var, horror yok — tür eşlemesi doğru); `GET /catalog/tv/1396` → temiz 503 `TMDB_NOT_CONFIGURED` (çökme yok, U2 beklendiği gibi).
+- **Kapanan maddeler:** Plan F4.1 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Yok. D-23 gereği gerçek TMDB verisiyle görsel/tarayıcı doğrulaması yapılmadı (kullanıcı U2'yi kendisi tamamlayınca `scripts/seed.py --reset` ile birlikte önerilir).
+- **Sonraki adım:** F4.2 — Bildirim merkezi
 
 ### [2026-09-30] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 — ✅ 🏁
 
