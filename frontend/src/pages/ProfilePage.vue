@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { ApiError } from '@/api/client'
 import { useFollowUser, useProfile, useUnfollowUser } from '@/api/users'
-import { useProfileSummary } from '@/api/stats'
+import { useProfileSummary, useUserStats } from '@/api/stats'
 import { getUserLibraryRequest } from '@/api/library'
 import { useUserActivities, useUserReviews } from '@/api/social'
 import { getUserListsRequest } from '@/api/lists'
@@ -29,6 +29,8 @@ import ReviewItem from '@/components/content/ReviewItem.vue'
 import ListCard from '@/components/lists/ListCard.vue'
 import ListFormModal from '@/components/lists/ListFormModal.vue'
 
+const StatsCharts = defineAsyncComponent(() => import('@/components/stats/StatsCharts.vue'))
+
 const props = defineProps<{ username: string }>()
 
 const route = useRoute()
@@ -47,7 +49,7 @@ watch(
   },
 )
 
-type TabKey = 'aktiviteler' | 'kutuphane' | 'puanlar' | 'incelemeler' | 'listeler' | 'favoriler'
+type TabKey = 'aktiviteler' | 'kutuphane' | 'puanlar' | 'incelemeler' | 'listeler' | 'favoriler' | 'istatistik'
 const tab = ref<TabKey>((route.query.sekme as TabKey) || 'aktiviteler')
 watch(tab, () => void router.replace({ query: { ...route.query, sekme: tab.value } }))
 
@@ -58,7 +60,20 @@ const TABS = [
   { value: 'incelemeler', label: 'İncelemeler' },
   { value: 'listeler', label: 'Listeler' },
   { value: 'favoriler', label: 'Favoriler' },
+  { value: 'istatistik', label: 'İstatistik' },
 ]
+
+// İstatistik
+const currentYear = new Date().getFullYear()
+const statsYear = ref(String(currentYear))
+const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => {
+  const y = currentYear - i
+  return { value: String(y), label: String(y) }
+})
+const stats = useUserStats(
+  () => props.username,
+  () => Number(statsYear.value),
+)
 
 // Aktiviteler
 const activities = useUserActivities(() => props.username)
@@ -285,6 +300,21 @@ function showFollowing() {
 
     <template v-else-if="tab === 'favoriler'">
       <ContentGrid :items="favoritesGrid.items" :lookup="favoritesGrid.lookup" :loading="favoritesQuery.isPending.value" empty-title="Henüz favori yok" />
+    </template>
+
+    <template v-else-if="tab === 'istatistik'">
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between gap-3">
+          <RouterLink v-if="profile.data.value?.is_me" :to="`/ozet/${statsYear}`" class="text-sm font-medium text-link hover:underline">
+            {{ statsYear }} Yıllık Özetini gör →
+          </RouterLink>
+          <span v-else />
+          <BaseSelect v-model="statsYear" aria-label="Yıl seç" :options="YEAR_OPTIONS" />
+        </div>
+        <div v-if="stats.isPending.value" class="flex justify-center py-6"><BaseSpinner /></div>
+        <ErrorState v-else-if="stats.isError.value" message="İstatistikler yüklenemedi." @retry="() => stats.refetch()" />
+        <StatsCharts v-else-if="stats.data.value" :stats="stats.data.value" />
+      </div>
     </template>
 
     <EditProfileModal v-model="editModalOpen" />

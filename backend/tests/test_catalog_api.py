@@ -118,7 +118,10 @@ def test_book_adaptations_matches_by_keyword_and_by_novel_author(client, monkeyp
     respx.get("https://api.themoviedb.org/3/movie/9075").mock(
         return_value=Response(
             200,
-            json={"credits": {"crew": [{"name": "Roald Dahl", "job": "Novel"}]}, "keywords": {"keywords": []}},
+            json={
+                "credits": {"crew": [{"name": "Roald Dahl", "job": "Novel"}]},
+                "keywords": {"keywords": []},
+            },
         )
     )
     respx.get("https://api.themoviedb.org/3/movie/9076").mock(
@@ -149,10 +152,10 @@ def test_movie_source_book_endpoint_finds_matching_open_library_book(client, mon
     respx.get("https://api.themoviedb.org/3/movie/438631").mock(
         return_value=Response(200, json=_load("tmdb_movie_detail_438631.json"))
     )
-    respx.get("https://openlibrary.org/search.json", params={"title": "Dune", "author": "Frank Herbert"}).mock(
-        return_value=Response(
-            200, json={"docs": [{"key": "/works/OL893415W", "title": "Dune", "author_name": ["Frank Herbert"]}]}
-        )
+    ol_params = {"title": "Dune", "author": "Frank Herbert"}
+    ol_docs = {"docs": [{"key": "/works/OL893415W", "title": "Dune", "author_name": ["Frank Herbert"]}]}
+    respx.get("https://openlibrary.org/search.json", params=ol_params).mock(
+        return_value=Response(200, json=ol_docs)
     )
     response = client.get("/api/v1/catalog/movie/438631/source-book")
     assert response.status_code == 200

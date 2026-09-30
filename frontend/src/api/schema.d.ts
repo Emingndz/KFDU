@@ -450,6 +450,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/book/{external_id}/adaptations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kitabın uyarlamaları */
+        get: operations["catalog-get_book_adaptations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/catalog/{type}/{external_id}/source-book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Uyarlandığı kitap */
+        get: operations["catalog-get_source_book"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/library/{type}/{external_id}": {
         parameters: {
             query?: never;
@@ -902,6 +936,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/{username}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kullanıcı istatistikleri */
+        get: operations["stats-get_user_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/wrapped": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Yıllık özet */
+        get: operations["stats-get_wrapped"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/top-rated": {
         parameters: {
             query?: never;
@@ -1146,6 +1214,13 @@ export interface components {
             isbn?: string[];
             /** External Url */
             external_url?: string | null;
+            /** Novel Authors */
+            novel_authors?: string[];
+            /**
+             * Has Book Keyword
+             * @default false
+             */
+            has_book_keyword: boolean;
         };
         /**
          * ContentSource
@@ -1261,6 +1336,15 @@ export interface components {
             /** Rating */
             rating: number | null;
             status: components["schemas"]["LibraryStatus"] | null;
+        };
+        /** GenreCount */
+        GenreCount: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
         };
         /** GenreOut */
         GenreOut: {
@@ -1450,6 +1534,17 @@ export interface components {
             /** Favorite Genres */
             favorite_genres?: string[] | null;
         };
+        /** MonthlyCount */
+        MonthlyCount: {
+            /** Month */
+            month: number;
+            /** Movies */
+            movies: number;
+            /** Tv */
+            tv: number;
+            /** Books */
+            books: number;
+        };
         /** MyListOut */
         MyListOut: {
             /** Id */
@@ -1586,6 +1681,13 @@ export interface components {
             role?: string | null;
             /** Photo Url */
             photo_url?: string | null;
+        };
+        /** PersonCount */
+        PersonCount: {
+            /** Name */
+            name: string;
+            /** Count */
+            count: number;
         };
         /** PersonCredit */
         PersonCredit: {
@@ -1903,6 +2005,30 @@ export interface components {
             /** Poster Url */
             poster_url?: string | null;
         };
+        /** StatsHighlights */
+        StatsHighlights: {
+            longest_movie?: components["schemas"]["ContentSummary"] | null;
+            longest_book?: components["schemas"]["ContentSummary"] | null;
+            /** Highest Rated */
+            highest_rated?: components["schemas"]["ContentSummary"][];
+        };
+        /** StatsTotals */
+        StatsTotals: {
+            /** Movies */
+            movies: number;
+            /** Tv */
+            tv: number;
+            /** Books */
+            books: number;
+            /** Minutes */
+            minutes: number;
+            /** Pages */
+            pages: number;
+            /** Reviews */
+            reviews: number;
+            /** Avg Rating */
+            avg_rating?: number | null;
+        };
         /** TokenOut */
         TokenOut: {
             /** Access Token */
@@ -1913,6 +2039,23 @@ export interface components {
              */
             token_type: string;
             user: components["schemas"]["MeOut"];
+        };
+        /** UserStatsOut */
+        UserStatsOut: {
+            /** Year */
+            year: number;
+            totals: components["schemas"]["StatsTotals"];
+            /** Rating Distribution */
+            rating_distribution?: {
+                [key: string]: number;
+            };
+            /** Top Genres */
+            top_genres?: components["schemas"]["GenreCount"][];
+            /** Monthly */
+            monthly?: components["schemas"]["MonthlyCount"][];
+            /** Top People */
+            top_people?: components["schemas"]["PersonCount"][];
+            highlights?: components["schemas"]["StatsHighlights"];
         };
         /** ValidationError */
         ValidationError: {
@@ -1926,6 +2069,28 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WrappedOut */
+        WrappedOut: {
+            stats: components["schemas"]["UserStatsOut"];
+            first_completed?: components["schemas"]["ContentSummary"] | null;
+            last_completed?: components["schemas"]["ContentSummary"] | null;
+            most_liked_review?: components["schemas"]["WrappedReview"] | null;
+            /** Most Active Month */
+            most_active_month?: number | null;
+            dominant_genre?: components["schemas"]["GenreCount"] | null;
+            /** Fun Title */
+            fun_title?: string | null;
+        };
+        /** WrappedReview */
+        WrappedReview: {
+            /** Id */
+            id: number;
+            content: components["schemas"]["ContentSummary"];
+            /** Excerpt */
+            excerpt: string;
+            /** Likes Count */
+            likes_count: number;
         };
     };
     responses: never;
@@ -2871,6 +3036,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContentSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "catalog-get_book_adaptations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                external_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "catalog-get_source_book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: components["schemas"]["ContentType"];
+                external_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentSummary"];
                 };
             };
             /** @description Validation Error */
@@ -4026,6 +4254,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "stats-get_user_stats": {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStatsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "stats-get_wrapped": {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WrappedOut"];
                 };
             };
             /** @description Validation Error */

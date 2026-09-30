@@ -4,7 +4,8 @@ from app.core.deps import DbSession
 from app.core.pagination import Page
 from app.modules.catalog.schemas import ContentSummary, ContentType
 from app.modules.stats import service
-from app.modules.stats.schemas import ProfileSummaryOut
+from app.modules.stats.schemas import ProfileSummaryOut, UserStatsOut, WrappedOut
+from app.modules.users.deps import CurrentUser
 
 router = APIRouter(tags=["stats"])
 
@@ -12,6 +13,16 @@ router = APIRouter(tags=["stats"])
 @router.get("/users/{username}/summary", response_model=ProfileSummaryOut, summary="Profil özeti")
 def get_profile_summary(username: str, db: DbSession) -> ProfileSummaryOut:
     return service.get_profile_summary(db, username=username)
+
+
+@router.get("/users/{username}/stats", response_model=UserStatsOut, summary="Kullanıcı istatistikleri")
+def get_user_stats(username: str, db: DbSession, year: int | None = None) -> UserStatsOut:
+    return service.get_user_stats(db, username=username, year=year)
+
+
+@router.get("/users/me/wrapped", response_model=WrappedOut, summary="Yıllık özet")
+def get_wrapped(user: CurrentUser, db: DbSession, year: int | None = None) -> WrappedOut:
+    return service.get_wrapped(db, user=user, year=year)
 
 
 @router.get("/platform/top-rated", response_model=Page[ContentSummary], summary="En yüksek puanlılar")

@@ -130,8 +130,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/ozet/:year?',
     name: 'wrapped',
-    component: ComingSoonPage,
-    props: { title: 'Yıllık Özet' },
+    component: () => import('@/pages/WrappedPage.vue'),
     meta: { requiresAuth: true, title: 'Yıllık Özet' },
   },
   {
