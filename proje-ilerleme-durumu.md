@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F3.10 tamamlandı — 🏁 **Faz 3 kapandı** (ilk kullanılabilir v2). `main`e ilk birleştirme kullanıcı onayı bekliyor.
+> Son güncelleme: **2026-09-30** — F3.10 tamamlandı — 🏁 **Faz 3 kapandı** (ilk kullanılabilir v2). `v2` → `main` birleştirildi ve push edildi (kullanıcı onayıyla).
 
 ## Bu dosya nasıl güncellenir?
 
@@ -20,13 +20,13 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🏁 Faz 3 tamamlandı — `main`e ilk birleştirme onayı bekleniyor |
+| Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi |
 | Aktif faz | Faz 4 — Çağ Atlatma Paketi (henüz başlamadı) |
-| Sıradaki adım | 👤 **Kullanıcı onayı:** `v2` → `main` ilk birleştirme, sonra **F4.1** |
-| Çalışma dalı | `v2` |
-| Son commit | `260bde3` (fix(F3.10): manuel test turunda bulunan gerçek hatalar) |
-| Backend | v1 — kitap uçları bozuk (BUG-01) |
-| Frontend | v1 — tek dosya Vue 3 CDN |
+| Sıradaki adım | **F4.1** |
+| Çalışma dalı | `v2` (`main` ile senkron, `5701059`) |
+| Son commit | `5701059` (docs(F3.10): Faz 3 kapanışı) |
+| Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film tarafı U2'yi bekliyor |
+| Frontend | v2 — Vue 3 SFC + Router + Pinia + TanStack Query (Faz 2'de sıfırdan kuruldu) |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
 
 ### Bağlam özeti (yeni oturum açan uygulayıcı için)
@@ -86,7 +86,8 @@
     4. **360px'te profil sekmeleri taşıyordu:** `BaseTabs` 6 sekmeyi (Aktiviteler…Favoriler) tek satırda `overflow-x-auto` OLMADAN diziyordu; "Listeler"/"Favoriler" ekran dışında kalıp tıklanamıyordu. `overflow-x-auto`+`shrink-0` eklendi — düzeltmeden ÖNCE otomasyon "Listeler" sekmesine tıklayamadı (`not clickable`), düzeltmeden SONRA aynı tıklama (Puppeteer'ın yerleşik "scroll into view" davranışıyla) sorunsuz çalıştı, ekran görüntüsüyle doğrulandı.
   - **Bilinçli sınırlamalar (düzeltilmedi, kayda geçirildi):** (a) Backend tamamen erişilemezken Keşfet'in vitrin şeritleri (`ContentRow`) sessizce boş kalıyor, `ErrorState` göstermiyor — F3.2'nin TMDB-503'e özel kararının doğal bir uzantısı; genel bir "sunucuya ulaşılamıyor" banner'ı Faz 3 kapsamı dışında bırakıldı (gelecekte DEBT olarak değerlendirilebilir). (b) Windows konsolu backend'in dev-modu e-posta loglarını UTF-8 olmayan bir codepage'e yazıyor (Türkçe harfler mojibake oluyor) — yalnız TERMİNAL GÖRÜNÜMÜ etkileniyor, gerçek SMTP e-postası `core/email.py`'de açıkça UTF-8 `MIMEText` kullanıyor, kullanıcıya giden gerçek e-postalar etkilenmiyor; kod değişikliği gerekmedi. (c) Film tarafı hâlâ U2'yi (TMDB anahtarı) bekliyor, tüm test turu kitap tarafında yapıldı.
   - **Temizlik:** Bu adım + önceki adımlarda (F3.7/F3.8) unutulan **9 test kullanıcısı** (`tur1*`/`tur2*`/`tur3*`/`f37test*`) veritabanından silindi (F3.7'nin kendi temizlik betiği sessizce başarısız olmuş — bu, "betik kendini temizledi" varsayımının HER ZAMAN ayrıca doğrulanması gerektiğinin bir hatırlatıcısı).
-- **Sırada:** 👤 Kullanıcı onayı — `v2` dalının `main`e ilk birleştirilmesi (plan §0.5: "`main`e ilk birleştirme Faz 3 sonunda, kullanıcı onayıyla"). Onaylanırsa **F4.1** ile devam.
+- **Faz 3 kapanışı (2026-09-30):** Kullanıcı `main`e birleştirmeyi onayladı ("Birleştir ve push et") — `v2` → `main` `--ff-only` ile birleştirildi (`5701059`), hem `main` hem `v2` origin'e push edildi. Çalışma dalı `v2` olarak devam ediyor.
+- **Sırada:** F4.1 (Faz 4 — Çağ Atlatma Paketi).
 
 ---
 
@@ -395,8 +396,8 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Doğrulama:** Backend: `pytest` → 71 passed ✓ (2 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (73 passed) /`build` → hepsi temiz ✓. Yukarıda ayrıntılı 3 tarayıcı turu + Lighthouse (F3.9'dan taşınan) 96/97/96.
 - **Kapanan maddeler:** REQ-1.2, REQ-2.1.4f, REQ-2.1.4g, REQ-3, DEBT-02 — **Ek A izlenebilirlik matrisi artık %100 dolu**
 - **Commit:** `260bde3` (fix), docs commit aşağıda
-- **Notlar / sorunlar:** 🏁 **Faz 3 tamamlandı** (10/10, toplam 31/64). Plan §0.5 gereği `main`e ilk birleştirme kullanıcı onayı gerektiriyor — bu oturum birleştirmeyi YAPMADI, yalnız hazırladı. Film tarafının canlı doğrulaması hâlâ U2'yi (TMDB anahtarı) bekliyor; bu, kod ilerlemesini engellemiyor ama Faz 4 öncesi kullanıcı tarafından yapılması faydalı olur.
-- **Sonraki adım:** 👤 Kullanıcı onayı (main'e birleştirme) → onaylanırsa F4.1
+- **Notlar / sorunlar:** 🏁 **Faz 3 tamamlandı** (10/10, toplam 31/64). Kullanıcı `main`e birleştirmeyi onayladı; `v2` → `main` `--ff-only` ile birleştirildi ve her ikisi de origin'e push edildi (`5701059`). Film tarafının canlı doğrulaması hâlâ U2'yi (TMDB anahtarı) bekliyor; bu, kod ilerlemesini engellemiyor ama Faz 4 öncesi kullanıcı tarafından yapılması faydalı olur.
+- **Sonraki adım:** F4.1
 
 ### [2026-09-30] F3.9 — UX cilası — ✅
 
