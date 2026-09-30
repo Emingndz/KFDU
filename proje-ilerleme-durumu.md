@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F3.9 tamamlandı (UX cilası).
+> Son güncelleme: **2026-09-30** — F3.10 tamamlandı — 🏁 **Faz 3 kapandı** (ilk kullanılabilir v2). `main`e ilk birleştirme kullanıcı onayı bekliyor.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -20,11 +20,11 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🟨 Faz 3 uygulanıyor |
-| Aktif faz | Faz 3 — Çekirdek Özellikler |
-| Sıradaki adım | **F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2** |
+| Proje durumu | 🏁 Faz 3 tamamlandı — `main`e ilk birleştirme onayı bekleniyor |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (henüz başlamadı) |
+| Sıradaki adım | 👤 **Kullanıcı onayı:** `v2` → `main` ilk birleştirme, sonra **F4.1** |
 | Çalışma dalı | `v2` |
-| Son commit | `b762aa8` (fix(a11y): Lighthouse taramasında bulunan erişilebilirlik sorunları) |
+| Son commit | `260bde3` (fix(F3.10): manuel test turunda bulunan gerçek hatalar) |
 | Backend | v1 — kitap uçları bozuk (BUG-01) |
 | Frontend | v1 — tek dosya Vue 3 CDN |
 | Açık engeller | 👤 U1 (Gmail şifresi iptali) ve U2 (TMDB anahtarı yenileme) hâlâ acil bekliyor — kodu ilerletmeyi engellemiyor ama en kısa sürede yapılmalı |
@@ -75,7 +75,18 @@
     5. **`LikeButton`:** `aria-label` yalnız "Beğen"/"Beğeniyi geri al" diyordu, görünür beğeni SAYISINI içermiyordu (WCAG 2.5.3 Label in Name ihlali) — sayaç etikete eklendi.
     - **Bilinçli/kalıcı sınırlamalar (kalan iki bulgu):** (a) `aria-prohibited-attr` — Vue DevTools'un kendi enjekte ettiği `vue-devtools__anchor-btn` düğmesi, yalnızca `import.meta.env.DEV`'de var, üretim derlemesinde hiç yok; uygulama koduyla ilgisiz, düzeltilecek bir şey yok. (b) `label-content-name-mismatch` — header'daki kullanıcı menüsü düğmesinde avatarı olmayan kullanıcının baş harfleri (`aria-hidden` olsa da GÖRSEL olarak hâlâ ekranda) `aria-label="Kullanıcı menüsü"` ile birebir eşleşmiyor (yalnız sesli-komut yazılımlarını etkiler, ekran okuyucu/klavye/fare tamamen çalışıyor); dar kapsamlı, kullanıcıya özgü baş harflerin etikete dinamik eklenmesi bu adımın kapsamına orantısız görüldü, kayıt olarak bırakıldı.
   - **Yöntem notu:** Lighthouse CLI + `puppeteer-core` (Akış'ı kimlik doğrulamalı test etmek için — `localStorage`'a token yazılıp sonra Lighthouse'un Node API'sine aynı `page` nesnesi verildi) proje bağımlılıklarına EKLENMEDİ, yalnız scratchpad'te izole bir `npm install` ile geçici olarak kuruldu ve kullanıldı. Bu, projede **ilk kez gerçek bir Chrome ile** (tarayıcı aracı değil, saf CLI/Node) ölçülen sonuç — önceki tüm fazlarda "tarayıcı aracı hiç yok" kısıtı geçerliydi, bu adımda CLI üzerinden headless Chrome ile aşıldı.
-- **Sırada:** F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (Ek A izlenebilirlik matrisi + 20 maddelik manuel test turu + `main`e ilk birleştirme).
+- **F3.10 tamamlandı (2026-09-30) — 🏁 Faz 3 kapandı:** Aynı `puppeteer-core` yöntemi genişletilerek gerçek, headless Chrome üzerinden **3 ayrı Node betiğiyle 360×800 mobil görünümde tam bir manuel test turu** yapıldı (plan §F3.10'un 20 maddesi) — bu, projenin FRONTEND tarafında yapılmış ilk gerçek uçtan-uca tarayıcı testi (önceki 9 faz boyunca yalnız kod incelemesi+curl vardı). Ek A izlenebilirlik matrisinin kalan 4 satırı (REQ-1.2, REQ-2.1.4f/g, REQ-3, DEBT-02) kanıtla kapatıldı.
+  - **Tur 1 (tek kullanıcı, ~25 adım):** misafir→kayıt→onboarding→akış; Keşfet'te kitap arama+tür/yıl/puan filtresi; içerik detayında puan ver+kütüphane durumu+inceleme yaz+listeye ekle+yeni liste oluştur; profil 6 sekmesi; ayarlarda avatar yükle+ad değiştir+tema değiştir; tarayıcı geri/ileri+doğrudan URL yükleme. Ekran görüntüleriyle doğrulandı.
+  - **Tur 2 (iki kullanıcı, tek sayfa + kimlik değiştirme deseni):** A bir kitabı puanlayıp 345 karakterlik inceleme yazdı → B takip etti → B'nin "Takip Ettiklerim" akışında A'nın aktivitesi gerçekten göründü → B beğendi (`aria-label` "Beğen · 0" → "Beğeniyi geri al · 1", F3.9'daki etiket düzeltmesi canlı doğrulandı) → B yorum yaptı → "…devamını oku" ekran görüntüsünde doğrulandı → B takipten çıktı → sonsuz kaydırma (Herkes sekmesi, 15→45 aktivite kartı, 2 sayfa daha yüklendi).
+  - **Tur 3 (hata/uç durumlar):** misafir puan vermeye çalışınca `/giris?redirect=...`'e yönlendi ✓; hatalı giriş → anlaşılır hata mesajı ✓; şifre sıfırlama uçtan uca (backend log'undan gerçek kod okunup girildi, yeni şifreyle giriş başarılı) ✓; bozuk/geçersiz token ile korumalı sayfa → `/giris`'e yönlendi ✓; **backend'e erişilemezken** (bu sayfa için tüm `/api/v1/` istekleri kasıtlı reddedildi — gerçek backend'e DOKUNULMADI) Keşfet'in vitrin şeritleri sessizce boş kalıyor, açık bir hata mesajı yok — bu F3.2'de TMDB-503'e özel alınmış "ayrı hata banner'ı eklemeye gerek yok" kararının kapsamının, backend TAMAMEN erişilemez olduğunda da geçerli olduğunu doğruluyor (bilinçli sınırlama olarak bırakıldı, aşağıya bkz.).
+  - **Bulunan ve düzeltilen 4 gerçek hata (kod incelemesiyle DEĞİL, gerçek tarayıcı etkileşimiyle bulundu):**
+    1. **`GET /catalog/discover?type=book&sort=X` (genre/yıl/dil filtresi yokken) → 500:** `openlibrary.py`'nin `discover()`'ı filtre yokken `q="*"` gönderiyordu; Open Library bunu "en az 3 karakter" kuralına göre 422 ile reddediyor, bu da yakalanmadan 500'e dönüşüyordu. Kök neden: boş sorgu (`q=`) Open Library'de TÜM sort değerleriyle 200 dönüyor — `or "*"` düşürüldü. Keşfet'te "Temizle"ye basıp kitap tarafında filtre uygulamaya çalışırken canlı olarak yakalandı.
+    2. **Avatar yükleme, hafif bozuk görsellerde → 500:** Pillow'un `.verify()`'ı `UnidentifiedImageError` (zaten `OSError` alt sınıfı) DIŞINDA, örneğin bozuk PNG CRC'sinde düz bir `SyntaxError` da fırlatabiliyor; kod yalnız ilkini yakalıyordu. Yakalama `(OSError, SyntaxError, ValueError)`'a genişletildi, `test_avatar_upload_corrupt_image_returns_422` regresyon testi eklendi. (İlk fark ediliş nedeni ironik: test betiğimin elle yazdığım 1×1 PNG fixture'ı GERÇEKTEN bozuktu — ama bu, üretim kodunun bozuk yüklemeleri düzgün ele almadığını da ortaya çıkardı.)
+    3. **Misafir kullanıcı içerik sayfasını açar açmaz `GET /lists/mine` → 401:** `AddToListMenu`'nün `useMyLists` sorgusu kimlik doğrulamadan bağımsız her zaman tetikleniyordu (yalnız "Listeye ekle"ye TIKLANINCA giriş yönlendirmesi vardı, sorgunun kendisi mount'ta zaten ateşleniyordu). `useLibraryLookup`'taki ZATEN VAR OLAN `enabled: auth.isAuthenticated` deseniyle tutarlı hale getirildi.
+    4. **360px'te profil sekmeleri taşıyordu:** `BaseTabs` 6 sekmeyi (Aktiviteler…Favoriler) tek satırda `overflow-x-auto` OLMADAN diziyordu; "Listeler"/"Favoriler" ekran dışında kalıp tıklanamıyordu. `overflow-x-auto`+`shrink-0` eklendi — düzeltmeden ÖNCE otomasyon "Listeler" sekmesine tıklayamadı (`not clickable`), düzeltmeden SONRA aynı tıklama (Puppeteer'ın yerleşik "scroll into view" davranışıyla) sorunsuz çalıştı, ekran görüntüsüyle doğrulandı.
+  - **Bilinçli sınırlamalar (düzeltilmedi, kayda geçirildi):** (a) Backend tamamen erişilemezken Keşfet'in vitrin şeritleri (`ContentRow`) sessizce boş kalıyor, `ErrorState` göstermiyor — F3.2'nin TMDB-503'e özel kararının doğal bir uzantısı; genel bir "sunucuya ulaşılamıyor" banner'ı Faz 3 kapsamı dışında bırakıldı (gelecekte DEBT olarak değerlendirilebilir). (b) Windows konsolu backend'in dev-modu e-posta loglarını UTF-8 olmayan bir codepage'e yazıyor (Türkçe harfler mojibake oluyor) — yalnız TERMİNAL GÖRÜNÜMÜ etkileniyor, gerçek SMTP e-postası `core/email.py`'de açıkça UTF-8 `MIMEText` kullanıyor, kullanıcıya giden gerçek e-postalar etkilenmiyor; kod değişikliği gerekmedi. (c) Film tarafı hâlâ U2'yi (TMDB anahtarı) bekliyor, tüm test turu kitap tarafında yapıldı.
+  - **Temizlik:** Bu adım + önceki adımlarda (F3.7/F3.8) unutulan **9 test kullanıcısı** (`tur1*`/`tur2*`/`tur3*`/`f37test*`) veritabanından silindi (F3.7'nin kendi temizlik betiği sessizce başarısız olmuş — bu, "betik kendini temizledi" varsayımının HER ZAMAN ayrıca doğrulanması gerektiğinin bir hatırlatıcısı).
+- **Sırada:** 👤 Kullanıcı onayı — `v2` dalının `main`e ilk birleştirilmesi (plan §0.5: "`main`e ilk birleştirme Faz 3 sonunda, kullanıcı onayıyla"). Onaylanırsa **F4.1** ile devam.
 
 ---
 
@@ -86,12 +97,12 @@
 | 0 | Güvenlik, temizlik, hazırlık | ✅ Tamamlandı (F0.4 sonradan kapandı) | 5/5 | 2026-09-26 | 2026-09-26 |
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
-| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | 🟨 Devam ediyor | 9/10 | 2026-09-26 | – |
+| 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
 | 4 | Çağ atlatma paketi | ⬜ Başlamadı | 0/9 | – | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **30/64** | | |
+| **Toplam** | | | **31/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -160,7 +171,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F3.7 — Listeler — ✅ (2026-09-29)
 - [x] F3.8 — Ayarlar sayfası — ✅ (2026-09-29)
 - [x] F3.9 — UX cilası — ✅ (2026-09-30)
-- [ ] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 (`main`e ilk birleştirme)
+- [x] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 🏁 — ✅ (2026-09-30, `main`e ilk birleştirme kullanıcı onayı bekliyor)
 
 ### Faz 4 — Çağ Atlatma Paketi
 
@@ -245,7 +256,7 @@ Ayrıntılar planın §2 bölümündedir. Durum: 🔴 Açık · ✅ Kapalı · �
 | BUG-19 | Yetki hataları 400; yorum–aktivite aidiyeti kontrol edilmiyor | F1.8, F1.9 | ✅ | `51373cc` |
 | BUG-20 | Durum değerleri film/kitap için tutarsız | F1.7, F3.1 | ✅ (backend `LibraryStatus` tek ortak enum; arayüz `utils/content.ts`'in `statusLabel`'ı §4.2 tablosuyla birebir — film=dizi etiketleri, kitap ayrı) | `919615a`, `77c4b3d` |
 | DEBT-01 | Tek dosya frontend, bileşen ve router yok | Faz 2–3 | ✅ (v2: bileşenler F2.2, gerçek rota tablosu+guard F2.3; v1 dosyası `legacy/frontend-v1/`'de yalnız referans) | `e104538` |
-| DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | 🟡 altyapı ✅ (vue-sonner toast + ConfirmDialog hazır); eski `alert/confirm` kaldırma Faz 3 sayfalarında | `f3e2894` |
+| DEBT-02 | 32 `alert/confirm`, 10 `console.log` | Faz 2–3 | ✅ (vue-sonner toast + ConfirmDialog; `git grep -nE "\balert\(\|\bconfirm\(\|\bprompt\("` → yalnız `useConfirm` tanım/kullanımları, F3.9'da doğrulandı) | `f3e2894` |
 | DEBT-03 | Eskimiş API'ler ve bakımsız kütüphaneler | F1.2, F1.3 | ✅ (F1.2: PyJWT+pwdlib+pydantic v2; F1.3: SQLAlchemy 2 tipli `Mapped[]` modeller) | `0f29f74` |
 | DEBT-04 | Kopya kod (film/kitap uçları, içerik oluşturma) | F1.6, F1.7 | ✅ (tek `get_or_create_content` + tek `upsert_entry`, film/kitap ayrımı yok) | `919615a` |
 | DEBT-05 | Ham dış API JSON'u frontend'e gidiyor | F1.6 | ✅ | `8c12de7` |
@@ -260,7 +271,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 
 | ID | Gereksinim (kısa) | Hedef adım | Durum | Kanıt |
 |---|---|---|---|---|
-| REQ-1.2 | Dinamik, kullanıcı dostu, mobil uyumlu arayüz | Faz 2–3 | ⬜ | |
+| REQ-1.2 | Dinamik, kullanıcı dostu, mobil uyumlu arayüz | Faz 2–3 | ✅ (Lighthouse mobil erişilebilirlik: Keşfet 96, Detay 97, Akış 96; 360×800 gerçek tarayıcı turu — F3.10, 20 senaryo) | F3.9/F3.10 |
 | REQ-2.1.1a | Kayıt: kullanıcı adı, e-posta, şifre, şifre tekrarı | F1.4, F2.4 | ✅ | `RegisterPage.vue` `031befa` |
 | REQ-2.1.1b | Giriş: e-posta + şifre | F1.4, F2.4 | ✅ (v2'de ayrıca kullanıcı adıyla da girilebiliyor) | `LoginPage.vue` `031befa` |
 | REQ-2.1.1c | Net hata mesajları | F1.2, F1.4, F2.4 | ✅ | `ApiError`+form/alan hataları, curl ile doğrulandı `031befa` |
@@ -280,8 +291,8 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.1.4c | 1–10 puan bileşeni (güncellenebilir) | F1.7, F3.1, F3.3 | ✅ | `StarRating`+`useContentActions`, curl ile doğrulandı (`1c23219`) |
 | REQ-2.1.4d | İzledim/İzlenecek · Okudum/Okunacak butonları | F1.7, F3.1, F3.3 | ✅ | `LibraryButtons` (`1c23219`) |
 | REQ-2.1.4e | "Özel Listeye Ekle" menüsü | F1.9, F3.1, F3.7 | ✅ (plan hedefi F3.7 diyordu ama `AddToListMenu` F3.1'de yazılıp F3.3'te gerçek bir sayfaya bağlandı — işlevsel olarak tamam, F3.7/ListPage ayrıca kendi tarafından da kullanacak) | `1c23219` |
-| REQ-2.1.4f | Yorumlar listesi (ad, metin, tarih) | F1.8, F3.3 | ⬜ | |
-| REQ-2.1.4g | Yorum ekleme alanı + Gönder | F1.7, F3.3 | ⬜ | |
+| REQ-2.1.4f | Yorumlar listesi (ad, metin, tarih) | F1.8, F3.3 | ✅ (plan F3.3 diyordu, gerçekte `CommentThread` F3.4'ün işiydi) | `CommentThread.vue` (`6979589`) |
+| REQ-2.1.4g | Yorum ekleme alanı + Gönder | F1.7, F3.3 | ✅ (plan F3.3 diyordu, gerçekte `CommentThread` F3.4'ün işiydi) | `CommentThread.vue` (`6979589`) |
 | REQ-2.1.4h | Yalnız kendi yorumunu düzenle/sil | F1.7, F1.8, F3.3, F3.4 | ✅ | `CommentThread.vue`, curl ile 403+yetki kuralı doğrulandı (`6979589`) |
 | REQ-2.1.5a | Profil: kullanıcı adı, avatar, biyografi | F1.5, F3.6 | ✅ | `ProfileHeader.vue` (`f61e341`) |
 | REQ-2.1.5b | Kendi profili: Profili Düzenle, Yeni Özel Liste | F3.6, F3.7 | ✅ | `EditProfileModal`+`ListFormModal` (`f61e341`, `813b5e9`) |
@@ -292,7 +303,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | REQ-2.2.1a | Film verisi TMDb (başlık, özet, yıl, yönetmen, oyuncular, türler, kapak) | F1.6 | ✅ | `8c12de7` (respx testleri + fixture) |
 | REQ-2.2.1b | Kitap verisi Open Library / Google Books (başlık, yazar, açıklama, sayfa, kapak) | F1.6 | ✅ | `8c12de7` (gerçek sunucuda canlı doğrulandı) |
 | REQ-2.2.1c | Manuel veri girişi yok | F1.6 | ✅ | `8c12de7` (tüm içerik `catalog` modülünden upsert edilir) |
-| REQ-3 | Tutarlı ve verimli veritabanı | F1.3 | ⬜ | |
+| REQ-3 | Tutarlı ve verimli veritabanı | F1.3 | ✅ (38 FK/indeks/unique kısıtı; `alembic check` temiz — migration/model sürüklenmesi yok; 69+ backend testi gerçek sorgu paternleriyle çalışıyor) | F1.3 |
 
 ---
 
@@ -364,6 +375,28 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F3.10 — Faz 3 kapanışı: ilk kullanılabilir v2 — ✅ 🏁
+
+- **Yapılanlar:**
+  - **Ek A izlenebilirlik matrisi tamamlandı:** Kalan 4 satır kanıtla kapatıldı — REQ-1.2 (mobil uyum: Lighthouse 96/97/96 + bu adımın tarayıcı turu), REQ-2.1.4f/g (yorumlar listesi/ekleme — zaten `CommentThread` F3.4'te vardı, satır güncellenmemiş kalmıştı), REQ-3 (veritabanı — 38 FK/indeks/unique kısıtı, `alembic check` temiz), DEBT-02 (32 `alert/confirm` — F3.9'da zaten `git grep` ile doğrulanmıştı, tam ✅'ye çevrildi).
+  - **Gerçek tarayıcı testi (projede ilk kez):** F3.9'da Lighthouse için kurulan `puppeteer-core` + headless Chrome yöntemi genişletilip 3 bağımsız Node betiğiyle (`tour1/2/3.mjs`, scratchpad'te izole, proje bağımlılığı DEĞİL) planın 20 maddelik manuel test turu 360×800 mobil görünümde gerçekten çalıştırıldı:
+    - **Tur 1** (tek kullanıcı): misafir→kayıt→onboarding (tür seçimi+takip önerileri)→akış; Keşfet'te kitap arama (gerçek sonuçlar)+tür/yıl/puan filtresi (URL senkronizasyonu doğrulandı); içerik detayında puan ver (`aria-valuenow` doğrulandı)+kütüphane durumu+inceleme yaz+"Özel Listeye Ekle"+satır içi yeni liste formu; profilin 6 sekmesi (Aktiviteler/Kütüphane/Puanlar/İncelemeler/Listeler/Favoriler); Ayarlar'da gerçek bir PNG ile avatar yükleme+görünen ad değiştirme+tema değiştirme (`<html>` sınıfı doğrulandı); tarayıcı geri/ileri + doğrudan URL yükleme. ~30 ekran görüntüsü alındı, hepsi elle incelendi.
+    - **Tur 2** (iki kullanıcı, tek sayfada kimlik değiştirme deseniyle — iki eşzamanlı sayfa denendi ama Puppeteer/Chrome protokol zaman aşımına uğradı, sıralı tek-sayfa deseni sorunsuz çalıştı): A bir kitaba 9/10 verip 345 karakterlik inceleme yazdı → B, A'yı takip etti → B'nin "Takip Ettiklerim" akışında A'nın aktivitesi GERÇEKTEN göründü (feed+follow sisteminin uçtan uca doğrulanması) → B beğendi (`aria-label`: "Beğen · 0"→"Beğeniyi geri al · 1", F3.9'daki WCAG düzeltmesinin canlı kanıtı) → B yorum yaptı → "…devamını oku" ekran görüntüsünde doğrulandı → B takipten çıktı → sonsuz kaydırma (Herkes sekmesi, kaydırdıkça 15→45 aktivite kartı, 2 sayfa otomatik yüklendi).
+    - **Tur 3** (hata/uç durumlar): misafir puan vermeye çalışınca `/giris?redirect=...` ✓; hatalı giriş → anlaşılır hata mesajı ✓; şifre sıfırlama uçtan uca (backend'in dev-modu log çıktısından GERÇEK kod okunup girildi, yeni şifreyle giriş başarılı) ✓; bozuk/geçersiz token'la korumalı sayfa ziyareti → `/giris`'e yönlendi ✓; backend'e erişilemezken (yalnız bu sayfanın `/api/v1/` istekleri reddedildi, gerçek backend'e dokunulmadı) davranış aşağıda not edildi.
+  - **Bulunan ve düzeltilen 4 gerçek hata (kod incelemesiyle değil, gerçek tıklama/etkileşimle bulundu):**
+    1. `GET /catalog/discover?type=book&sort=X` (genre/yıl/dil filtresi yokken) → **500**: `openlibrary.py` filtre yokken Open Library'ye `q="*"` gönderiyordu, bu da onların "en az 3 karakter" kuralına takılıp 422 veriyordu ve yakalanmadan 500'e dönüşüyordu. Kök neden: boş sorgu (`q=`) TÜM sort değerleriyle 200 dönüyor (doğrudan Open Library'ye karşı doğrulandı) — `or "*"` düşürüldü.
+    2. Avatar yükleme, hafif bozuk görsellerde → **500**: Pillow `.verify()` bozuk PNG CRC'sinde `UnidentifiedImageError` değil düz `SyntaxError` fırlatıyordu, kod yalnız ilkini yakalıyordu. `(OSError, SyntaxError, ValueError)`'a genişletildi + regresyon testi (`test_avatar_upload_corrupt_image_returns_422`).
+    3. Misafir kullanıcı içerik sayfası açar açmaz `GET /lists/mine` → **401**: `AddToListMenu`'nün `useMyLists`'i kimlik doğrulamadan bağımsız mount'ta ateşleniyordu. `useLibraryLookup`'taki mevcut `enabled: auth.isAuthenticated` deseniyle tutarlı hale getirildi.
+    4. 360px'te profil sekmeleri (`BaseTabs`) taşıyordu, "Listeler"/"Favoriler" tıklanamıyordu: `overflow-x-auto`+`shrink-0` eklendi — düzeltmeden önce/sonra otomasyonla doğrulandı (Puppeteer'ın "scroll into view" davranışı artık sekmeye ulaşabiliyor).
+  - **Bilinçli sınırlamalar (düzeltilmedi, kayda geçirildi):** (a) Backend tamamen erişilemezken Keşfet'in vitrin şeritleri sessizce boş kalıyor, genel bir hata banner'ı yok — F3.2'nin TMDB-503'e özel kararının doğal bir uzantısı, kapsamlı bir "sunucuya ulaşılamıyor" mekanizması Faz 3 dışına bırakıldı. (b) Windows konsolu dev-modu e-posta loglarını UTF-8 olmayan bir codepage'e yazıyor (Türkçe harfler yalnız TERMİNALDE mojibake oluyor); gerçek SMTP e-postası `core/email.py`'de açıkça UTF-8 kullanıyor, gerçek kullanıcı e-postaları etkilenmiyor, kod değişikliği gerekmedi. (c) Film tarafı hâlâ U2'yi (TMDB anahtarı) bekliyor, tüm tur kitap tarafında yapıldı.
+  - **Temizlik:** F3.7/F3.8'den kalan **9 sessizce temizlenmemiş test kullanıcısı** (`tur1*`/`tur2*`/`tur3*`/`f37test*`) veritabanından (avatar dosyaları dahil) silindi — F3.7'nin kendi temizlik betiğinin sessizce başarısız olduğu ortaya çıktı; "betik kendini temizledi" iddiasının ayrıca doğrulanması gerektiğinin somut bir örneği.
+- **Değişen dosyalar:** `backend/app/modules/catalog/providers/openlibrary.py`, `backend/app/modules/users/avatars.py`, `backend/tests/test_users.py`, `frontend/src/api/lists.ts`, `frontend/src/components/ui/BaseTabs.vue`.
+- **Doğrulama:** Backend: `pytest` → 71 passed ✓ (2 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (73 passed) /`build` → hepsi temiz ✓. Yukarıda ayrıntılı 3 tarayıcı turu + Lighthouse (F3.9'dan taşınan) 96/97/96.
+- **Kapanan maddeler:** REQ-1.2, REQ-2.1.4f, REQ-2.1.4g, REQ-3, DEBT-02 — **Ek A izlenebilirlik matrisi artık %100 dolu**
+- **Commit:** `260bde3` (fix), docs commit aşağıda
+- **Notlar / sorunlar:** 🏁 **Faz 3 tamamlandı** (10/10, toplam 31/64). Plan §0.5 gereği `main`e ilk birleştirme kullanıcı onayı gerektiriyor — bu oturum birleştirmeyi YAPMADI, yalnız hazırladı. Film tarafının canlı doğrulaması hâlâ U2'yi (TMDB anahtarı) bekliyor; bu, kod ilerlemesini engellemiyor ama Faz 4 öncesi kullanıcı tarafından yapılması faydalı olur.
+- **Sonraki adım:** 👤 Kullanıcı onayı (main'e birleştirme) → onaylanırsa F4.1
 
 ### [2026-09-30] F3.9 — UX cilası — ✅
 
