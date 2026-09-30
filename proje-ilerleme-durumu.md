@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.4 tamamlandı (Kitap ↔ film köprüsü). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-09-30** — F4.5 tamamlandı (İstatistikler ve Yıllık Özet). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.4 tamamlandı) |
-| Sıradaki adım | **F4.5** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.5 tamamlandı) |
+| Sıradaki adım | **F4.6** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -104,7 +104,11 @@
   - **Mimari desen (yine tekrarlanan bir tema):** `find_adaptations`/`find_source_book` mevcut `to_detail()`/`detail()` ayrımını DEĞİL, `search_best()`'in (F1.6, kitap↔film eşleştirmesi için zaten var olan benzerlik-skoru deseni) yaklaşımını izliyor — tekerlek yeniden icat edilmedi.
   - **Frontend:** Yeni backend alanları (`novel_authors`/`has_book_keyword`) frontend'e HİÇ YANSIMADI (yalnız arka planda kısa-devre optimizasyonu için var) — bu yüzden `npm run gen:api` çalıştırmaya/backend'i yeniden başlatmaya GEREK KALMADI, yeni uçların ikisi de zaten var olan `ContentSummary` tipini döndürüyor. `api/catalog.ts`'e `useBookAdaptations`/`useSourceBook` (`enabled` parametresiyle tipe göre şartlı) eklendi; `ContentDetailPage`'e kitapta "🎬 Beyaz perdede" şeridi (`ContentRow`, boşsa gizli) ve film/dizide "📖 Uyarlandığı kitap" tek kartı (`PosterCard`, 404'te gizli — `retry:false` ile gereksiz yeniden deneme yok) eklendi.
   - **Kesinti/bellek notu devam ediyor:** Bu adım TAMAMEN sunucusuz tamamlandı (F4.3'ün sonunda durdurulan Vite+uvicorn kasıtlı olarak yeniden başlatılmadı) — `pytest` kendi test istemcisini kurduğu ve yeni uçlar mevcut şemaları kullandığı için hem backend hem frontend eksiksiz doğrulandı, ama gerçek TMDB/Open Library verisiyle canlı bir uçtan uca deneme (F4.3'teki Roald Dahl doğrulaması gibi) bu adımda YAPILAMADI.
-- **Sırada:** F4.5 (İstatistikler ve Yıllık Özet).
+- **F4.5 tamamlandı (2026-09-30):** İstatistikler ve Yıllık Özet — Faz 4'ün en büyük adımı ([L]). Backend (`stats` modülü): `GET /users/{username}/stats?year=` (totals: film/dizi/kitap/dakika/sayfa/inceleme/ortalama puan; `rating_distribution` 1-10; `top_genres` en fazla 8; `monthly` 12 ay film/dizi/kitap; `top_people` yönetmen+yazar en fazla 5; `highlights`: en uzun film/kitap + en yüksek puanlanan 5) ve `GET /users/me/wrapped?year=` (stats + yılın ilk/son tamamlananı + en beğenilen incelemesi + en aktif ayı + baskın türe göre 31 türün TAMAMI için elle yazılmış eğlenceli unvan tablosu, ör. drama→"Duygu Avcısı" — plandaki örneklerle birebir). Tüm hesaplama `status=='completed' AND finished_at` yıl aralığında filtrelenen tek bir DB sorgusu üzerinden; puanlar/incelemeler ayrıca kendi zaman damgalarına (`rated_at`/`created_at`) göre o yıla özgü.
+  - **Yorum-beğenisi köprüsü keşfi:** "En beğenilen incelemen" için incelemelerin kendi `Activity`/`ActivityLike` satırı YOK — bir inceleme, aynı (kullanıcı, içerik) çiftinin "log" tipi aktivitesine `social/service.py::_review_to_out`'un zaten kullandığı desenle eşleniyor; bu deseni tekrar kullanarak `Review`+`Activity`+`ActivityLike` JOIN'iyle tek sorguda en çok beğenilen inceleme bulundu.
+  - **Frontend:** `npm install chart.js vue-chartjs` (önceden var olan, F4.5'ten bağımsız bir npm peer-dependency çakışması `--legacy-peer-deps` ile aşıldı — `openapi-typescript`'in istediği `typescript@^5.x` ile başka bir devDependency'nin çakışması, boş bir `npm install`'da bile aynı hatayı veriyordu). `components/stats/StatsCharts.vue` (aylık yığılmış çubuk + puan dağılımı çubuğu + tür halkası + 4 sayı kartı) `ProfilePage`'in yeni "İstatistik" sekmesine `defineAsyncComponent` ile tembel yükleniyor — üretim derlemesinde chart.js kendi ayrı 173 KB'lık chunk'ında (`StatsCharts-*.js`), ana `ProfilePage` chunk'ı yalnız 16 KB büyüdü, doğrulandı. `pages/WrappedPage.vue` (`/ozet/:year?`): tam ekran (`fixed inset-0`), Instagram/Spotify-Wrapped tarzı 4-9 slayt (veriye göre değişken — boş alanlar atlanıyor), üstte segment ilerleme çubukları, klavye (←/→/Esc) + dokunma (ekranın sol üçte-biri geri, kalanı ileri — ayrı bir swipe-gesture kütüphanesi eklenmedi) navigasyonu, `motion-safe` geçişler. `html-to-image` (paylaşım görseli) kullanıcıdan onay gerektirdiği için EKLENMEDİ — planın kendi öngördüğü yedek ("ekran görüntüsü alıp paylaş" ipucu) kullanıldı.
+  - **Gerçek tarayıcı testi (F3.10'dan sonra ikinci kez):** Bu adımın ortasında, `npm install` sırasında AÇIK olan Vite dev sunucusunun modül önbelleği bozuldu (`@/stores/auth` gibi var olan dosyaları "bulunamadı" diye işaretledi — F3.9/F3.10'da da bir kez görülen, kod hatası OLMAYAN bilinen bir sınıf sorun); `node_modules/.vite` temizlenip sunucu yeniden başlatıldı. **Yeni ve önemli bir keşif:** `TaskStop` bu ortamda `npm run dev`/`vite` alt sürecini GÜVENİLİR şekilde SONLANDIRMIYOR — üç kez art arda "durduruldu" mesajı alınmasına rağmen eski `node.exe` süreçleri 5173/5174/5175 portlarını tutmaya devam etti (`Get-NetTCPConnection`+`Get-Process` ile doğrulandı, her biri gerçekten bizim başlattığımız `npm run dev` süreçleriydi, kullanıcının kendi tarayıcısı/süreçleri DEĞİLDİ), `Stop-Process -Force` ile tek tek temizlenmesi gerekti. Bu, gelecekteki sunucu yeniden başlatmalarında `TaskStop` sonrası port'un GERÇEKTEN boşaldığının `Get-NetTCPConnection` ile ayrıca doğrulanması gerektiği şeklinde bir ders olarak kaydedildi. Temiz sunucuyla `puppeteer-core` (F3.9'dan kalan scratchpad kurulumu, proje bağımlılığı DEĞİL) ile hem 1280×900 masaüstü hem 360×800 mobil görünümde gerçek demo kullanıcısıyla (demo1) test edildi: profil İstatistik sekmesinde 3 grafik (aylık/puan/tür) render oluyor, "İstatistik" linkinden Yıllık Özet'e geçiliyor, klavye ile ileri/geri gezinme + kapat butonu + dokunmayla (tap-zone) mobilde slayt değiştirme + boş yıla (2023) geçişte zarifçe "henüz içerik yok" durumu (hata DEĞİL) — **0 sorun bulundu**, ekran görüntüleriyle doğrulandı (drama türü→"Duygu Avcısı" gerçek veriyle canlı olarak da doğrulandı).
+- **Sırada:** F4.6 (Hedefler ve rozetler).
 
 ---
 
@@ -116,11 +120,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 4/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 5/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **35/64** | | |
+| **Toplam** | | | **36/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -198,7 +202,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.2 — Bildirim merkezi — ✅ (2026-09-30)
 - [x] F4.3 — Kişi ve yazar sayfaları — ✅ (2026-09-30)
 - [x] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅ (2026-09-30)
-- [ ] F4.5 — İstatistikler ve Yıllık Özet
+- [x] F4.5 — İstatistikler ve Yıllık Özet — ✅ (2026-09-30)
 - [ ] F4.6 — Hedefler ve rozetler
 - [ ] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads)
 - [ ] F4.8 — PWA
@@ -395,6 +399,25 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-09-30] F4.5 — İstatistikler ve Yıllık Özet — ✅
+
+- **Yapılanlar:**
+  - **Backend (`stats` modülü, yeni uçlar):** `GET /users/{username}/stats?year=` — `status=='completed' AND finished_at` yıl aralığında olan girişler tek sorguda çekilip Python tarafında toplanıyor: `totals` (film/dizi/kitap sayısı, toplam dakika/sayfa, `reviews` — `Review.created_at` yıl içinde, `avg_rating` — `rated_at` yıl içindeki puanların ağırlıklı ortalaması), `rating_distribution` (1-10, `rated_at` yıl içinde), `top_genres` (en fazla 8, `Counter.most_common`), `monthly` (12 ay, film/dizi/kitap ayrı), `top_people` (yönetmen+yazar birleşik, en fazla 5), `highlights` (en uzun film/kitap, en yüksek puanlı 5). `GET /users/me/wrapped?year=` — yukarıdakini sarıp ek olarak: yılın ilk/son tamamlananı (`finished_at` asc/desc), en beğenilen incelemesi, en aktif ayı, baskın türe göre eğlenceli unvan.
+  - **Eğlenceli unvan tablosu:** Plan yalnız 3 örnek veriyordu (science_fiction→"Galaksiler Arası Kâşif", drama→"Duygu Avcısı", horror→"Korku Tüneli Müdavimi") — `core/genres.py`'deki KANONİK 31 türün TAMAMI için Türkçe, o türün ruhuna uygun birer unvan yazıldı (`_FUN_TITLES` sözlüğü, `stats/service.py`), bilinmeyen bir tür için genel bir varsayılan ("Meraklı İzleyici / Okur") ile.
+  - **Yorum-beğenisi köprüsü (yeniden keşif):** İncelemelerin kendi Activity/ActivityLike satırı yok — bir inceleme, aynı (kullanıcı, içerik) çiftinin "log" tipi aktivitesiyle eşleşiyor (`social/service.py::_review_to_out`'ta zaten kullanılan desen). "En beğenilen incelemen" için bu deseni tekrarlayan tek bir `Review`+`Activity`+`ActivityLike` JOIN'i yazıldı (stats modülü social'a yalnız model seviyesinde bağımlı, servis fonksiyonu import edilmedi — kendi küçük `_excerpt()` yardımcı fonksiyonu yazıldı, social'ın private `_make_excerpt`'ı içe aktarılmadı).
+  - **Kendi kodumda yakalanan hata:** İlk taslakta `from app.core.genres import label` yazılmıştı — ama `label()` fonksiyonu `app.core.genres`'te değil `app.modules.catalog.genres`'te yaşıyor (proje boyunca `genre_utils.label(k)` olarak çağrılan, farklı bir modül). `ImportError` pytest collection'ında hemen yakalandı, düzeltildi.
+  - **Route sırası:** Yeni `/users/{username}/stats` ve `/users/me/wrapped` uçları, var olan `/users/{username}/{library|lists|reviews|summary}` (hepsi FARKLI literal son segment) ve `/users/{username}` (tek segment, `users/router.py`) desenleriyle segment sayısı/literal farkı nedeniyle çakışmıyor — kayıt sırası bu kez önemsizdi (F4.3'teki gibi kritik değildi), yine de doğrulandı.
+  - **Frontend — API:** `npm install chart.js vue-chartjs` (bu adımdan bağımsız, ÖNCEDEN var olan bir npm peer-dependency çakışması `--legacy-peer-deps` ile aşıldı — boş bir `npm install` bile aynı hatayı veriyordu, `openapi-typescript`'in `typescript@^5.x` istemesiyle başka bir devDependency arasında). `api/stats.ts`'e `useUserStats`/`useWrapped`.
+  - **Frontend — UI:** `components/stats/StatsCharts.vue` (aylık yığılmış çubuk grafik + puan dağılımı çubuğu + tür halkası + 4 sayı kartı — film süresi/sayfa/içerik sayısı/ortalama puan) `ProfilePage`'in yeni "İstatistik" sekmesine (+ yıl seçici) `defineAsyncComponent` ile TEMBEL yükleniyor; üretim derlemesinde chart.js kendi 173 KB'lık ayrı chunk'ında, `ProfilePage`'in ana chunk'ı yalnız 16 KB — doğrulandı. `pages/WrappedPage.vue` (`/ozet/:year?`): tam ekran (`fixed inset-0 z-50`), Instagram/Spotify-Wrapped tarzı 4-9 slayt (veri yoksa o slayt atlanıyor — ör. `top_people` boşsa "people" slaytı hiç gösterilmiyor), üstte segment ilerleme çubukları, klavye (←/→/Esc) + dokunma (ekran sol üçte-biri geri, kalanı ileri — ayrı bir gesture kütüphanesi eklenmedi) navigasyonu, `motion-safe` geçişler. `html-to-image` (paylaşım görseli) kullanıcı onayı gerektirdiği için eklenmedi — planın kendi öngördüğü yedek ("ekran görüntüsü al" ipucu) kullanıldı. Profilin İstatistik sekmesinden `/ozet/{yıl}`'a bağlantı eklendi (yalnız kendi profilinde).
+  - **Kusur önleme (test yazarken/derlerken kendi kodumda yakalandı):** `rating_distribution`/`top_genres`/`monthly`/`top_people`/`highlights` Pydantic'te `Field(default_factory=...)` olduğu için OpenAPI şemasında opsiyonel çıkıyor — `vue-tsc` doğrudan erişimlere "possibly undefined" dedi (F4.1/F4.3'te de görülen AYNI desen). Her iki bileşende de normalize edici `computed`'larla (`?? []`/`?? {}`) düzeltildi.
+  - **Gerçek tarayıcı testi (F3.10'dan sonra ikinci kez, sıfırdan kuruldu):** `npm install` sırasında AÇIK olan Vite dev sunucusunun modül önbelleği bozuldu (var olan `@/stores/auth`/`@/router` gibi dosyaları "bulunamadı" diye işaretledi — F3.9/F3.10'da bir kez daha görülen, kod hatası OLMAYAN bilinen bir sınıf sorun); `node_modules/.vite` temizlenip sunucu yeniden başlatıldı. **Yeni keşif:** `TaskStop` bu ortamda `npm run dev`/`vite` alt sürecini GÜVENİLİR şekilde sonlandırmıyor — üç kez "durduruldu" mesajı alınmasına rağmen eski `node.exe` süreçleri 5173/5174/5175 portlarını tutmaya devam etti (`Get-NetTCPConnection`+`Get-Process` ile her birinin gerçekten bizim `npm run dev` süreçlerimiz olduğu doğrulandı — kullanıcının kendi tarayıcısı/süreçleri DEĞİLDİ), `Stop-Process -Force` ile tek tek temizlenmesi gerekti. **Ders:** bundan sonra `TaskStop` sonrası port'un GERÇEKTEN boşaldığı `Get-NetTCPConnection` ile ayrıca doğrulanmalı, mesaja güvenilmemeli. Temiz sunucuyla `puppeteer-core` (F3.9'dan kalan scratchpad kurulumu, proje bağımlılığı DEĞİL) ile hem 1280×900 masaüstü hem 360×800 mobil görünümde gerçek demo kullanıcısıyla (demo1) uçtan uca test edildi: profil İstatistik sekmesinde 3 grafik render oluyor, "İstatistik" linkinden Yıllık Özet'e geçiliyor, klavye ile ileri/geri + kapat butonu + mobilde dokunmayla (tap-zone) slayt değiştirme + boş yıla (2023) geçişte zarifçe "henüz içerik yok" durumu (hata değil) — **0 sorun bulundu**. Drama türü→"Duygu Avcısı" eşleşmesi gerçek veriyle canlı olarak da doğrulandı (ekran görüntüsü).
+- **Değişen dosyalar:** `backend/app/modules/stats/{router,schemas,service}.py`, `backend/tests/test_stats.py`, `backend/tests/test_catalog_api.py` (F4.4'ten kalan 3 uzun satır düzeltmesi); `frontend/package.json`, `frontend/package-lock.json`, `frontend/src/api/{stats,schema.d}.ts`, `frontend/src/types/index.ts`, `frontend/src/pages/{ProfilePage.vue,WrappedPage.vue (yeni)}`, `frontend/src/components/stats/StatsCharts.vue` (yeni), `frontend/src/router/index.ts`.
+- **Doğrulama:** Backend: `pytest` → **93 passed** ✓ (4 yeni) · `ruff check`+`format` → temiz ✓. Frontend: `lint`/`type-check`/`test:unit` (**73 passed**)/`build` → hepsi temiz ✓. Gerçek tarayıcı (Puppeteer, masaüstü+mobil, gerçek demo verisiyle) → **0 sorun**.
+- **Kapanan maddeler:** Plan F4.5 (proje-plani.md §Faz 4).
+- **Commit:** (bu adımın commit'i)
+- **Notlar / sorunlar:** Yok.
+- **Sonraki adım:** F4.6 — Hedefler ve rozetler
 
 ### [2026-09-30] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅
 
