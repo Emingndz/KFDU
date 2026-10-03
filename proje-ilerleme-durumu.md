@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-10-04** — F4.7 tamamlandı (Veri dışa / içe aktarma: JSON/CSV indirme, Letterboxd + Goodreads içe aktarma). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-10-04** — F4.7 (Veri dışa / içe aktarma) ve F4.8 (PWA) tamamlandı; sırada 🏁 F4.9 Faz 4 kapanışı. Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.7 tamamlandı) |
-| Sıradaki adım | **F4.8** — PWA (yüklenebilir uygulama) |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.8 tamamlandı) |
+| Sıradaki adım | **F4.9** — 🏁 Faz 4 kapanışı (temiz DB'de migrasyonlar + tüm kontroller; `main`e birleştirme, `v2.0.0-beta.2` etiketi ve push için 🛑 kullanıcı onayı) |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -119,7 +119,11 @@
   - **Sağlamlık:** kullanıcı başına tek etkin iş (409 `IMPORT_IN_PROGRESS`); sunucu yeniden başlarsa yarıda kalan iş 30 dk ilerleme yazmazsa "yarıda kesildi" olarak kapanır; dış kaynak art arda 5 kez hata verirse iş anlaşılır mesajla durur (binlerce satırı boşuna denemez); beklenmeyen hata işi "çalışıyor"da asılı bırakmaz (`failed` + mesaj); yanlış kaynağın dosyası / ZIP / UTF-8 olmayan / boş dosya / TMDB anahtarı yok → her biri ayrı, anlaşılır 422/503 mesajı.
   - **Frontend:** Ayarlar → **"Verilerim"**: "JSON indir" / "CSV indir (Excel)" (`client.ts`'e `apiDownload` + `utils/download.ts` — fetch + Blob + nesne URL'si) ve iki `ImportCard` (Letterboxd/Goodreads): "Dosyamı nasıl indiririm?" yönergesi, dosya seçici (ZIP/≠.csv/>5 MB istemcide reddedilir), canlı ilerleme çubuğu (`role="progressbar"`) + istemcide ölçülen kalan süre tahmini, sonuç raporu ("11 / 12 içerik eşleşti", eşleşmeyenler listesi), iş kimliği `localStorage`'da → **sayfadan ayrılıp dönünce iş kaldığı yerden görünür**; bitince tüm sorgular tazelenir. "Kütüphaneme git" içe aktarılan rafa iner (`ProfilePage`'e `?raf=` desteği eklendi — varsayılan raf filmler olduğu için kitap aktaran kullanıcı boş sayfa görüyordu, canlı testte bulundu).
   - **Doğrulama:** Backend **120 test** (22 yeni; transfer modülü %96, genel kapsam **%87**), frontend **83 test** (10 yeni), lint/type-check/build temiz. **Gerçek Open Library'ye karşı** API (20/20 kontrol) ve **gerçek tarayıcıda** (Puppeteer, masaüstü+mobil) uçtan uca: indirmeler, hata mesajları, 12 ve 8 satırlık gerçek içe aktarma, canlı ilerleme (0→2→5→bitti), sayfadan ayrılıp dönme, rapor ve raf bağlantısı. Letterboxd'un canlı denemesi U2'yi (TMDB anahtarı) bekliyor — mock'lu testlerle doğrulandı, arayüzde anlaşılır 503 mesajı gösteriliyor.
-- **Sırada:** F4.8 (PWA).
+- **F4.8 tamamlandı (2026-10-04):** PWA. `vite-plugin-pwa@1.3.0` (planın 1.x'i — 1.3.0 Vite 8'i destekliyor, büyük sürüm sorusuna gerek kalmadı; güncel 2.0.0'a geçilmedi) + `@vite-pwa/assets-generator@1.0.4` (`--legacy-peer-deps`: F4.5'teki, bu adımdan bağımsız `openapi-typescript`↔TS 6 peer çakışması). İkonlar `public/favicon.svg`'den `pwa-assets.config.ts` ile (minimal-2023 + maskable/Apple ikonları beyaz yerine marka rengiyle tam dolu); favicon §3.7'nin "marka degradesi"ne çekildi (#4F46E5 → brand-500→700). `VitePWA`: `registerType: 'prompt'`, manifest (planın ad/renk/`standalone` değerleri + `tr`), Workbox: kabuk önbelleği (73 dosya, 883 KiB — tüm sayfa parçaları + yazı tipi + ikonlar), `navigateFallback: /index.html` (API/medya hariç), görseller CacheFirst (300 kayıt/30 gün, opaque yanıtlar + kota aşımında otomatik temizlik), `GET /api/v1/catalog/*` StaleWhileRevalidate (1 gün), diğer API NetworkOnly. `main.ts`: `registerSW` → "Yeni sürüm hazır" bilgi bildirimi + "Yenile"; `composables/usePwaInstall.ts` → `beforeinstallprompt` yakalanınca kullanıcı menüsünde "Uygulamayı yükle".
+  - **Gerçek hata (çevrimdışı testte bulundu, F2.3'ten beri vardı — D-28):** `auth.fetchMe()` HER hatada token'ı siliyor, koruma da `/giris`'e atıyordu → PWA'yı çevrimdışı açan kullanıcı oturumdan atılıyordu (çevrimiçiyken backend bir anlık yeniden başlarken sayfa yenilense bile). Artık token yalnız 401'de silinir; ağ/5xx hatasında sayfa açılır, bağlantı gelince profil `online` olayıyla sessizce tamamlanır.
+  - **Test yöntemi dersi:** Puppeteer'ın `setOfflineMode`'u yalnız SAYFAYA uygulanıyor; service worker denetimindeki sayfanın istekleri SW'den çıktığı için gerçek ağa gidiyordu (ilk "çevrimdışı" doğrulama bu yüzden geçersizdi — ekran görüntüsündeki bildirim rozeti ele verdi). Doğru yöntem: ağ kesintisini SW hedefine de (`Network.emulateNetworkConditions`) uygulamak ve kesintiyi bir API yoklamasıyla kanıtlamak.
+  - **Doğrulama (headless Chrome, `vite preview` + backend):** `Page.getInstallabilityErrors` → `[]` (Chrome'a göre yüklenebilir), manifest hatasız; `beforeinstallprompt` headless'ta bile yakalandı → menüde "Uygulamayı yükle"; gerçekten çevrimdışıyken (API yoklaması "Failed to fetch") oturum korunuyor, ziyaret edilmiş kitap sayfası önbellekten başlık+özet+kapakla açılıyor, hiç ziyaret edilmemiş `/ayarlar` kabukla açılıyor, çevrimdışı şeridi görünüyor; `sw.js` değişince "Yeni sürüm hazır → Yenile" çıkıyor ve bekleyen worker devreye giriyor. Frontend **90 test** (7 yeni), lint/type-check/build temiz; backend değişmedi (120 test yeşil).
+- **Sırada:** 🏁 F4.9 (Faz 4 kapanışı).
 
 ---
 
@@ -131,11 +135,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 7/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 8/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **38/64** | | |
+| **Toplam** | | | **39/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -216,7 +220,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.5 — İstatistikler ve Yıllık Özet — ✅ (2026-09-30)
 - [x] F4.6 — Hedefler ve rozetler — ✅ (2026-09-30)
 - [x] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads) — ✅ (2026-10-04)
-- [ ] F4.8 — PWA
+- [x] F4.8 — PWA — ✅ (2026-10-04)
 - [ ] F4.9 — Faz 4 kapanışı 🏁
 
 ### Faz 5 — Akıllı Öneriler
@@ -359,6 +363,8 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-10-04 | D-24 | **İçe aktarma birleştirir, ezmez; tarihler dosyadan gelir:** puan yalnız kütüphanede puan yoksa yazılır; durum yalnız "ileri" gidiyorsa değişir (sıra: planned < in_progress = dropped < completed). Yeni/değişen girişte `finished_at`, `rated_at` ve (yeni girişte) `created_at` dosyadaki tarihlerle yazılır; bilinmiyorsa boş kalır — `upsert_entry`'nin "bugün/şimdi" damgası içe aktarmada geçersiz kılınır. | ✅ Uygulayıcı kararı — plan eşleme/dönüşüm kurallarını veriyor ama mevcut veriyle çakışmayı ve tarihleri tanımlamıyor. Ezmek kullanıcının KFDU'da verdiği puanı sessizce silerdi; "bugün" damgası ise F4.5/F4.6'nın yıllık istatistik/hedef/özetini (içe aktarılan yüzlerce kitap "bu yıl okundu" sayılır, okuma hedefi anında dolar) ve platformun "son 30 gün popüler" vitrinini (tek kullanıcının arşivi) bozardı. Gerçek veriyle doğrulandı. |
 | 2026-10-04 | D-25 | `transfer/parsers.py` yardımcı dosyası (saf CSV ayrıştırma; `ImportRow`/`ParsedFile`) | ✅ Uygulayıcı kararı — plan §3.5.1 yardımcı dosyaları "yalnız planda belirtildiği yerlerde" açar; bu dosya HTTP/DB'siz saf ayrıştırmayı (≈190 satır, kendi testleriyle) servisten ayırmak için bilinçli istisna. (Ek bağlam: önceki oturumdan kalan taslak dosyaları silme komutu ortamın izin sistemince engellendi; taslak dosyalar silinmeden yerinde yeniden yazıldı — migrasyon da aynı revizyon kimliğiyle düzeltildi, dev DB önce geri alınıp sonra yeniden uygulandı.) |
 | 2026-10-04 | D-26 | Letterboxd'da `watched.csv` ile `watchlist.csv` dosya ADINDAN ayırt edilir; `diary.csv`/`reviews.csv` de kabul edilir (izleme tarihi + puan, yeniden izlemelerde en son izleme) | ✅ Uygulayıcı kararı — plan "dosya türü başlık satırından algılanır" diyor ama bu iki dosyanın başlıkları birebir aynı (`Date,Name,Year,Letterboxd URI`); başlıktan ayırt etmek imkânsız. Puanlı dosyalar başlıktan (`Rating`/`Watched Date`) algılanmaya devam ediyor. Goodreads'te ayrıca yaygın özel raflar (`did-not-finish`/`dnf`/`abandoned`) "Yarım bıraktım"a eşleniyor. |
+| 2026-10-04 | D-28 | `auth.fetchMe()` token'ı yalnız **401**'de siler; router koruması ağ/sunucu hatasında `/giris`'e yönlendirmez; bağlantı gelince (`online`) profil sessizce yeniden alınır | ✅ Uygulayıcı kararı (hata düzeltmesi) — F4.8'in çevrimdışı testinde bulundu: önceki kod her hatada token'ı siliyordu, bu yüzden PWA'yı çevrimdışı açan (ya da backend geçici olarak erişilemezken sayfayı yenileyen) kullanıcı oturumdan atılıyordu. `me` boşken tüm kullanım yerleri zaten null-güvenli (denetlendi). 401 akışı (`client.ts`'in `handleUnauthorized`'ı) değişmedi. 3 birim testiyle kilitlendi. |
+| 2026-10-04 | D-29 | Favicon §3.7'deki marka degradesine çekildi; PWA ikonları `pwa-assets.config.ts` ile (minimal-2023 + maskable/Apple ikonları marka rengiyle tam dolu, `padding: 0`) üretildi; `<meta name="theme-color">` manifestle aynı (#7c5cff) | ✅ Uygulayıcı kararı — eski favicon (#4F46E5) marka rengi değildi ve ikonlar ondan üretilecekti; üretecin varsayılanı maskable/Apple ikonlarını beyaz dolguyla çıkarıyordu (Android/iOS'ta beyaz çerçeve). Glif güvenli bölgenin içinde kaldığı için tam dolu üretim kırpılmada sorun çıkarmıyor (görsel olarak doğrulandı). Plan CLI komutunu veriyordu; aynı ön ayar yapılandırma dosyasıyla kullanıldı. |
 | 2026-10-04 | D-27 | İçe aktarma ilerlemesi her 10 satırda **veya** en geç 3 saniyede bir yazılır | ✅ Uygulayıcı kararı — plan "her 10 satırda `processed` güncellenir" diyor; hız sınırı yüzünden satır başına ~1 sn sürdüğünden küçük dosyalarda çubuk ~10 sn "0 / 12"de donuk kalıyordu (gerçek tarayıcı testinde görüldü). Yazma sıklığı yine sınırlı (≤ 1 / 3 sn), sahte saatli birim testiyle doğrulandı. |
 
 ---
@@ -416,6 +422,22 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-10-04] F4.8 — PWA (yüklenebilir uygulama) — ✅
+
+- **Yapılanlar:**
+  1. `npm install -D vite-plugin-pwa@^1.3.0 @vite-pwa/assets-generator@^1 --legacy-peer-deps` → `vite-plugin-pwa 1.3.0`, `@vite-pwa/assets-generator 1.0.4`, Workbox 7.4.1. Plan §3.2 "1.x" diyor; güncel sürüm 2.0.0 ama 1.3.0 Vite 8'i desteklediği için plandaki büyük sürümde kalındı (🛑 sorusu gerekmedi). `--legacy-peer-deps` F4.5'teki, bu adımdan bağımsız `openapi-typescript`↔TypeScript 6 çakışması yüzünden. İkonlar: `pwa-assets.config.ts` (minimal-2023 ön ayarı; maskable/Apple marka renginde tam dolu — D-29) → `npx pwa-assets-generator` → `pwa-64/192/512`, `maskable-icon-512x512`, `apple-touch-icon-180x180`, `favicon.ico`; favicon marka degradesine çekildi; `index.html`'e üretecin önerdiği ikon bağlantıları + açıklama, `theme-color` manifestle aynı.
+  2. `vite.config.ts` → `VitePWA({ registerType: 'prompt', injectRegister: false, manifest: {name: 'KFDU — Kitap, Film ve Dizi', short_name: 'KFDU', lang: 'tr', theme_color: '#7c5cff', background_color: '#0e1016', display: 'standalone', ikonlar…}, workbox: {...} })`: `globPatterns` kabuk için js/css/html/svg/png/ico/woff2 (73 dosya, 883 KiB), `navigateFallback: '/index.html'` + `navigateFallbackDenylist` (`/api/`, `/media/`), `image.tmdb.org` + `covers.openlibrary.org` → CacheFirst (`kfdu-images`, 300 kayıt, 30 gün, `cacheableResponse: [0, 200]` — dış `<img>` yanıtları opaque —, `purgeOnQuotaError`), `GET /api/v1/catalog/*` → StaleWhileRevalidate (`kfdu-catalog`, 1 gün; katalog uçları kullanıcıya özel değil, paylaşılması güvenli), diğer `/api/` → NetworkOnly. Üretilen `sw.js` incelendi, kurallar birebir.
+  3. Güncelleme istemi: `main.ts`'te `registerSW({ onNeedRefresh })` → `toast.info('Yeni sürüm hazır', { action: 'Yenile' → updateServiceWorker(true), duration: Infinity })` (ilk sürümde düz `toast()` koyu temada beyaz kutu çıkıyordu; uygulamadaki tüm diğer bilgi bildirimleriyle tutarlı olsun diye `toast.info`). `env.d.ts`'e `vite-plugin-pwa/client` tipleri.
+  4. `composables/usePwaInstall.ts`: `beforeinstallprompt` (tarayıcının kendi çubuğu bastırılır) ve `appinstalled` dinlenir, `listenForInstallPrompt()` olay erken gelirse kaçmasın diye mount'tan önce çağrılır; `AppHeader` kullanıcı menüsünde yalnız kurulum mümkünse "Uygulamayı yükle" (kabulde "KFDU yüklendi" bildirimi).
+  5. Çevrimdışı şeridi F3.9'dan beri vardı (`OfflineBanner`), değişmedi — canlı doğrulandı.
+- **Gerçek hata (D-28):** Çevrimdışı test, oturumun düştüğünü gösterdi: `stores/auth.ts`'in `fetchMe()`'si her hatada token'ı siliyor, `router` koruması da `/giris`'e yönlendiriyordu. Düzeltildi (yalnız 401'de çıkış; ağ/5xx'te sayfa açılır; `online` olayında profil sessizce yeniden alınır), `stores/auth.spec.ts` ile 3 testle kilitlendi.
+- **Değişen dosyalar:** `frontend/package.json`, `frontend/package-lock.json`, `frontend/vite.config.ts`, `frontend/pwa-assets.config.ts` (yeni), `frontend/tsconfig.node.json`, `frontend/env.d.ts`, `frontend/index.html`, `frontend/public/{favicon.svg, favicon.ico, pwa-64x64.png, pwa-192x192.png, pwa-512x512.png, maskable-icon-512x512.png, apple-touch-icon-180x180.png}`, `frontend/src/main.ts`, `frontend/src/composables/{usePwaInstall.ts, usePwaInstall.spec.ts}` (yeni), `frontend/src/components/layout/AppHeader.vue`, `frontend/src/stores/{auth.ts, auth.spec.ts (yeni)}`, `frontend/src/router/index.ts`.
+- **Doğrulama:** Frontend `lint`/`type-check`/`build` temiz, `test:unit` **90 passed** (7 yeni: kurulum composable'ı 4, oturum 3). Backend (değişmedi) `pytest` 120 passed, ruff temiz. **Gerçek Chrome (headless, `vite preview` + backend, Puppeteer):** sayfa SW denetiminde; `Page.getInstallabilityErrors` → `[]`; `Page.getAppManifest` hatasız; menüde "Uygulamayı yükle" (headless'ta da `beforeinstallprompt` geldi); önbellekler: kabuk 66, `kfdu-catalog` 4, `kfdu-images` 10 kayıt; **ağ hem sayfada hem SW'de kesikken** (kanıt: `fetch('/api/v1/health')` → "Failed to fetch", bildirim rozeti yok): oturum korunuyor, kitap sayfası önbellekten başlık+özet+kapakla, hiç ziyaret edilmemiş `/ayarlar` kabukla açılıyor, çevrimdışı şeridi görünüyor; `dist/sw.js` değiştirilince "Yeni sürüm hazır → Yenile" çıkıyor, tıklayınca bekleyen worker devreye giriyor (önce `waiting=true`, sonra `false`). Sunucular durduruldu, portların boşaldığı doğrulandı.
+- **Kapanan maddeler:** Plan F4.8 (proje-plani.md §Faz 4).
+- **Commit:** `b5e2697` (kod) + bu ilerleme güncellemesinin docs commit'i
+- **Notlar / sorunlar:** (1) Puppeteer `setOfflineMode` yalnız sayfaya uygulanır; SW denetimindeki sayfada çevrimdışı testi SW hedefine de ağ kesintisi uygulanarak ve kesinti kanıtlanarak yapılmalı (ilk denemem bu yüzden yanıltıcıydı, düzeltildi). (2) `npm audit`: 4 "high" bulgu yalnız geliştirme aracında (`@vue/eslint-config-typescript` → `fast-glob` → `micromatch` → `braces`, bu adımdan önce de vardı; `npm audit fix --force` eslint yapılandırmasını kıran bir sürüme düşürüyor) — **üretim bağımlılıklarında 0 açık** (`npm audit --omit=dev`); F7.4 güvenlik gözden geçirmesinde ele alınmak üzere not edildi. (3) Yazı tipinin 7 alt kümesi de (latin dışı dahil) önbelleğe alınıyor (~200 KB) — çevrimdışında her karakter doğru görünsün diye bilinçli; F7.3 performans adımında yeniden değerlendirilebilir.
+- **Sonraki adım:** 🏁 F4.9 — Faz 4 kapanışı
 
 ### [2026-10-04] F4.7 — Veri dışa / içe aktarma — ✅
 
