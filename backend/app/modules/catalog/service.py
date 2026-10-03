@@ -1,5 +1,6 @@
 import difflib
 import re
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
@@ -287,6 +288,20 @@ def get_source_book(db: Session, content_type: str, external_id: str) -> Content
     author = detail.novel_authors[0] if detail.novel_authors else None
     title = detail.original_title or detail.title
     return _find_source_book_cached(title, author)
+
+
+def find_movie(title: str, year: int | None) -> ContentSummary | None:
+    """İçe aktarma eşleştirmesi: TMDB'de ad + yıl ile ilk sonuç."""
+    return tmdb.search_movie_by_year(title, year)
+
+
+def find_book(*, isbns: Sequence[str], title: str, author: str | None) -> ContentSummary | None:
+    """İçe aktarma eşleştirmesi: önce ISBN (kesin), bulunamazsa başlık + yazar (benzerlik ≥ 0.6)."""
+    for isbn in isbns:
+        found = openlibrary.find_by_isbn(isbn)
+        if found is not None:
+            return found
+    return openlibrary.find_source_book(title, author)
 
 
 def search_best(title: str, types: list[str]) -> ContentSummary | None:

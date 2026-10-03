@@ -91,7 +91,9 @@ const LIBRARY_FILTERS = [
   { key: 'okunuyor', label: 'Okuyorum', types: ['book'] as CatalogContentType[], status: 'in_progress' },
   { key: 'yarim', label: 'Yarım Bıraktıklarım', types: [] as CatalogContentType[], status: 'dropped' },
 ]
-const librarySubTab = ref(LIBRARY_FILTERS[0]!.key)
+// Alt raf da URL'de (?raf=okunan): bağlantıyla doğrudan ilgili rafa gelinebilir (ör. içe aktarma sonrası)
+const librarySubTab = ref(LIBRARY_FILTERS.find((f) => f.key === route.query.raf)?.key ?? LIBRARY_FILTERS[0]!.key)
+watch(librarySubTab, () => void router.replace({ query: { ...route.query, raf: librarySubTab.value } }))
 const librarySort = ref<'recent' | 'rating' | 'title' | 'year'>('recent')
 
 const activeLibraryFilter = computed(() => LIBRARY_FILTERS.find((f) => f.key === librarySubTab.value)!)

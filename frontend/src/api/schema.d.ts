@@ -1039,6 +1039,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verilerimi dışa aktar */
+        get: operations["transfer-export_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** İçe aktarma başlat (Letterboxd / Goodreads CSV) */
+        post: operations["transfer-start_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/import/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** İçe aktarma durumu */
+        get: operations["transfer-get_import_job"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1160,6 +1211,12 @@ export interface components {
              * Format: password
              */
             client_secret?: string | null;
+        };
+        /** Body_transfer-start_import */
+        "Body_transfer-start_import": {
+            source: components["schemas"]["ImportSource"];
+            /** File */
+            file: string;
         };
         /** Body_users-upload_avatar */
         "Body_users-upload_avatar": {
@@ -1386,6 +1443,11 @@ export interface components {
             /** Progress */
             progress?: number | null;
         };
+        /**
+         * ExportFormat
+         * @enum {string}
+         */
+        ExportFormat: "json" | "csv";
         /** FriendEntry */
         FriendEntry: {
             user: components["schemas"]["PublicUserOut"];
@@ -1430,6 +1492,55 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * ImportFileKind
+         * @enum {string}
+         */
+        ImportFileKind: "ratings" | "diary" | "watched" | "watchlist" | "goodreads_library";
+        /** ImportJobOut */
+        ImportJobOut: {
+            /** Id */
+            id: number;
+            source: components["schemas"]["ImportSource"];
+            status: components["schemas"]["ImportStatus"];
+            /** Total */
+            total: number;
+            /** Processed */
+            processed: number;
+            /** Matched */
+            matched: number;
+            report: components["schemas"]["ImportReport"];
+            /** Error */
+            error: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Finished At */
+            finished_at: string | null;
+        };
+        /** ImportReport */
+        ImportReport: {
+            file_kind: components["schemas"]["ImportFileKind"] | null;
+            /** Unmatched */
+            unmatched: string[];
+        };
+        /**
+         * ImportSource
+         * @enum {string}
+         */
+        ImportSource: "letterboxd" | "goodreads";
+        /** ImportStartOut */
+        ImportStartOut: {
+            /** Job Id */
+            job_id: number;
+        };
+        /**
+         * ImportStatus
+         * @enum {string}
+         */
+        ImportStatus: "pending" | "running" | "done" | "failed";
         /**
          * LibraryStatus
          * @enum {string}
@@ -4553,6 +4664,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContentSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "transfer-export_data": {
+        parameters: {
+            query?: {
+                format?: components["schemas"]["ExportFormat"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dosya eki: JSON (profil, kütüphane, incelemeler, listeler) veya CSV */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/csv": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "transfer-start_import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_transfer-start_import"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportStartOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "transfer-get_import_job": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobOut"];
                 };
             };
             /** @description Validation Error */

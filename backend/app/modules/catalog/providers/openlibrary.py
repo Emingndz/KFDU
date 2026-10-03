@@ -83,6 +83,17 @@ def search(query: str, page: int, limit: int = 20) -> tuple[list[ContentSummary]
     return [to_summary(d) for d in docs], data.get("numFound", len(docs))
 
 
+def find_by_isbn(isbn: str) -> ContentSummary | None:
+    data = request_json(
+        "GET",
+        f"{BASE_URL}/search.json",
+        params={"q": f"isbn:{isbn}", "fields": _SEARCH_FIELDS, "limit": 1},
+        service="Open Library",
+    )
+    docs = data.get("docs", [])
+    return to_summary(docs[0]) if docs else None
+
+
 def discover(
     *,
     subject: str | None = None,

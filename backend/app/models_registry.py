@@ -5,6 +5,7 @@ from app.modules.library.models import LibraryEntry, Review
 from app.modules.lists.models import ListItem, UserList
 from app.modules.social.models import Activity, ActivityComment, ActivityLike, Notification
 from app.modules.stats.models import UserGoal
+from app.modules.transfer.models import ImportJob
 from app.modules.users.models import Follow, User
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "Base",
     "Content",
     "Follow",
+    "ImportJob",
     "LibraryEntry",
     "ListItem",
     "Notification",

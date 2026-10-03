@@ -16,7 +16,7 @@ vi.mock('@/router', () => ({
 
 vi.mock('vue-sonner', () => ({ toast: { error: toastErrorMock } }))
 
-import { api, ApiError } from './client'
+import { api, apiDownload, ApiError } from './client'
 
 type FetchResponse = { status: number; ok: boolean; json: () => Promise<unknown> }
 
@@ -105,5 +105,41 @@ describe('api client', () => {
     expect(logoutMock).toHaveBeenCalledTimes(2)
     expect(toastErrorMock).toHaveBeenCalledTimes(1)
     expect(pushMock).toHaveBeenCalledWith({ path: '/giris', query: { redirect: '/ayarlar' } })
+  })
+})
+
+describe('apiDownload', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('gövdeyi Blob, dosya adını Content-Disposition başlığından döndürür', async () => {
+    const blob = new Blob(['{}'], { type: 'application/json' })
+    const fetchMock = vi.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue({
+      status: 200,
+      ok: true,
+      blob: async () => blob,
+      json: async () => null,
+      headers: new Headers({ 'Content-Disposition': 'attachment; filename="kfdu-ali-2026-10-04.json"' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await apiDownload('/users/me/export', { query: { format: 'json' } })
+
+    expect(result).toEqual({ blob, filename: 'kfdu-ali-2026-10-04.json' })
+    const calledUrl = fetchMock.mock.calls[0]![0] as URL
+    expect(calledUrl.pathname).toBe('/api/v1/users/me/export')
+    expect(calledUrl.searchParams.get('format')).toBe('json')
+    expect((fetchMock.mock.calls[0]![1] as RequestInit).headers).toEqual({ Authorization: 'Bearer test-token' })
+  })
+
+  it('başarısız yanıtı ApiError’a çevirir', async () => {
+    vi.stubGlobal('fetch', mockFetchOnce({ status: 422, body: { detail: 'Geçersiz biçim', code: 'VALIDATION_ERROR' } }))
+
+    await expect(apiDownload('/users/me/export')).rejects.toMatchObject({
+      status: 422,
+      code: 'VALIDATION_ERROR',
+      message: 'Geçersiz biçim',
+    })
   })
 })

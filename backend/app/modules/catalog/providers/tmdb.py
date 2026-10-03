@@ -208,6 +208,15 @@ def search(content_type: str, query: str, page: int) -> tuple[list[ContentSummar
     return items, data.get("total_results", len(items))
 
 
+def search_movie_by_year(name: str, year: int | None) -> ContentSummary | None:
+    params = _params(query=name)
+    if year:
+        params["year"] = year
+    data = request_json("GET", f"{BASE_URL}/search/movie", params=params, service="TMDB")
+    results = data.get("results", [])
+    return to_summary(results[0], "movie") if results else None
+
+
 def discover(
     content_type: str,
     *,

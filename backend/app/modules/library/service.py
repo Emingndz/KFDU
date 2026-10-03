@@ -60,7 +60,7 @@ def _has_review(db: Session, *, user_id: int, content_id: int) -> bool:
 
 
 def upsert_entry(
-    db: Session, *, user: User, content_type: str, external_id: str, data: EntryUpdateIn
+    db: Session, *, user: User, content_type: str, external_id: str, data: EntryUpdateIn, silent: bool = False
 ) -> EntryOut:
     content = catalog_service.get_or_create_content(db, content_type, external_id)
     fields = data.model_fields_set
@@ -107,7 +107,7 @@ def upsert_entry(
     if is_new:
         db.add(entry)
     if rating_set:
-        events.emit("library.log_changed", db=db, user_id=user.id, content_id=content.id, silent=False)
+        events.emit("library.log_changed", db=db, user_id=user.id, content_id=content.id, silent=silent)
     if status_changed:
         events.emit(
             "library.status_changed",
@@ -115,7 +115,7 @@ def upsert_entry(
             user_id=user.id,
             content_id=content.id,
             status=entry.status,
-            silent=False,
+            silent=silent,
         )
 
     db.commit()

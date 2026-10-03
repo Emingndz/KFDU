@@ -6,14 +6,18 @@ import { ApiError } from '@/api/client'
 import { useChangeEmail, useDeleteAccount, useUpdateMe } from '@/api/users'
 import { useChangePassword, useLogoutAllDevices } from '@/api/auth'
 import { useGenres } from '@/api/catalog'
+import { useDownloadExport } from '@/api/transfer'
 import { useAuthStore } from '@/stores/auth'
 import { useConfirm } from '@/composables/useConfirm'
 import { useTheme } from '@/composables/useTheme'
 import { passwordStrength, validateEmail, validatePasswordStrength, validatePasswordsMatch } from '@/utils/validation'
+import { FileJson, FileSpreadsheet } from 'lucide-vue-next'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import ProfileForm from '@/components/users/ProfileForm.vue'
 import GenreChipPicker from '@/components/users/GenreChipPicker.vue'
+import ImportCard from '@/components/transfer/ImportCard.vue'
+import type { ExportFormat } from '@/types'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -136,6 +140,19 @@ async function saveGenres() {
   }
 }
 
+// --- Verilerim: dışa aktar ---
+const downloadExport = useDownloadExport()
+const exportingFormat = computed(() => (downloadExport.isPending.value ? downloadExport.variables.value : null))
+
+async function exportData(format: ExportFormat) {
+  try {
+    await downloadExport.mutateAsync(format)
+    toast.success('Dosyan indirildi')
+  } catch (error) {
+    toast.error(error instanceof ApiError ? error.message : 'Dosya hazırlanamadı, tekrar dene')
+  }
+}
+
 // --- Tehlikeli bölge: hesabı sil ---
 const deletePassword = ref('')
 const deleteConfirmText = ref('')
@@ -230,6 +247,54 @@ async function submitDeleteAccount() {
       </div>
       <div class="flex justify-end">
         <BaseButton :loading="updateGenres.isPending.value" @click="saveGenres">Tercihleri kaydet</BaseButton>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4 rounded-card border border-border p-4">
+      <div>
+        <h2 class="text-lg font-semibold text-fg">Verilerim</h2>
+        <p class="text-sm text-muted">Verilerin senin: istediğin zaman indir ya da başka platformlardan getir.</p>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <h3 class="text-sm font-semibold text-fg">Dışa aktar</h3>
+          <p class="text-sm text-muted">Kütüphanen, puanların, incelemelerin ve listelerin tek dosyada.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <BaseButton
+            variant="secondary"
+            :loading="exportingFormat === 'json'"
+            :disabled="exportingFormat !== null"
+            @click="exportData('json')"
+          >
+            <template #icon><FileJson class="size-4" aria-hidden="true" /></template>
+            JSON indir
+          </BaseButton>
+          <BaseButton
+            variant="secondary"
+            :loading="exportingFormat === 'csv'"
+            :disabled="exportingFormat !== null"
+            @click="exportData('csv')"
+          >
+            <template #icon><FileSpreadsheet class="size-4" aria-hidden="true" /></template>
+            CSV indir (Excel)
+          </BaseButton>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 border-t border-border pt-4">
+        <div>
+          <h3 class="text-sm font-semibold text-fg">İçe aktar</h3>
+          <p class="text-sm text-muted">
+            Mevcut puanların ve durumların korunur, yalnız eksikler tamamlanır. İçe aktarılanlar takipçilerinin akışına
+            düşmez.
+          </p>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2">
+          <ImportCard source="letterboxd" />
+          <ImportCard source="goodreads" />
+        </div>
       </div>
     </section>
 
