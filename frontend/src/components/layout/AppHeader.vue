@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { onClickOutside } from '@vueuse/core'
+import { toast } from 'vue-sonner'
 import { ChevronDown, Search } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/composables/useTheme'
+import { usePwaInstall } from '@/composables/usePwaInstall'
 import BaseAvatar from '@/components/ui/BaseAvatar.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import NotificationBell from '@/components/layout/NotificationBell.vue'
@@ -12,6 +14,7 @@ import NotificationBell from '@/components/layout/NotificationBell.vue'
 const auth = useAuthStore()
 const router = useRouter()
 const { mode, options: themeOptions } = useTheme()
+const { canInstall, install } = usePwaInstall()
 
 const menuOpen = ref(false)
 const menuRef = ref<HTMLElement | null>(null)
@@ -21,6 +24,10 @@ function logout() {
   auth.logout()
   menuOpen.value = false
   router.push('/kesfet')
+}
+
+async function installApp() {
+  if (await install()) toast.success('KFDU yüklendi — artık ana ekranından açabilirsin')
 }
 </script>
 
@@ -90,6 +97,15 @@ function logout() {
               <RouterLink to="/ayarlar" class="block rounded-lg px-3 py-2 text-sm text-fg hover:bg-surface-2" role="menuitem">
                 Ayarlar
               </RouterLink>
+              <button
+                v-if="canInstall"
+                type="button"
+                role="menuitem"
+                class="block w-full rounded-lg px-3 py-2 text-left text-sm text-fg hover:bg-surface-2"
+                @click="installApp"
+              >
+                Uygulamayı yükle
+              </button>
               <div class="my-1 border-t border-border" />
               <p class="px-3 pb-1 text-xs font-medium text-muted">Tema</p>
               <button

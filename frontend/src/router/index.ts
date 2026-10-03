@@ -174,7 +174,8 @@ router.beforeEach(async (to) => {
     try {
       await auth.fetchMe()
     } catch {
-      return { path: '/giris', query: { redirect: to.fullPath } }
+      // Oturum geçersizse (401) token silinmiştir; aşağıdaki requiresAuth kontrolü girişe yönlendirir.
+      // Ağ yok / sunucu hatasında token durur ve sayfa açılır (veriler kendi hata durumlarını gösterir).
     }
   }
 

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { LoginIn, MeOut, RegisterIn } from '@/types'
 import { loginRequest, registerRequest } from '@/api/auth'
+import { ApiError } from '@/api/client'
 import { fetchMeRequest } from '@/api/users'
 
 const TOKEN_STORAGE_KEY = 'kfdu_token'
@@ -47,8 +48,12 @@ export const useAuthStore = defineStore('auth', () => {
       setMe(result)
       return result
     } catch (error) {
-      setToken(null)
-      setMe(null)
+      // Yalnız oturum gerçekten geçersizse (401) çıkış yapılır. Ağ yokken (çevrimdışı açılan PWA) ya da
+      // sunucu geçici hata verirken token korunur; aksi halde kullanıcı sebepsiz yere oturumdan atılırdı.
+      if (error instanceof ApiError && error.status === 401) {
+        setToken(null)
+        setMe(null)
+      }
       throw error
     }
   }
