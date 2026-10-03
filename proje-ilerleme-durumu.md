@@ -1,7 +1,7 @@
 # KFDU v2 — Proje İlerleme Durumu
 
 > Plan: [`proje-plani.md`](proje-plani.md) · Bu dosya **her adımdan sonra** güncellenir (plan §0.2, madde 7).
-> Son güncelleme: **2026-09-30** — F4.6 tamamlandı (Hedefler ve rozetler). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
+> Son güncelleme: **2026-10-04** — F4.7 tamamlandı (Veri dışa / içe aktarma: JSON/CSV indirme, Letterboxd + Goodreads içe aktarma). Kullanıcı kararıyla (D-23) Faz 4-6 boyunca gerçek API anahtarları ve kapsamlı test aşaması proje sonuna erteleniyor; odak çalışan/kullanıcı dostu özellikler inşa etmek.
 
 ## Bu dosya nasıl güncellenir?
 
@@ -21,8 +21,8 @@
 | Alan | Değer |
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.6 tamamlandı) |
-| Sıradaki adım | **F4.7** |
+| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.7 tamamlandı) |
+| Sıradaki adım | **F4.8** — PWA (yüklenebilir uygulama) |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -114,7 +114,12 @@
   - **Frontend:** `components/stats/GoalRings.vue` (SVG halka — `stroke-dasharray`/`stroke-dashoffset` ile ilerleme, "Hedeflerim" başlığı + kalem ikonuyla düzenleme modu, hedef tamamlanınca `watch` ile önceki/yeni veri karşılaştırılıp geçiş anında toast — yalnız GERÇEKTEN tamamlanmamıştan tamamlanmışa geçişte, sayfa ilk açıldığında zaten tamamlanmışsa tetiklenmiyor) ve `components/stats/BadgeShowcase.vue` (rozet vitrini, kazanılmayanlar `grayscale`+`opacity-40`) `ProfilePage`'in İstatistik sekmesine eklendi — hedef halkaları yalnız kendi profilinde (`is_me`), rozetler herkese açık.
   - **Gerçek performans hatası (üretim derlemesi kontrolüyle yakalandı):** İlk taslak `BadgeShowcase.vue`'da `import * as icons from 'lucide-vue-next'` kullanıyordu — bu, TÜM lucide-vue-next ikon kütüphanesini (yüzlerce ikon) tree-shaking'i devre dışı bırakıp `ProfilePage`'in ana chunk'ına gömdü, chunk boyutu 16 KB'tan **628 KB**'a fırladı (`npm run build`'ın "chunks larger than 500 kB" uyarısıyla fark edildi). Yalnız kullanılan ~10 ikonun AÇIK isimle import edilmesine çevrildi, chunk 22 KB'a döndü.
   - **Gerçek tarayıcı testi (üçüncü kez bu oturumda):** Temiz sunucuyla (bu kez `TaskStop`/`Stop-Process` port doğrulaması F4.5'teki dersle baştan doğru yapıldı) demo1 ile canlı test: halka+rozet grid'i doğru render oluyor, düzenleme modu açılıyor, kitap hedefini 30'a değiştirip kaydetme uçtan uca çalışıyor ve halka anında güncelleniyor, konsol/sayfa hatası YOK, mobilde de doğru görünüyor — ekran görüntüleriyle doğrulandı (bu sırada yukarıdaki `goal_getter` hatası fark edildi).
-- **Sırada:** F4.7 (Veri dışa/içe aktarma).
+- **F4.7 tamamlandı (2026-10-04):** Veri dışa / içe aktarma — yeni `transfer` modülü + v2'nin ikinci gerçek şema migrasyonu (`import_jobs`, plan §4.3'ün kolonlarıyla birebir: `error`, `finished_at`, `source`/`status` CHECK kısıtları). **Dışa:** `GET /users/me/export?format=json|csv` — JSON (`format/version/exported_at` + profil + kütüphane + incelemeler + listeler ve **liste öğeleri**; içerikler `type/source/external_id/title/year`), CSV (planın 11 sütunu; kütüphanede olmayıp yalnız incelemesi olan içerik de satır; Excel için UTF-8 BOM; Open Library herkesçe düzenlenebildiği için `=`/`+`/`-`/`@` ile başlayan hücreler CSV-injection'a karşı etkisizleştiriliyor), `Content-Disposition: attachment; filename="kfdu-<kullanıcı>-<tarih>.<uzantı>"`. **İçe:** `POST /users/me/import` (multipart `source`+`file` ≤5 MB) → 202 `{job_id}`, `BackgroundTasks` ile işlenir; `GET /users/me/import/{job_id}` durum/ilerleme/rapor. Letterboxd `ratings/watched/watchlist/diary(+reviews).csv` (dosya türü başlıktan; watched ile watchlist'in başlıkları birebir aynı olduğundan bu ikisi dosya adından — D-26) → TMDB `search/movie`; Goodreads `goodreads_library_export.csv` → Open Library `q=isbn:` (ISBN13, sonra ISBN10), yoksa başlık+yazar (`find_source_book`'un ≥0.6 benzerlik kuralı; "Dune (Dune, #1)" seri eki temizleniyor). Olaylar `silent=True` (akışa düşmez). Saniyede ≤3 dış istek `core/http.py`'ye eklenen **ContextVar tabanlı `throttled()`** ile — yalnız içe aktarma işini yavaşlatır, eşzamanlı diğer API isteklerine dokunmaz.
+  - **İçe aktarma ezmez, birleştirir (D-24):** puan yalnız boşsa yazılır; durum yalnız ileri gider (İzleyeceğim→İzledim olur, İzledim asla izleme listesiyle geri alınmaz). **Tarihler dosyadan (D-24):** `finished_at`/`rated_at`/`created_at` dosyadaki tarihlerle yazılır, bilinmiyorsa boş kalır — yoksa F4.5/F4.6'nın yıllık istatistik/hedef/özeti ve platformun "son 30 gün popüler" vitrini içe aktarılan tüm arşivi BU yıla sayardı (gerçek veriyle doğrulandı: 2024'te okunan kitap 2024 istatistiğinde var, 2026 hedefinde yok).
+  - **Sağlamlık:** kullanıcı başına tek etkin iş (409 `IMPORT_IN_PROGRESS`); sunucu yeniden başlarsa yarıda kalan iş 30 dk ilerleme yazmazsa "yarıda kesildi" olarak kapanır; dış kaynak art arda 5 kez hata verirse iş anlaşılır mesajla durur (binlerce satırı boşuna denemez); beklenmeyen hata işi "çalışıyor"da asılı bırakmaz (`failed` + mesaj); yanlış kaynağın dosyası / ZIP / UTF-8 olmayan / boş dosya / TMDB anahtarı yok → her biri ayrı, anlaşılır 422/503 mesajı.
+  - **Frontend:** Ayarlar → **"Verilerim"**: "JSON indir" / "CSV indir (Excel)" (`client.ts`'e `apiDownload` + `utils/download.ts` — fetch + Blob + nesne URL'si) ve iki `ImportCard` (Letterboxd/Goodreads): "Dosyamı nasıl indiririm?" yönergesi, dosya seçici (ZIP/≠.csv/>5 MB istemcide reddedilir), canlı ilerleme çubuğu (`role="progressbar"`) + istemcide ölçülen kalan süre tahmini, sonuç raporu ("11 / 12 içerik eşleşti", eşleşmeyenler listesi), iş kimliği `localStorage`'da → **sayfadan ayrılıp dönünce iş kaldığı yerden görünür**; bitince tüm sorgular tazelenir. "Kütüphaneme git" içe aktarılan rafa iner (`ProfilePage`'e `?raf=` desteği eklendi — varsayılan raf filmler olduğu için kitap aktaran kullanıcı boş sayfa görüyordu, canlı testte bulundu).
+  - **Doğrulama:** Backend **120 test** (22 yeni; transfer modülü %96, genel kapsam **%87**), frontend **83 test** (10 yeni), lint/type-check/build temiz. **Gerçek Open Library'ye karşı** API (20/20 kontrol) ve **gerçek tarayıcıda** (Puppeteer, masaüstü+mobil) uçtan uca: indirmeler, hata mesajları, 12 ve 8 satırlık gerçek içe aktarma, canlı ilerleme (0→2→5→bitti), sayfadan ayrılıp dönme, rapor ve raf bağlantısı. Letterboxd'un canlı denemesi U2'yi (TMDB anahtarı) bekliyor — mock'lu testlerle doğrulandı, arayüzde anlaşılır 503 mesajı gösteriliyor.
+- **Sırada:** F4.8 (PWA).
 
 ---
 
@@ -126,11 +131,11 @@
 | 1 | Backend temeli | ✅ Tamamlandı | 11/11 | 2026-09-26 | 2026-09-26 |
 | 2 | Frontend temeli | ✅ Tamamlandı | 5/5 | 2026-09-26 | 2026-09-26 |
 | 3 | Çekirdek özellikler (ilk kullanılabilir v2) | ✅ Tamamlandı 🏁 | 10/10 | 2026-09-26 | 2026-09-30 |
-| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 6/9 | 2026-09-30 | – |
+| 4 | Çağ atlatma paketi | 🟨 Devam ediyor | 7/9 | 2026-09-30 | – |
 | 5 | Akıllı öneriler | ⬜ Başlamadı | 0/6 | – | – |
 | 6 | KFDU Asistan (NVIDIA LLM) | ⬜ Başlamadı | 0/9 | – | – |
 | 7 | Kalite, test, CI, yayın | ⬜ Başlamadı | 0/9 | – | – |
-| **Toplam** | | | **37/64** | | |
+| **Toplam** | | | **38/64** | | |
 
 Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ Engellendi · ⏭️ Atlandı (kullanıcı onayıyla)
 
@@ -210,7 +215,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.4 — Kitap ↔ film köprüsü (uyarlamalar) — ✅ (2026-09-30)
 - [x] F4.5 — İstatistikler ve Yıllık Özet — ✅ (2026-09-30)
 - [x] F4.6 — Hedefler ve rozetler — ✅ (2026-09-30)
-- [ ] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads)
+- [x] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads) — ✅ (2026-10-04)
 - [ ] F4.8 — PWA
 - [ ] F4.9 — Faz 4 kapanışı 🏁
 
@@ -351,6 +356,10 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-09-27 | D-21 | `core/http.py`'deki `request_json`, dış sağlayıcıdan (TMDB/Open Library) gelen 404'ü artık `not_found()` ile temiz 404'e çeviriyor (önceden sarmalanmadan fırlatılıp genel yakalayıcıda 500'e dönüşüyordu) | ✅ Uygulayıcı kararı — F3.3'te `ContentDetailPage`'in "Bu içerik bulunamadı" durumunu canlı test ederken bulundu (`catalog/book/OL999999999W` → 500 dönüyordu). Diğer 4xx kodları (400/401/403) eskisi gibi sarmalanmadan fırlatılmaya devam ediyor — yalnızca 404'e özel, dar kapsamlı bir düzeltme. |
 | 2026-09-27 | D-22 | `social/service.py`'deki `is_edited` hesaplaması `updated_at > created_at` yerine `(updated_at - created_at).total_seconds() > 1` oldu | ✅ Uygulayıcı kararı — F3.3'te canlı test sırasında bulundu: `TimestampMixin` her iki alanı da ayrı `datetime.now(UTC)` çağrısıyla dolduruyor, bu yüzden her yeni inceleme mikrosaniyelik farktan dolayı yanlışlıkla "düzenlendi" görünüyordu. `TimestampMixin`'in kendisi (12+ tabloyu etkiler) değil, yalnızca bu tek kullanım yeri değiştirildi — daha dar kapsamlı ve düşük riskli. Regresyon testi eklendi. |
 | 2026-09-30 | D-23 | **Öncelik kararı (Faz 3 kapanışından sonra):** Gerçek veri/API anahtarları (U1 Gmail, U2 TMDB) ve kapsamlı test/QA aşaması (Faz 7) proje sonuna ertelensin; Faz 4-5-6 boyunca öncelik "doğru, çalışan, kullanıcı dostu, gerçekten güzel" özellikleri inşa etmek olsun. TMDB gerektiren yerlerde (film verisi) aynı desen korunur: kod yazılır+test edilir (mock/fixture'larla), gerçek canlı doğrulama U2 tamamlanınca yapılır — bu zaten F1.6'dan beri izlenen yöntem. | ✅ Kullanıcı kararı — "gerçek veriler, api keyleri ve test aşaması beklesin ... sonrasında ... eski verileri silmeni isticem." Kullanıcı fazların sonunda API anahtarlarını kendisi girecek, ardından eski/legacy verinin (`legacy-v1` etiketi, `backend/legacy_backup/`) silinmesini AYRICA isteyecek (bkz. U13) — bu istek gelmeden legacy veriye dokunulmayacak. |
+| 2026-10-04 | D-24 | **İçe aktarma birleştirir, ezmez; tarihler dosyadan gelir:** puan yalnız kütüphanede puan yoksa yazılır; durum yalnız "ileri" gidiyorsa değişir (sıra: planned < in_progress = dropped < completed). Yeni/değişen girişte `finished_at`, `rated_at` ve (yeni girişte) `created_at` dosyadaki tarihlerle yazılır; bilinmiyorsa boş kalır — `upsert_entry`'nin "bugün/şimdi" damgası içe aktarmada geçersiz kılınır. | ✅ Uygulayıcı kararı — plan eşleme/dönüşüm kurallarını veriyor ama mevcut veriyle çakışmayı ve tarihleri tanımlamıyor. Ezmek kullanıcının KFDU'da verdiği puanı sessizce silerdi; "bugün" damgası ise F4.5/F4.6'nın yıllık istatistik/hedef/özetini (içe aktarılan yüzlerce kitap "bu yıl okundu" sayılır, okuma hedefi anında dolar) ve platformun "son 30 gün popüler" vitrinini (tek kullanıcının arşivi) bozardı. Gerçek veriyle doğrulandı. |
+| 2026-10-04 | D-25 | `transfer/parsers.py` yardımcı dosyası (saf CSV ayrıştırma; `ImportRow`/`ParsedFile`) | ✅ Uygulayıcı kararı — plan §3.5.1 yardımcı dosyaları "yalnız planda belirtildiği yerlerde" açar; bu dosya HTTP/DB'siz saf ayrıştırmayı (≈190 satır, kendi testleriyle) servisten ayırmak için bilinçli istisna. (Ek bağlam: önceki oturumdan kalan taslak dosyaları silme komutu ortamın izin sistemince engellendi; taslak dosyalar silinmeden yerinde yeniden yazıldı — migrasyon da aynı revizyon kimliğiyle düzeltildi, dev DB önce geri alınıp sonra yeniden uygulandı.) |
+| 2026-10-04 | D-26 | Letterboxd'da `watched.csv` ile `watchlist.csv` dosya ADINDAN ayırt edilir; `diary.csv`/`reviews.csv` de kabul edilir (izleme tarihi + puan, yeniden izlemelerde en son izleme) | ✅ Uygulayıcı kararı — plan "dosya türü başlık satırından algılanır" diyor ama bu iki dosyanın başlıkları birebir aynı (`Date,Name,Year,Letterboxd URI`); başlıktan ayırt etmek imkânsız. Puanlı dosyalar başlıktan (`Rating`/`Watched Date`) algılanmaya devam ediyor. Goodreads'te ayrıca yaygın özel raflar (`did-not-finish`/`dnf`/`abandoned`) "Yarım bıraktım"a eşleniyor. |
+| 2026-10-04 | D-27 | İçe aktarma ilerlemesi her 10 satırda **veya** en geç 3 saniyede bir yazılır | ✅ Uygulayıcı kararı — plan "her 10 satırda `processed` güncellenir" diyor; hız sınırı yüzünden satır başına ~1 sn sürdüğünden küçük dosyalarda çubuk ~10 sn "0 / 12"de donuk kalıyordu (gerçek tarayıcı testinde görüldü). Yazma sıklığı yine sınırlı (≤ 1 / 3 sn), sahte saatli birim testiyle doğrulandı. |
 
 ---
 
@@ -360,7 +369,9 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 
 | Tarih | Adım | Not / öneri | Kullanıcı kararı |
 |---|---|---|---|
-| – | – | – | – |
+| 2026-10-04 | F4.7 | **Letterboxd ZIP'ini doğrudan kabul etmek:** Letterboxd dışa aktarımı tek bir ZIP indiriyor; şu an kullanıcı ZIP'i açıp `ratings/watched/watchlist.csv`'yi tek tek yüklüyor (plan "CSV" dediği için). Standart kütüphanedeki `zipfile` ile ZIP tek seferde kabul edilip içindeki dosyalar birleştirilebilir (ek bağımlılık yok). | ⏳ Kullanıcıya soruldu |
+| 2026-10-04 | F4.7 | **Letterboxd `reviews.csv` metinlerini KFDU incelemesi olarak aktarmak:** şu an `reviews.csv` yalnız puan+durum olarak işleniyor, inceleme metinleri alınmıyor. | ⏳ Kullanıcıya soruldu (öneri, gerekirse ileride) |
+| 2026-10-04 | F4.7 | `ProfilePage`'e `?raf=` (kütüphane alt rafı) URL parametresi eklendi — "Kütüphaneme git" bağlantısı içe aktarılan rafa insin diye; `sekme` ile aynı desen, geriye uyumlu (parametre yoksa eski varsayılan). | ✅ Uygulandı (F4.7 arayüzünün parçası, küçük; bilgi için) |
 
 ---
 
@@ -368,7 +379,7 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 
 | Ölçüm | Hedef | Değer | Tarih |
 |---|---|---|---|
-| Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%80** | 2026-09-26 (F1.11) |
+| Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%87** (120 test; F1.11'de %80) | 2026-10-04 (F4.7) |
 | Lighthouse Performans (mobil: Keşfet / Detay / Akış) | ≥ 85 | – (yalnız erişilebilirlik kategorisi ölçüldü) | – |
 | Lighthouse Erişilebilirlik (mobil) | ≥ 90 | **96 / 97 / 96** | 2026-09-30 (F3.9/F3.10) |
 | İlk yük JavaScript (gzip) | ≤ 200 KB | – | – |
@@ -405,6 +416,28 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-10-04] F4.7 — Veri dışa / içe aktarma — ✅
+
+- **Süreklilik:** Önceki oturum F4.7'nin backend taslağını commit'lemeden bırakmıştı (`transfer` modülü, migrasyon, testler; frontend hiç başlanmamıştı) ve taslak migrasyon dev DB'ye uygulanmıştı. Taslak plana karşı incelendi; şu kusurlar bulunup düzeltildi:
+  1. **Testlerde çalışmayan arka plan işi:** iş `SessionLocal()` açıyordu — testlerde bu, test motorundan AYRI, tablosuz bir bellek içi SQLite'a bağlanır. Artık iş, isteğin oturumuyla aynı bağlantı motorunda (`db.get_bind()`) kendi oturumunu açıyor (üretimde de doğru, istek oturumu kapanmış olsa bile).
+  2. **Goodreads başlık+yazar yedeği hiç eşleşmezdi:** `search_best("Başlık Yazar")` birleşik sorguyu yalnız BAŞLIKLA kıyaslıyordu (benzerlik eşiğin altında kalır). Open Library'nin `title=&author=` aramasını yapan `find_source_book` kullanıldı.
+  3. **Şema plana uymuyordu:** `error`/`finished_at` kolonları, CHECK kısıtları ve uzunluklar yoktu; durum `processing` (plan: `running`). Model düzeltildi, dev DB'de migrasyon geri alındı, aynı revizyon kimliğiyle yeniden yazılıp uygulandı (`alembic check` temiz).
+  4. **Asılı kalan iş:** AppError dışı bir hata işi sonsuza dek "çalışıyor"da bırakıyordu; bilinmeyen raflar sessizce atılıyordu; `rating × 2` geçersiz değerde patlıyordu; `time.sleep(1/3)` satır başına uyuyordu (oysa satır başına 2-3 istek yapılıyor → plan sınırı aşılıyordu).
+- **Yapılanlar (backend):**
+  - `transfer/models.py` (`ImportJob`, plan §4.3), `schemas.py` (`ExportFormat`/`ImportSource`/`ImportStatus`/`ImportFileKind`/`ImportStartOut`/`ImportReport`/`ImportJobOut`), `parsers.py` (saf ayrıştırma, D-25), `service.py`, `router.py`; migrasyon `3c855efb8a04_ice_aktarma_isleri_tablosu.py`.
+  - **Dışa aktarma:** JSON (`format: kfdu-export`, `version: 1`, profil, kütüphane, incelemeler, listeler + öğeleri) ve CSV (planın 11 sütunu; yalnız incelemesi olan içerik de satır; UTF-8 BOM; CSV-injection koruması; tür+başlığa göre sıralı). Dosya adı `kfdu-<kullanıcı>-<tarih>`; tarih `library` modülünün "bugün"üyle aynı takvim günü (`date.today()` — canlı testte UTC kullanınca gece yarısından sonra "dünün" tarihi çıktığı görüldü).
+  - **İçe aktarma:** Letterboxd (`ratings`/`watched`/`watchlist`/`diary`, D-26; puan `round(yıldız×2)`, 1-10'a sıkıştırılır; aynı film birden çok kez geçerse en son izleme + önceki puan) → `catalog_service.find_movie` (TMDB `search/movie`, `year`); Goodreads (raflar → durum, `My Rating ×2`, 0 = puan yok; `="..."` sarılı ISBN'ler temizlenir; seri eki "(Dune, #1)" atılır; `Date Read` → bitiş, `Date Added` → kayıt tarihi) → `catalog_service.find_book` (ISBN13 → ISBN10 → başlık+yazar). Birleştirme/tarih politikası D-24. `library.upsert_entry`'nin `silent` parametresiyle olaylar sessiz (social handler'ları zaten `silent`'ı dikkate alıyordu).
+  - `core/http.py`: `throttled(per_second)` bağlam yöneticisi + `_Throttle` (ContextVar — yalnız içe aktarma işinin dış istekleri, yeniden denemeler dahil, saniyede ≤3'e sınırlanır; eşzamanlı diğer isteklere dokunulmaz). Canlı logda OL çağrılarının ~0,33 sn aralıkla gittiği doğrulandı.
+  - Sağlamlık: tek etkin iş (409), 30 dk ilerleme yazmayan iş "yarıda kesildi" (sunucu yeniden başlarsa), art arda 5 dış hata → anlaşılır mesajla `failed`, satır bazında `AppError` ve ham `httpx` hataları (ör. 401) yakalanır, beklenmeyen hata → `failed`+mesaj+log; ilerleme her 10 satırda veya en geç 3 sn'de bir (D-27). TMDB anahtarı yokken Letterboxd isteği baştan 503 `TMDB_NOT_CONFIGURED`.
+- **Yapılanlar (frontend):** `api/transfer.ts` (`downloadExportRequest`/`useDownloadExport`, `startImportRequest`/`useStartImport`, `useImportJob` — iş sürdükçe 1,5 sn'de bir yoklar, bitince durur — `useRefreshAfterImport`), `client.ts`'e `apiDownload` (URL/hata mantığı `api()` ile ortak yardımcılara çıkarıldı), `utils/download.ts` (`filenameFromDisposition` RFC 5987 dahil, `saveBlob`), `components/transfer/ImportCard.vue` (yönerge, dosya seçici, istemci doğrulaması, ilerleme çubuğu + kalan süre, sonuç/eşleşmeyenler, hata ve "durum alınamadı" durumları; iş kimliği `localStorage`'da), `SettingsPage`'e "Verilerim" bölümü, `ProfilePage`'e `?raf=` (Plan Dışı Notlar'a kaydedildi). `npm run gen:api` yerine aynı OpenAPI çıktısı `app.openapi()`'den üretilip `openapi-typescript`'e verildi (sunucu başlatmadan; fark yalnız yeni uçlar).
+- **Gerçek tarayıcı/canlı testte bulunup düzeltilenler:** (1) "Kütüphaneme git" varsayılan film rafına iniyordu — kitap aktaran kullanıcı boş sayfa görüyordu → `?raf=` ile içe aktarılan rafa iniyor. (2) İlerleme çubuğu küçük dosyalarda ~10 sn donuk → D-27. (3) Dosya adında UTC tarihi → yerel takvim günü. (4) Kendi testimde: önceki testin bağlı kalan bileşeni `useLocalStorage` senkronu yüzünden ikinci kez bildirim tetikliyordu → `enableAutoUnmount`.
+- **Değişen dosyalar:** `backend/app/core/http.py`, `backend/app/main.py`, `backend/app/models_registry.py`, `backend/app/modules/catalog/{service.py,providers/openlibrary.py,providers/tmdb.py}`, `backend/app/modules/library/service.py`, `backend/app/modules/transfer/*` (yeni), `backend/alembic/versions/3c855efb8a04_ice_aktarma_isleri_tablosu.py` (yeni), `backend/tests/test_transfer.py` (yeni); `frontend/src/api/{client.ts,client.spec.ts,schema.d.ts,transfer.ts (yeni)}`, `frontend/src/types/index.ts`, `frontend/src/utils/{download.ts,download.spec.ts}` (yeni), `frontend/src/components/transfer/{ImportCard.vue,ImportCard.spec.ts}` (yeni), `frontend/src/pages/{SettingsPage.vue,ProfilePage.vue}`.
+- **Doğrulama:** Backend: `pytest` → **120 passed** (22 yeni: ayrıştırıcılar, dışa aktarma JSON/CSV/BOM/injection, Letterboxd+Goodreads uçtan uca respx ile, birleştirme politikası, akışta aktivite oluşmaması, geçmiş tarihlerin yıllık istatistiğe doğru yansıması, 409/eski iş kurtarma, 422/503 doğrulamaları, art arda hata, beklenmeyen hata, sahte saatli ilerleme, hız sınırlayıcı) · transfer modülü kapsamı **%96**, genel **%87** · `ruff check`+`format` temiz · `alembic check` temiz. Frontend: `lint`/`type-check`/`build` temiz, `test:unit` **83 passed** (10 yeni: `ImportCard` durum makinesi, `apiDownload`, indirme yardımcıları). **Canlı:** gerçek Open Library'ye karşı httpx betiği **20/20** (ISBN eşleşmesi, ISBN'siz yedek, Türkçe kitap, seri eki, eşleşmeyen raporu, 409, akış boş, 2024 istatistiği dolu/2026 hedefi boş, Letterboxd 503, CSV/JSON); Puppeteer (masaüstü 1280 + mobil 360): JSON/CSV gerçekten iniyor, yanlış dosya/TMDB yok mesajları, 12 satırlık içe aktarma (11/12, eşleşmeyen listesi, bildirim), sayfadan ayrılıp dönünce iş kaldığı yerden, ilerleme 0→2→5→bitti + kalan süre, raf bağlantısı, mobilde yatay taşma yok. Test kullanıcısı (`f47test`) sonunda API ile silindi ve DB'den ayrıca doğrulandı (yalnız 6 demo kullanıcısı; `import_jobs` 0; yetim kütüphane girişi 0); sunucular durduruldu, portların boşaldığı `Get-NetTCPConnection` ile doğrulandı.
+- **Kapanan maddeler:** Plan F4.7 (proje-plani.md §Faz 4).
+- **Commit:** `5022e44` (kod) + bu ilerleme güncellemesinin docs commit'i
+- **Notlar / sorunlar:** Letterboxd'un canlı denemesi U2'yi (TMDB anahtarı, D-23 ile ertelendi) bekliyor; mock'lu testlerle doğrulandı. Örnek CSV'ler ayrı fixture dosyası yerine testlerde satır içi (okunurluk için). İki öneri Plan Dışı Notlar'da kullanıcı kararını bekliyor (Letterboxd ZIP'i doğrudan kabul, `reviews.csv` metinlerini aktarma).
+- **Sonraki adım:** F4.8 — PWA
 
 ### [2026-09-30] F4.6 — Hedefler ve rozetler — ✅
 
