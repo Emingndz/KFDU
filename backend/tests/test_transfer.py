@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import zipfile
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -12,8 +13,9 @@ from sqlalchemy import func, select
 from app.core import http as http_module
 from app.core.config import settings
 from app.core.errors import AppError
-from app.modules.library.models import LibraryEntry
+from app.modules.library.models import LibraryEntry, Review
 from app.modules.social.models import Activity
+from app.modules.transfer import parsers as parsers_module
 from app.modules.transfer import service as transfer_service
 from app.modules.transfer.models import ImportJob
 from app.modules.transfer.parsers import ImportRow, parse_goodreads, parse_letterboxd
@@ -172,6 +174,85 @@ def test_parsers_reject_files_from_the_wrong_source_or_format(parser, content):
     assert exc_info.value.code == "INVALID_IMPORT_FILE"
 
 
+_REVIEWS_HEADER = "Date,Name,Year,Letterboxd URI,Rating,Rewatch,Review,Tags,Watched Date\n"
+_INCEPTION_REVIEW = (
+    "2024-01-16,Inception,2010,https://boxd.it/a,4.5,,"
+    '"Harika bir film.<br>Rüya içinde rüya &amp; müzik <i>muhteşem</i>.",,2024-01-15\n'
+)
+_REVIEWS_CSV = (
+    _REVIEWS_HEADER + _INCEPTION_REVIEW + "2024-02-01,Heat,1995,https://boxd.it/b,4,,ab,,2024-02-01\n"
+)
+
+
+def _letterboxd_zip(files: dict[str, str]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for name, text in files.items():
+            archive.writestr(name, text)
+    return buffer.getvalue()
+
+
+def test_parse_letterboxd_reviews_csv_keeps_text_as_plain_text_and_drops_too_short_ones():
+    parsed = parse_letterboxd(_REVIEWS_CSV.encode(), "reviews.csv")
+    assert parsed.kind == ImportFileKind.REVIEWS
+    inception, heat = parsed.rows
+    assert inception.rating == 9
+    assert inception.review == "Harika bir film.\nRüya içinde rüya & müzik muhteşem."
+    assert inception.finished_on == date(2024, 1, 15)
+    # KFDU incelemesi en az 3 karakter ister; "ab" atlanır ama puan/durum yine alınır
+    assert heat.review is None
+    assert heat.rating == 8
+
+
+def test_parse_letterboxd_zip_merges_files_and_ignores_the_rest():
+    archive = _letterboxd_zip(
+        {
+            "watched.csv": (
+                "Date,Name,Year,Letterboxd URI\n2024-01-10,Inception,2010,x\n2024-01-11,Heat,1995,y\n"
+            ),
+            "ratings.csv": "Date,Name,Year,Letterboxd URI,Rating\n2024-01-12,Heat,1995,y,5\n",
+            "reviews.csv": _REVIEWS_CSV,
+            "watchlist.csv": (
+                "Date,Name,Year,Letterboxd URI\n2024-03-01,Inception,2010,x\n2024-03-02,Alien,1979,z\n"
+            ),
+            "comments.csv": "Date,Comment\n2024-01-01,merhaba\n",
+            "deleted/ratings.csv": "Date,Name,Year,Letterboxd URI,Rating\n2020-01-01,Silinmis,2000,q,5\n",
+        }
+    )
+    parsed = parse_letterboxd(archive, "letterboxd-export.zip")
+    assert parsed.kind == ImportFileKind.ARCHIVE
+    rows = {row.title: row for row in parsed.rows}
+    assert set(rows) == {"Inception", "Heat", "Alien"}
+
+    # İzlendi + izleme listesi: "İzledim" izleme listesiyle geri alınmaz, tarih korunur
+    inception = rows["Inception"]
+    assert inception.status == "completed"
+    assert inception.rating == 9
+    assert inception.review is not None
+    assert inception.finished_on == date(2024, 1, 15)
+    assert rows["Heat"].rating == 8  # reviews.csv (4 yıldız) en son izleme
+    assert rows["Alien"].status == "planned"
+    assert rows["Alien"].finished_on is None
+
+
+@pytest.mark.parametrize(
+    "files",
+    [{"comments.csv": "Date,Comment\n2024-01-01,x\n"}, {"watched.csv": "Title,Author\nDune,Herbert\n"}],
+)
+def test_parse_letterboxd_zip_without_usable_files_is_rejected(files):
+    with pytest.raises(AppError) as exc_info:
+        parse_letterboxd(_letterboxd_zip(files))
+    assert exc_info.value.code == "INVALID_IMPORT_FILE"
+
+
+def test_parse_letterboxd_zip_rejects_oversized_members(monkeypatch):
+    monkeypatch.setattr(parsers_module, "MAX_ARCHIVE_MEMBER_BYTES", 20)
+    archive = _letterboxd_zip({"watched.csv": "Date,Name,Year,Letterboxd URI\n2024-01-10,Inception,2010,x\n"})
+    with pytest.raises(AppError) as exc_info:
+        parse_letterboxd(archive)
+    assert exc_info.value.code == "INVALID_IMPORT_FILE"
+
+
 # --- Dışa aktarma ---
 
 
@@ -301,6 +382,46 @@ def test_letterboxd_import_matches_movie_keeps_history_dates_and_stays_out_of_fe
     assert stats_2024["totals"]["movies"] == 1
     this_year = client.get(f"/api/v1/users/{user.username}/stats", params={"year": date.today().year}).json()
     assert this_year["totals"]["movies"] == 0
+
+
+@respx.mock
+def test_letterboxd_zip_import_creates_silent_review_without_overwriting_existing_one(
+    client, db, user_factory, monkeypatch
+):
+    monkeypatch.setattr(settings, "TMDB_API_KEY", "test-key")
+    _mock_inception()
+    user = user_factory(username="zipiceaktaran", email="zipiceaktaran@example.com")
+    headers = auth_headers(user)
+    archive = _letterboxd_zip({"reviews.csv": _REVIEWS_HEADER + _INCEPTION_REVIEW})
+
+    def upload_zip():
+        return client.post(
+            "/api/v1/users/me/import",
+            headers=headers,
+            data={"source": "letterboxd"},
+            files={"file": ("letterboxd-export.zip", archive, "application/zip")},
+        )
+
+    response = upload_zip()
+    assert response.status_code == 202
+    job = _job(client, headers, response.json()["job_id"])
+    assert (job["status"], job["matched"]) == ("done", 1)
+    assert job["report"]["file_kind"] == "archive"
+
+    db.expire_all()
+    review = db.scalar(select(Review).where(Review.user_id == user.id))
+    assert review.body == "Harika bir film.\nRüya içinde rüya & müzik muhteşem."
+    assert review.created_at.date() == date(2024, 1, 15)
+    # İçe aktarma sessizdir: inceleme akışa etkinlik düşürmez
+    assert db.scalar(select(func.count()).select_from(Activity).where(Activity.actor_id == user.id)) == 0
+
+    # Kullanıcı incelemesini sonradan değiştirir; yeniden içe aktarma onu ezmez
+    review.body = "Benim sonradan yazdığım inceleme"
+    db.commit()
+    assert _job(client, headers, upload_zip().json()["job_id"])["status"] == "done"
+    db.expire_all()
+    reviews = db.scalars(select(Review).where(Review.user_id == user.id)).all()
+    assert [r.body for r in reviews] == ["Benim sonradan yazdığım inceleme"]
 
 
 @respx.mock

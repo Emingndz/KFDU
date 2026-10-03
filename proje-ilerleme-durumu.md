@@ -20,9 +20,9 @@
 
 | Alan | Değer |
 |---|---|
-| Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
-| Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.8 tamamlandı) |
-| Sıradaki adım | **F4.9** 🟨 — 🏁 Faz 4 kapanışı: temiz DB + tüm kontroller ✅ yapıldı; **🛑 `main`e birleştirme, `v2.0.0-beta.2` etiketi ve push için kullanıcı onayı bekleniyor** |
+| Proje durumu | 🏁 Faz 4 tamamlandı, `main`e birleştirildi ve push edildi (`v2.0.0-beta.2`); Faz 5 sırada |
+| Aktif faz | Faz 5 — Akıllı Katman (henüz başlamadı; Faz 4 ✅ F4.1-F4.9) |
+| Sıradaki adım | **F5.1** — Zevk profili (Faz 5 — Akıllı Katman) |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -221,7 +221,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.6 — Hedefler ve rozetler — ✅ (2026-09-30)
 - [x] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads) — ✅ (2026-10-04)
 - [x] F4.8 — PWA — ✅ (2026-10-04)
-- [ ] F4.9 — Faz 4 kapanışı 🏁 — 🟨 kontroller ✅ (2026-10-04), 🛑 birleştirme/etiket/push onayı bekleniyor
+- [x] F4.9 — Faz 4 kapanışı 🏁 — ✅ (2026-10-04)
 
 ### Faz 5 — Akıllı Öneriler
 
@@ -363,6 +363,7 @@ F3.10'da her satır kanıtıyla (sayfa / uç / test) ✅ yapılır.
 | 2026-10-04 | D-24 | **İçe aktarma birleştirir, ezmez; tarihler dosyadan gelir:** puan yalnız kütüphanede puan yoksa yazılır; durum yalnız "ileri" gidiyorsa değişir (sıra: planned < in_progress = dropped < completed). Yeni/değişen girişte `finished_at`, `rated_at` ve (yeni girişte) `created_at` dosyadaki tarihlerle yazılır; bilinmiyorsa boş kalır — `upsert_entry`'nin "bugün/şimdi" damgası içe aktarmada geçersiz kılınır. | ✅ Uygulayıcı kararı — plan eşleme/dönüşüm kurallarını veriyor ama mevcut veriyle çakışmayı ve tarihleri tanımlamıyor. Ezmek kullanıcının KFDU'da verdiği puanı sessizce silerdi; "bugün" damgası ise F4.5/F4.6'nın yıllık istatistik/hedef/özetini (içe aktarılan yüzlerce kitap "bu yıl okundu" sayılır, okuma hedefi anında dolar) ve platformun "son 30 gün popüler" vitrinini (tek kullanıcının arşivi) bozardı. Gerçek veriyle doğrulandı. |
 | 2026-10-04 | D-25 | `transfer/parsers.py` yardımcı dosyası (saf CSV ayrıştırma; `ImportRow`/`ParsedFile`) | ✅ Uygulayıcı kararı — plan §3.5.1 yardımcı dosyaları "yalnız planda belirtildiği yerlerde" açar; bu dosya HTTP/DB'siz saf ayrıştırmayı (≈190 satır, kendi testleriyle) servisten ayırmak için bilinçli istisna. (Ek bağlam: önceki oturumdan kalan taslak dosyaları silme komutu ortamın izin sistemince engellendi; taslak dosyalar silinmeden yerinde yeniden yazıldı — migrasyon da aynı revizyon kimliğiyle düzeltildi, dev DB önce geri alınıp sonra yeniden uygulandı.) |
 | 2026-10-04 | D-26 | Letterboxd'da `watched.csv` ile `watchlist.csv` dosya ADINDAN ayırt edilir; `diary.csv`/`reviews.csv` de kabul edilir (izleme tarihi + puan, yeniden izlemelerde en son izleme) | ✅ Uygulayıcı kararı — plan "dosya türü başlık satırından algılanır" diyor ama bu iki dosyanın başlıkları birebir aynı (`Date,Name,Year,Letterboxd URI`); başlıktan ayırt etmek imkânsız. Puanlı dosyalar başlıktan (`Rating`/`Watched Date`) algılanmaya devam ediyor. Goodreads'te ayrıca yaygın özel raflar (`did-not-finish`/`dnf`/`abandoned`) "Yarım bıraktım"a eşleniyor. |
+| 2026-10-04 | D-30 | Letterboxd içe aktarma: ZIP doğrudan kabul edilir (yalnız kök dizindeki `watched/ratings/diary/reviews/watchlist.csv`; açılmış boyut sınırı dosya başına 10 MB, toplam 25 MB) ve `reviews.csv` metinleri düz metne çevrilip KFDU incelemesi olarak aktarılır (mevcut inceleme ezilmez, olay yayınlanmaz) | ✅ Kullanıcı kararı (F4.9 kapanış sorusu: "Evet, ikisini de yap"); plan yalnız CSV diyordu, bu bilinçli plan dışı genişletme. |
 | 2026-10-04 | D-28 | `auth.fetchMe()` token'ı yalnız **401**'de siler; router koruması ağ/sunucu hatasında `/giris`'e yönlendirmez; bağlantı gelince (`online`) profil sessizce yeniden alınır | ✅ Uygulayıcı kararı (hata düzeltmesi) — F4.8'in çevrimdışı testinde bulundu: önceki kod her hatada token'ı siliyordu, bu yüzden PWA'yı çevrimdışı açan (ya da backend geçici olarak erişilemezken sayfayı yenileyen) kullanıcı oturumdan atılıyordu. `me` boşken tüm kullanım yerleri zaten null-güvenli (denetlendi). 401 akışı (`client.ts`'in `handleUnauthorized`'ı) değişmedi. 3 birim testiyle kilitlendi. |
 | 2026-10-04 | D-29 | Favicon §3.7'deki marka degradesine çekildi; PWA ikonları `pwa-assets.config.ts` ile (minimal-2023 + maskable/Apple ikonları marka rengiyle tam dolu, `padding: 0`) üretildi; `<meta name="theme-color">` manifestle aynı (#7c5cff) | ✅ Uygulayıcı kararı — eski favicon (#4F46E5) marka rengi değildi ve ikonlar ondan üretilecekti; üretecin varsayılanı maskable/Apple ikonlarını beyaz dolguyla çıkarıyordu (Android/iOS'ta beyaz çerçeve). Glif güvenli bölgenin içinde kaldığı için tam dolu üretim kırpılmada sorun çıkarmıyor (görsel olarak doğrulandı). Plan CLI komutunu veriyordu; aynı ön ayar yapılandırma dosyasıyla kullanıldı. |
 | 2026-10-04 | D-27 | İçe aktarma ilerlemesi her 10 satırda **veya** en geç 3 saniyede bir yazılır | ✅ Uygulayıcı kararı — plan "her 10 satırda `processed` güncellenir" diyor; hız sınırı yüzünden satır başına ~1 sn sürdüğünden küçük dosyalarda çubuk ~10 sn "0 / 12"de donuk kalıyordu (gerçek tarayıcı testinde görüldü). Yazma sıklığı yine sınırlı (≤ 1 / 3 sn), sahte saatli birim testiyle doğrulandı. |
@@ -375,8 +376,8 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 
 | Tarih | Adım | Not / öneri | Kullanıcı kararı |
 |---|---|---|---|
-| 2026-10-04 | F4.7 | **Letterboxd ZIP'ini doğrudan kabul etmek:** Letterboxd dışa aktarımı tek bir ZIP indiriyor; şu an kullanıcı ZIP'i açıp `ratings/watched/watchlist.csv`'yi tek tek yüklüyor (plan "CSV" dediği için). Standart kütüphanedeki `zipfile` ile ZIP tek seferde kabul edilip içindeki dosyalar birleştirilebilir (ek bağımlılık yok). | ⏳ Kullanıcıya soruldu |
-| 2026-10-04 | F4.7 | **Letterboxd `reviews.csv` metinlerini KFDU incelemesi olarak aktarmak:** şu an `reviews.csv` yalnız puan+durum olarak işleniyor, inceleme metinleri alınmıyor. | ⏳ Kullanıcıya soruldu (öneri, gerekirse ileride) |
+| 2026-10-04 | F4.7 | **Letterboxd ZIP'ini doğrudan kabul etmek:** Letterboxd dışa aktarımı tek bir ZIP indiriyor; kullanıcı ZIP'i açıp CSV'leri tek tek yüklemek zorunda kalıyordu. Standart kütüphanedeki `zipfile` ile ZIP tek seferde kabul edilip içindeki dosyalar birleştirilir (ek bağımlılık yok). | ✅ Kullanıcı onayladı, F4.9'da uygulandı |
+| 2026-10-04 | F4.7 | **Letterboxd `reviews.csv` metinlerini KFDU incelemesi olarak aktarmak:** `reviews.csv` yalnız puan+durum olarak işleniyordu, inceleme metinleri alınmıyordu. | ✅ Kullanıcı onayladı, F4.9'da uygulandı |
 | 2026-10-04 | F4.7 | `ProfilePage`'e `?raf=` (kütüphane alt rafı) URL parametresi eklendi — "Kütüphaneme git" bağlantısı içe aktarılan rafa insin diye; `sekme` ile aynı desen, geriye uyumlu (parametre yoksa eski varsayılan). | ✅ Uygulandı (F4.7 arayüzünün parçası, küçük; bilgi için) |
 
 ---
@@ -385,7 +386,7 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 
 | Ölçüm | Hedef | Değer | Tarih |
 |---|---|---|---|
-| Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%87** (120 test; F1.11'de %80) | 2026-10-04 (F4.7) |
+| Backend test kapsamı (genel) | ≥ %75 (F1.11 ara hedefi ≥ %70) | **%87** (126 test; F1.11'de %80) | 2026-10-04 (F4.9) |
 | Lighthouse Performans (mobil: Keşfet / Detay / Akış) | ≥ 85 | – (yalnız erişilebilirlik kategorisi ölçüldü) | – |
 | Lighthouse Erişilebilirlik (mobil) | ≥ 90 | **96 / 97 / 96** | 2026-09-30 (F3.9/F3.10) |
 | İlk yük JavaScript (gzip) | ≤ 200 KB | – | – |
@@ -423,14 +424,19 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Sonraki adım:** F?.?
 ```
 
-### [2026-10-04] F4.9 — 🏁 Faz 4 kapanışı — 🟨 (kontroller tamam, 🛑 onay bekleniyor)
+### [2026-10-04] F4.9 — 🏁 Faz 4 kapanışı — ✅
+
+- **Kullanıcı onayları (kapanış):** (1) `v2` → `main` `--ff-only` birleştirme + `v2.0.0-beta.2` etiketi + push ✓. (2) Faz 3'ün atlanan `v2.0.0-beta.1` etiketi Faz 3 kapanış commit'ine (`5701059`) geriye dönük eklendi ✓. (3) F4.7'nin iki plan dışı önerisi de istendi ve uygulandı (aşağıda).
+- **Letterboxd ZIP'i doğrudan kabul (D-30):** `parse_letterboxd` `PK` imzalı içeriği ZIP olarak açar; yalnız **kökteki** `watched/ratings/diary/reviews/watchlist.csv` okunur (`deleted/`, `orphaned/`, `comments.csv`, `likes/` vb. yok sayılır). Dosyalar aynı filmde birleşir (`_merge_rows`): en son izleme esas, eksik puan/inceleme/tarih eskisinden tamamlanır, durum yalnız ileri gider (izleme listesi "İzledim"i geri almaz). ZIP bombasına karşı dosya başına 10 MB / toplam 25 MB açılmış boyut sınırı; yüklenen ZIP yine ≤5 MB. Rapor türü yeni `archive`. Frontend: Letterboxd kartı `.zip`/`.csv` kabul eder (Goodreads yalnız CSV), yönergeler güncellendi.
+- **Letterboxd inceleme metinleri (D-30):** `reviews.csv` (`Review` sütunu) → `ImportRow.review`; HTML işaretleri (`<br>`, `<p>`, `<i>`…) düz metne çevrilir, entity'ler çözülür, 5000 karaktere kısaltılır, 3 karakterden kısaysa metin atlanır (puan/durum yine alınır). Kayıt `service._apply_review`: kullanıcının KFDU'da zaten yazdığı inceleme **asla ezilmez** (yeniden içe aktarma idempotent), olay yayınlanmaz (akışa düşmez), inceleme tarihi dosyadaki izleme tarihi. Yeni rapor türü `reviews`.
+- **Doğrulama (ek):** Backend `pytest` **126 passed** (6 yeni: reviews.csv ayrıştırma, ZIP birleştirme/yok sayma, kullanılamaz ZIP, boyut sınırı, ZIP uçtan uca + inceleme ezilmemesi), `ruff check`/`format --check` temiz. Frontend `lint`/`type-check`/`build` temiz, `test:unit` **91 passed** (1 yeni). Letterboxd canlı denemesi hâlâ U2'yi (TMDB anahtarı, D-23) bekliyor; mock'lu testlerle doğrulandı.
 
 - **Temiz veritabanı:** Plan `python -m scripts.seed --reset` diyor; ancak `--reset` sabit olarak `backend/kfdu.db`'yi siliyor (ayrıca `DATABASE_URL` başka bir dosyayı gösterse bile yalnız `kfdu.db`'yi silip migrasyonu `DATABASE_URL`'e uyguluyor — küçük bir tutarsızlık, F7'de düzeltilebilir). Geliştirme veritabanını silmemek için aynı doğrulama **geçici bir veritabanında** (`DATABASE_URL=sqlite:///<scratchpad>/f49_clean.db`) yapıldı: `alembic upgrade head` → 3 migrasyon sırayla (`fa1eb17da6a0` v2 ilk şema → `03745900fb3f` hedefler → `3c855efb8a04` içe aktarma işleri) ✓; `alembic downgrade base` → üçü de geri alındı ✓; tekrar `upgrade head` ✓; `alembic check` → "No new upgrade operations detected" ✓; `python -m scripts.seed` → 6 kullanıcı, 10 içerik, 40 kütüphane girişi, 12 inceleme, 3 liste, 79 aktivite ✓ (filmler U2'yi bekliyor — beklenen). Geliştirme veritabanı da `head`'de ve `alembic check` temiz.
 - **Tüm kontroller:** Backend `ruff check`+`format --check` temiz, `pytest` **120 passed** (genel kapsam %87). Frontend `lint`/`type-check`/`build` temiz, `test:unit` **90 passed**.
 - **Git durumu:** `v2`, `main`'in 18 commit önünde (`main` `v2`'nin atası → `--ff-only` mümkün), `origin/v2`'nin 16 commit önünde. Etiketler: yalnız `legacy-v1` — **plan Faz 3 kapanışında `v2.0.0-beta.1` istiyordu ama oluşturulmamış** (Faz 3 `--ff-only` ile birleştirilmiş, etiket atlanmış); kullanıcıya soruldu.
 - **Faz 4 demo özeti:** Diziler (sezonlar, bölüm ilerlemesi), bildirim merkezi, kişi/yazar sayfaları, kitap↔film uyarlamaları, istatistikler + Yıllık Özet, hedefler + 12 rozet, veri dışa/içe aktarma (JSON/CSV, Letterboxd, Goodreads), PWA (yüklenebilir, çevrimdışı kabuk/önbellek, güncelleme istemi).
-- **Bekleyen 🛑 kararlar:** `main`e birleştirme + `v2.0.0-beta.2` etiketi + push; F4.7'nin iki plan dışı önerisi (Letterboxd ZIP'i doğrudan kabul, `reviews.csv` metinlerini aktarma).
-- **Sonraki adım:** Onay sonrası F4.9'un kalan kısmı, ardından Faz 5 (F5.1 — Zevk profili)
+- **Bekleyen 🛑 kararlar:** Yok — hepsi onaylandı ve uygulandı.
+- **Sonraki adım:** Faz 5 (F5.1 — Zevk profili)
 
 ### [2026-10-04] F4.8 — PWA (yüklenebilir uygulama) — ✅
 

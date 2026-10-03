@@ -67,13 +67,13 @@ function makeJob(overrides: Partial<ImportJobOut>): ImportJobOut {
   }
 }
 
-function mountCard() {
+function mountCard(source: 'goodreads' | 'letterboxd' = 'goodreads') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [{ path: '/:path(.*)*', component: { template: '<div />' } }],
   })
   return mount(ImportCard, {
-    props: { source: 'goodreads' },
+    props: { source },
     global: { plugins: [createPinia(), router] },
   })
 }
@@ -105,6 +105,20 @@ describe('ImportCard', () => {
     expect(mocks.toastError).toHaveBeenLastCalledWith('Dosya en fazla 5 MB olabilir')
 
     expect(mocks.startImport).not.toHaveBeenCalled()
+  })
+
+  it('Letterboxd kartı ZIP’i doğrudan kabul eder; diğer uzantıları reddeder', async () => {
+    mocks.startImport.mockResolvedValue({ job_id: 9 })
+    const wrapper = mountCard('letterboxd')
+    expect(wrapper.find('input[type="file"]').attributes('accept')).toContain('.zip')
+
+    await selectFile(wrapper, new File(['x'], 'letterboxd-export.txt'))
+    expect(mocks.toastError).toHaveBeenLastCalledWith('Dışa aktarılan .zip ya da .csv dosyasını seç')
+    expect(mocks.startImport).not.toHaveBeenCalled()
+
+    const zip = new File(['PK'], 'letterboxd-export-2026.zip')
+    await selectFile(wrapper, zip)
+    expect(mocks.startImport).toHaveBeenCalledWith({ source: 'letterboxd', file: zip })
   })
 
   it('dosya seçilince işi başlatır, ilerlemeyi gösterir, bitince verileri tazeleyip sonucu raporlar', async () => {

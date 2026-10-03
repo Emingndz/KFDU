@@ -1496,7 +1496,7 @@ export interface components {
          * ImportFileKind
          * @enum {string}
          */
-        ImportFileKind: "ratings" | "diary" | "watched" | "watchlist" | "goodreads_library";
+        ImportFileKind: "ratings" | "diary" | "reviews" | "archive" | "watched" | "watchlist" | "goodreads_library";
         /** ImportJobOut */
         ImportJobOut: {
             /** Id */

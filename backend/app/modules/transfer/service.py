@@ -21,7 +21,13 @@ from app.modules.library.models import LibraryEntry, Review
 from app.modules.library.schemas import EntryUpdateIn
 from app.modules.lists.models import ListItem, UserList
 from app.modules.transfer.models import ImportJob
-from app.modules.transfer.parsers import ImportRow, ParsedFile, parse_goodreads, parse_letterboxd
+from app.modules.transfer.parsers import (
+    STATUS_RANK,
+    ImportRow,
+    ParsedFile,
+    parse_goodreads,
+    parse_letterboxd,
+)
 from app.modules.transfer.schemas import ImportJobOut, ImportReport, ImportSource, ImportStatus
 from app.modules.users.models import User
 
@@ -38,7 +44,6 @@ MAX_CONSECUTIVE_ERRORS = 5
 STALE_JOB_AFTER = timedelta(minutes=30)
 
 _ACTIVE_STATUSES = (ImportStatus.PENDING.value, ImportStatus.RUNNING.value)
-_STATUS_RANK = {"planned": 0, "in_progress": 1, "dropped": 1, "completed": 2}
 
 
 # --- Dışa aktarma ---
@@ -306,40 +311,56 @@ def _apply_row(db: Session, *, user: User, content_type: str, external_id: str, 
     # (ör. "İzleyeceğim" → "İzledim") değişir, "İzledim" asla izleme listesiyle geri alınmaz.
     changes: dict[str, object] = {}
     if row.status and (
-        existing is None
-        or existing.status is None
-        or _STATUS_RANK[row.status] > _STATUS_RANK[existing.status]
+        existing is None or existing.status is None or STATUS_RANK[row.status] > STATUS_RANK[existing.status]
     ):
         changes["status"] = row.status
     if row.rating and (existing is None or existing.rating is None):
         changes["rating"] = row.rating
-    if not changes:
-        return
 
-    had_finish_date = existing is not None and existing.finished_at is not None
-    library_service.upsert_entry(
-        db,
-        user=user,
-        content_type=content_type,
-        external_id=external_id,
-        data=EntryUpdateIn(**changes),
-        silent=True,
-    )
+    if changes:
+        had_finish_date = existing is not None and existing.finished_at is not None
+        library_service.upsert_entry(
+            db,
+            user=user,
+            content_type=content_type,
+            external_id=external_id,
+            data=EntryUpdateIn(**changes),
+            silent=True,
+        )
 
-    # upsert_entry tarihleri "bugün/şimdi" diye damgalar. Geçmişten gelen kayıtta dosyadaki tarih esas
-    # alınır, bilinmiyorsa boş kalır — yoksa yıllık istatistik, hedef ve özet içe aktarılan her şeyi
-    # bu yıla sayar, platformun "son 30 gün popüler" vitrini de tek kullanıcının arşiviyle dolardı.
-    entry = db.scalar(
-        select(LibraryEntry).where(LibraryEntry.user_id == user.id, LibraryEntry.content_id == content.id)
-    )
-    if entry is None:
+        # upsert_entry tarihleri "bugün/şimdi" diye damgalar. Geçmişten gelen kayıtta dosyadaki tarih esas
+        # alınır, bilinmiyorsa boş kalır — yoksa yıllık istatistik, hedef ve özet içe aktarılan her şeyi
+        # bu yıla sayar, platformun "son 30 gün popüler" vitrini de tek kullanıcının arşiviyle dolardı.
+        entry = db.scalar(
+            select(LibraryEntry).where(LibraryEntry.user_id == user.id, LibraryEntry.content_id == content.id)
+        )
+        if entry is not None:
+            if changes.get("status") == "completed" and not had_finish_date:
+                entry.finished_at = row.finished_on
+            if "rating" in changes:
+                entry.rated_at = _midnight_utc(row.finished_on or row.logged_on)
+            if existing is None and row.logged_on:
+                entry.created_at = _midnight_utc(row.logged_on)
+            db.commit()
+
+    _apply_review(db, user=user, content=content, row=row)
+
+
+def _apply_review(db: Session, *, user: User, content: Content, row: ImportRow) -> None:
+    # Letterboxd inceleme metni: kullanıcının KFDU'da zaten yazdığı inceleme ASLA ezilmez. Olay
+    # yayınlanmaz (içe aktarma sessizdir) ve inceleme tarihi dosyadaki tarih olur.
+    if not row.review:
         return
-    if changes.get("status") == "completed" and not had_finish_date:
-        entry.finished_at = row.finished_on
-    if "rating" in changes:
-        entry.rated_at = _midnight_utc(row.finished_on or row.logged_on)
-    if existing is None and row.logged_on:
-        entry.created_at = _midnight_utc(row.logged_on)
+    has_review = db.scalar(
+        select(Review.id).where(Review.user_id == user.id, Review.content_id == content.id)
+    )
+    if has_review is not None:
+        return
+    written_at = _midnight_utc(row.finished_on or row.logged_on)
+    review = Review(user_id=user.id, content_id=content.id, body=row.review)
+    if written_at is not None:
+        review.created_at = review.updated_at = written_at
+    db.add(review)
     db.commit()
 
 

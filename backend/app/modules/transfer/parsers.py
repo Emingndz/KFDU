@@ -4,13 +4,24 @@ Saf fonksiyonlardır (HTTP ve veritabanı yok); eşleştirme ve kaydetme `servic
 """
 
 import csv
+import html
 import io
 import re
+import zipfile
 from dataclasses import dataclass, replace
 from datetime import date, datetime
+from pathlib import PurePosixPath
 
 from app.core.errors import AppError
 from app.modules.transfer.schemas import ImportFileKind
+
+STATUS_RANK = {"planned": 0, "in_progress": 1, "dropped": 1, "completed": 2}
+# KFDU incelemesi en fazla 5000 karakter (library.schemas.ReviewCreateIn) ve en az 3 karakter olabilir
+REVIEW_MIN_CHARS = 3
+REVIEW_MAX_CHARS = 5000
+# ZIP bombasına karşı: arşivden okunan her CSV ve hepsinin toplamı bu sınırı aşamaz
+MAX_ARCHIVE_MEMBER_BYTES = 10 * 1024 * 1024
+MAX_ARCHIVE_TOTAL_BYTES = 25 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -23,6 +34,7 @@ class ImportRow:
     rating: int | None = None
     finished_on: date | None = None
     logged_on: date | None = None
+    review: str | None = None
 
     @property
     def label(self) -> str:
@@ -91,9 +103,46 @@ def _letterboxd_rating(value: str | None) -> int | None:
     return min(10, max(1, round(stars * 2))) if stars > 0 else None
 
 
+_HTML_BREAK_RE = re.compile(r"<\s*(?:br\s*/?|/p)\s*>", re.IGNORECASE)
+_HTML_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
+_BLANK_LINES_RE = re.compile(r"\n{3,}")
+
+
+def _clean_review(value: str | None) -> str | None:
+    # Letterboxd inceleme metinleri <br>, <p>, <i> gibi HTML işaretleri taşıyabilir; KFDU düz metin gösterir
+    if not value:
+        return None
+    text = _HTML_TAG_RE.sub("", _HTML_BREAK_RE.sub("\n", value))
+    text = _BLANK_LINES_RE.sub("\n\n", html.unescape(text)).strip()[:REVIEW_MAX_CHARS].strip()
+    return text if len(text) >= REVIEW_MIN_CHARS else None
+
+
+def _merge_rows(first: ImportRow, second: ImportRow) -> ImportRow:
+    """Aynı filmin iki kaydını birleştirir.
+
+    En son izleme esas alınır (eşitse `second`); onda olmayan puan / inceleme / tarih eskisinden
+    tamamlanır. Durum yalnız ileri gider: izleme listesi kaydı "İzledim"i geri almaz.
+    """
+    if (first.finished_on or date.min) > (second.finished_on or date.min):
+        newer, older = first, second
+    else:
+        newer, older = second, first
+    status = max((first.status, second.status), key=lambda s: STATUS_RANK.get(s or "", -1))
+    return replace(
+        newer,
+        status=status,
+        rating=newer.rating or older.rating,
+        review=newer.review or older.review,
+        finished_on=(newer.finished_on or older.finished_on) if status == "completed" else None,
+        logged_on=newer.logged_on or older.logged_on,
+    )
+
+
 def _letterboxd_kind(fields: set[str], filename: str | None) -> ImportFileKind:
     if "Rating" in fields:
-        # diary.csv ve reviews.csv "Watched Date" taşır; ratings.csv taşımaz
+        # reviews.csv "Review" taşır; diary.csv ile reviews.csv "Watched Date" taşır, ratings.csv taşımaz
+        if "Review" in fields:
+            return ImportFileKind.REVIEWS
         return ImportFileKind.DIARY if "Watched Date" in fields else ImportFileKind.RATINGS
     # watched.csv ile watchlist.csv'nin sütunları birebir aynı (Date, Name, Year, Letterboxd URI);
     # ikisini yalnız Letterboxd'un verdiği dosya adı ayırt ettirir.
@@ -102,43 +151,90 @@ def _letterboxd_kind(fields: set[str], filename: str | None) -> ImportFileKind:
     return ImportFileKind.WATCHED
 
 
+def _row_key(row: ImportRow) -> tuple[str, int | None]:
+    return (row.title.casefold(), row.year)
+
+
+def _add_row(rows: dict[tuple[str, int | None], ImportRow], row: ImportRow) -> None:
+    key = _row_key(row)
+    previous = rows.get(key)
+    rows[key] = _merge_rows(previous, row) if previous is not None else row
+
+
+# ZIP'te okunan dosyalar; sıra, aynı filmin kayıtlarının hangi sırayla birleştirileceğini belirler.
+# comments/likes/lists/profile gibi diğer dosyalar KFDU'da karşılığı olmadığı için yok sayılır.
+_LETTERBOXD_ARCHIVE_FILES = ("watched.csv", "ratings.csv", "diary.csv", "reviews.csv", "watchlist.csv")
+
+
+def _parse_letterboxd_archive(content: bytes) -> ParsedFile:
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(content))
+    except zipfile.BadZipFile as exc:
+        raise _invalid("ZIP okunamadı; Letterboxd'dan indirdiğin dosyayı değiştirmeden yükle") from exc
+
+    with archive:
+        members: dict[str, zipfile.ZipInfo] = {}
+        for info in archive.infolist():
+            path = PurePosixPath(info.filename)
+            # Yalnız kökteki dosyalar: deleted/ ve orphaned/ klasörlerindeki eski kayıtlar alınmaz
+            if not info.is_dir() and len(path.parts) == 1 and path.name.lower() in _LETTERBOXD_ARCHIVE_FILES:
+                members[path.name.lower()] = info
+        if not members:
+            raise _invalid(
+                "Bu ZIP'te Letterboxd verisi bulunamadı. "
+                "İçinde ratings.csv, watched.csv, watchlist.csv veya diary.csv olan dosyayı yükle"
+            )
+
+        rows: dict[tuple[str, int | None], ImportRow] = {}
+        total_bytes = 0
+        for name in _LETTERBOXD_ARCHIVE_FILES:
+            info = members.get(name)
+            if info is None:
+                continue
+            total_bytes += info.file_size
+            if info.file_size > MAX_ARCHIVE_MEMBER_BYTES or total_bytes > MAX_ARCHIVE_TOTAL_BYTES:
+                raise _invalid("ZIP'in içindeki dosyalar çok büyük; Letterboxd'un verdiği dosyayı yükle")
+            for row in parse_letterboxd(archive.read(info), name).rows:
+                _add_row(rows, row)
+    return ParsedFile(kind=ImportFileKind.ARCHIVE, rows=list(rows.values()))
+
+
 def parse_letterboxd(content: bytes, filename: str | None = None) -> ParsedFile:
+    if content.startswith(b"PK\x03\x04"):
+        return _parse_letterboxd_archive(content)
+
     fields, records = _read_csv(content)
     if not fields >= _LETTERBOXD_REQUIRED:
         raise _invalid(
             "Bu dosya bir Letterboxd dışa aktarımına benzemiyor. "
-            "ratings.csv, watched.csv, watchlist.csv veya diary.csv dosyalarından birini yükle"
+            "Letterboxd'un verdiği ZIP'i ya da ratings.csv, watched.csv, watchlist.csv, diary.csv, "
+            "reviews.csv dosyalarından birini yükle"
         )
 
     kind = _letterboxd_kind(fields, filename)
     status = "planned" if kind == ImportFileKind.WATCHLIST else "completed"
 
+    # Günlükte aynı film yeniden izlemelerle birden çok kez geçebilir: en son izleme esas alınır,
+    # son kayıtta puan / inceleme yoksa öncekinden korunur.
     rows: dict[tuple[str, int | None], ImportRow] = {}
     for record in records:
         title = (record.get("Name") or "").strip()
         if not title:
             continue
-        year = _to_int(record.get("Year"))
         logged_on = _parse_date(record.get("Date"))
         watched_on = _parse_date(record.get("Watched Date")) or logged_on
-        row = ImportRow(
-            title=title,
-            year=year,
-            status=status,
-            rating=_letterboxd_rating(record.get("Rating")),
-            finished_on=watched_on if status == "completed" else None,
-            logged_on=logged_on,
+        _add_row(
+            rows,
+            ImportRow(
+                title=title,
+                year=_to_int(record.get("Year")),
+                status=status,
+                rating=_letterboxd_rating(record.get("Rating")),
+                finished_on=watched_on if status == "completed" else None,
+                logged_on=logged_on,
+                review=_clean_review(record.get("Review")),
+            ),
         )
-
-        key = (title.casefold(), year)
-        previous = rows.get(key)
-        if previous is not None:
-            # Günlükte aynı film yeniden izlemelerle birden çok kez geçebilir: en son izleme esas alınır,
-            # son kayıtta puan yoksa önceki puan korunur.
-            if (previous.finished_on or date.min) > (row.finished_on or date.min):
-                row, previous = previous, row
-            row = replace(row, rating=row.rating or previous.rating)
-        rows[key] = row
     return ParsedFile(kind=kind, rows=list(rows.values()))
 
 

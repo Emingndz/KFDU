@@ -18,11 +18,11 @@ const UNMATCHED_PREVIEW = 50
 const COPY: Record<ImportSource, { title: string; description: string; steps: string[]; dotClass: string }> = {
   letterboxd: {
     title: 'Letterboxd',
-    description: 'İzlediğin filmleri, puanlarını ve izleme listeni getir.',
+    description: 'İzlediğin filmleri, puanlarını, incelemelerini ve izleme listeni getir.',
     steps: [
       'letterboxd.com’da Settings → Import & Export sekmesinden “Export your data” de.',
-      'İnen ZIP dosyasını aç.',
-      'ratings.csv (puanların), watched.csv (izlediklerin) ve watchlist.csv (izleme listen) dosyalarını tek tek yükle.',
+      'İnen ZIP dosyasını açmadan olduğu gibi buraya yükle; izlediklerin, puanların, incelemelerin ve izleme listen tek seferde gelir.',
+      'İstersen ZIP’in içindeki ratings.csv, watched.csv, watchlist.csv, diary.csv ya da reviews.csv dosyalarını da tek tek yükleyebilirsin.',
     ],
     dotClass: 'bg-movie',
   },
@@ -41,12 +41,16 @@ const COPY: Record<ImportSource, { title: string; description: string; steps: st
 const FILE_KIND_LABELS: Record<ImportFileKind, string> = {
   ratings: 'ratings.csv — puanlarınla birlikte “İzledim” olarak',
   diary: 'diary.csv — izleme tarihleri ve puanlarınla',
+  reviews: 'reviews.csv — puanların ve inceleme metinlerinle',
+  archive: 'Letterboxd arşivi — izlediklerin, puanların, incelemelerin ve izleme listen',
   watched: 'watched.csv — “İzledim” olarak',
   watchlist: 'watchlist.csv — “İzleyeceğim” olarak',
   goodreads_library: 'Goodreads rafları — Okudum / Okuyorum / Okuyacağım',
 }
 
 const copy = computed(() => COPY[props.source])
+// Yalnız Letterboxd'un dışa aktarımı ZIP olarak gelir; Goodreads tek bir CSV verir
+const acceptsZip = computed(() => props.source === 'letterboxd')
 const auth = useAuthStore()
 
 // İş kimliği tarayıcıda saklanır: sayfadan ayrılıp dönünce ilerleme ya da sonuç kaldığı yerden görünür
@@ -124,12 +128,12 @@ async function onFileChange(event: Event) {
   const file = input.files?.[0]
   input.value = '' // aynı dosya yeniden seçilebilsin
   if (!file) return
-  if (/\.zip$/i.test(file.name)) {
+  if (!acceptsZip.value && /\.zip$/i.test(file.name)) {
     toast.error('ZIP dosyasını açıp içindeki CSV dosyasını seç')
     return
   }
-  if (!/\.csv$/i.test(file.name)) {
-    toast.error('Dışa aktarılan .csv dosyasını seç')
+  if (!(acceptsZip.value ? /\.(csv|zip)$/i : /\.csv$/i).test(file.name)) {
+    toast.error(acceptsZip.value ? 'Dışa aktarılan .zip ya da .csv dosyasını seç' : 'Dışa aktarılan .csv dosyasını seç')
     return
   }
   if (file.size > MAX_FILE_BYTES) {
@@ -240,15 +244,15 @@ function reset() {
       <div>
         <BaseButton size="sm" :loading="startImport.isPending.value" @click="chooseFile">
           <template #icon><FileUp class="size-4" aria-hidden="true" /></template>
-          CSV dosyası seç
+          {{ acceptsZip ? 'ZIP ya da CSV dosyası seç' : 'CSV dosyası seç' }}
         </BaseButton>
         <input
           ref="fileInput"
           type="file"
-          accept=".csv,text/csv"
+          :accept="acceptsZip ? '.zip,.csv,application/zip,text/csv' : '.csv,text/csv'"
           class="hidden"
           tabindex="-1"
-          :aria-label="`${copy.title} CSV dosyası`"
+          :aria-label="`${copy.title} ${acceptsZip ? 'ZIP ya da CSV dosyası' : 'CSV dosyası'}`"
           @change="onFileChange"
         />
       </div>

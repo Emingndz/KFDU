@@ -24,6 +24,8 @@ class ImportStatus(StrEnum):
 class ImportFileKind(StrEnum):
     RATINGS = "ratings"
     DIARY = "diary"
+    REVIEWS = "reviews"
+    ARCHIVE = "archive"
     WATCHED = "watched"
     WATCHLIST = "watchlist"
     GOODREADS_LIBRARY = "goodreads_library"
