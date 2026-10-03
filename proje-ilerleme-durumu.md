@@ -22,7 +22,7 @@
 |---|---|
 | Proje durumu | 🏁 Faz 3 tamamlandı, `main`e birleştirildi ve push edildi; Faz 4 devam ediyor |
 | Aktif faz | Faz 4 — Çağ Atlatma Paketi (F4.1-F4.8 tamamlandı) |
-| Sıradaki adım | **F4.9** — 🏁 Faz 4 kapanışı (temiz DB'de migrasyonlar + tüm kontroller; `main`e birleştirme, `v2.0.0-beta.2` etiketi ve push için 🛑 kullanıcı onayı) |
+| Sıradaki adım | **F4.9** 🟨 — 🏁 Faz 4 kapanışı: temiz DB + tüm kontroller ✅ yapıldı; **🛑 `main`e birleştirme, `v2.0.0-beta.2` etiketi ve push için kullanıcı onayı bekleniyor** |
 | Çalışma dalı | `v2` |
 | Son commit | (bu adımın commit'i aşağıda) |
 | Backend | v2 — modüler FastAPI (Faz 1'de sıfırdan kuruldu), kitap tarafı çalışıyor, film+dizi tarafı U2'yi bekliyor |
@@ -221,7 +221,7 @@ Durum simgeleri: ⬜ Başlamadı · 🟨 Devam ediyor · ✅ Tamamlandı · ⛔ 
 - [x] F4.6 — Hedefler ve rozetler — ✅ (2026-09-30)
 - [x] F4.7 — Veri dışa / içe aktarma (Letterboxd, Goodreads) — ✅ (2026-10-04)
 - [x] F4.8 — PWA — ✅ (2026-10-04)
-- [ ] F4.9 — Faz 4 kapanışı 🏁
+- [ ] F4.9 — Faz 4 kapanışı 🏁 — 🟨 kontroller ✅ (2026-10-04), 🛑 birleştirme/etiket/push onayı bekleniyor
 
 ### Faz 5 — Akıllı Öneriler
 
@@ -422,6 +422,15 @@ Uygulama sırasında ortaya çıkan, planda olmayan ihtiyaç veya öneriler bura
 - **Notlar / sorunlar:** …
 - **Sonraki adım:** F?.?
 ```
+
+### [2026-10-04] F4.9 — 🏁 Faz 4 kapanışı — 🟨 (kontroller tamam, 🛑 onay bekleniyor)
+
+- **Temiz veritabanı:** Plan `python -m scripts.seed --reset` diyor; ancak `--reset` sabit olarak `backend/kfdu.db`'yi siliyor (ayrıca `DATABASE_URL` başka bir dosyayı gösterse bile yalnız `kfdu.db`'yi silip migrasyonu `DATABASE_URL`'e uyguluyor — küçük bir tutarsızlık, F7'de düzeltilebilir). Geliştirme veritabanını silmemek için aynı doğrulama **geçici bir veritabanında** (`DATABASE_URL=sqlite:///<scratchpad>/f49_clean.db`) yapıldı: `alembic upgrade head` → 3 migrasyon sırayla (`fa1eb17da6a0` v2 ilk şema → `03745900fb3f` hedefler → `3c855efb8a04` içe aktarma işleri) ✓; `alembic downgrade base` → üçü de geri alındı ✓; tekrar `upgrade head` ✓; `alembic check` → "No new upgrade operations detected" ✓; `python -m scripts.seed` → 6 kullanıcı, 10 içerik, 40 kütüphane girişi, 12 inceleme, 3 liste, 79 aktivite ✓ (filmler U2'yi bekliyor — beklenen). Geliştirme veritabanı da `head`'de ve `alembic check` temiz.
+- **Tüm kontroller:** Backend `ruff check`+`format --check` temiz, `pytest` **120 passed** (genel kapsam %87). Frontend `lint`/`type-check`/`build` temiz, `test:unit` **90 passed**.
+- **Git durumu:** `v2`, `main`'in 18 commit önünde (`main` `v2`'nin atası → `--ff-only` mümkün), `origin/v2`'nin 16 commit önünde. Etiketler: yalnız `legacy-v1` — **plan Faz 3 kapanışında `v2.0.0-beta.1` istiyordu ama oluşturulmamış** (Faz 3 `--ff-only` ile birleştirilmiş, etiket atlanmış); kullanıcıya soruldu.
+- **Faz 4 demo özeti:** Diziler (sezonlar, bölüm ilerlemesi), bildirim merkezi, kişi/yazar sayfaları, kitap↔film uyarlamaları, istatistikler + Yıllık Özet, hedefler + 12 rozet, veri dışa/içe aktarma (JSON/CSV, Letterboxd, Goodreads), PWA (yüklenebilir, çevrimdışı kabuk/önbellek, güncelleme istemi).
+- **Bekleyen 🛑 kararlar:** `main`e birleştirme + `v2.0.0-beta.2` etiketi + push; F4.7'nin iki plan dışı önerisi (Letterboxd ZIP'i doğrudan kabul, `reviews.csv` metinlerini aktarma).
+- **Sonraki adım:** Onay sonrası F4.9'un kalan kısmı, ardından Faz 5 (F5.1 — Zevk profili)
 
 ### [2026-10-04] F4.8 — PWA (yüklenebilir uygulama) — ✅
 
